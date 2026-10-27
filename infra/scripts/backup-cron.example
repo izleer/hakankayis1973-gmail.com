@@ -1,0 +1,10 @@
+# /etc/cron.d/vh-backup
+# Kurulum: bu dosyayı sunucuda /etc/cron.d/vh-backup olarak kopyalayın ve
+# dizin yollarını kendi kurulumunuza göre düzeltin.
+SHELL=/bin/bash
+PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
+
+# Her gün 03:15 UTC — veritabanı + yerel medya, 14 gün saklama
+15 3 * * * root ENV_FILE=/opt/varlik-hafizasi/.env.production BACKUP_KEEP_DAYS=14 /opt/varlik-hafizasi/infra/scripts/backup.sh >> /var/log/vh-backup.log 2>&1
+
+# Aylık doğrulama hatırlatıcısı: yedek dosyasını başka bir makinede açıp test edin.

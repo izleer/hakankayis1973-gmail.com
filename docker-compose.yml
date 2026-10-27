@@ -1,0 +1,148 @@
+name: varlik-hafizasi
+
+x-logging: &default-logging
+  driver: json-file
+  options:
+    max-size: "10m"
+    max-file: "5"
+
+services:
+  db:
+    image: postgres:17-alpine
+    container_name: vh-db
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-varlik_hafizasi}
+      POSTGRES_USER: ${POSTGRES_USER:-vh_app}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?POSTGRES_PASSWORD .env.production içinde tanımlanmalı}
+    volumes:
+      - db-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 20s
+    networks:
+      - vh
+    logging: *default-logging
+    stop_grace_period: 30s
+
+  api:
+    build:
+      context: .
+      dockerfile: api/Dockerfile
+    image: varlik-hafizasi-api:${IMAGE_TAG:-latest}
+    container_name: vh-api
+    restart: unless-stopped
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      NODE_ENV: production
+      APP_ROOT: /app
+      HOST: 0.0.0.0
+      PORT: 4000
+      RUN_MIGRATIONS: ${RUN_MIGRATIONS:-true}
+      PUBLIC_API_URL: https://${DOMAIN:-localhost}
+      DATABASE_URL: postgresql://${POSTGRES_USER:-vh_app}:${POSTGRES_PASSWORD}@db:5432/${POSTGRES_DB:-varlik_hafizasi}
+      DATABASE_SSL: ${DATABASE_SSL:-false}
+      CORS_ORIGINS: https://${DOMAIN:-localhost}
+      SESSION_TTL_DAYS: ${SESSION_TTL_DAYS:-30}
+      STORAGE_DRIVER: ${STORAGE_DRIVER:-local}
+      STORAGE_DIR: /app/storage
+      MAX_UPLOAD_MB: ${MAX_UPLOAD_MB:-10}
+      S3_REGION: ${S3_REGION:-eu-central-1}
+      S3_BUCKET: ${S3_BUCKET:-varlik-hafizasi-media}
+      S3_ENDPOINT: ${S3_ENDPOINT:-}
+      S3_ACCESS_KEY_ID: ${S3_ACCESS_KEY_ID:-}
+      S3_SECRET_ACCESS_KEY: ${S3_SECRET_ACCESS_KEY:-}
+      S3_FORCE_PATH_STYLE: ${S3_FORCE_PATH_STYLE:-false}
+    volumes:
+      - media-data:/app/storage
+    networks:
+      - vh
+    logging: *default-logging
+    stop_grace_period: 20s
+
+  web:
+    build:
+      context: ./web
+    image: varlik-hafizasi-web:${IMAGE_TAG:-latest}
+    container_name: vh-web
+    restart: unless-stopped
+    depends_on:
+      api:
+        condition: service_healthy
+    environment:
+      NODE_ENV: production
+      API_URL: http://api:4000
+    networks:
+      - vh
+    logging: *default-logging
+    stop_grace_period: 15s
+
+  caddy:
+    image: caddy:2.8-alpine
+    container_name: vh-caddy
+    restart: unless-stopped
+    depends_on:
+      api:
+        condition: service_healthy
+      web:
+        condition: service_healthy
+    environment:
+      DOMAIN: ${DOMAIN:-localhost}
+      ACME_EMAIL: ${ACME_EMAIL:-admin@example.com}
+    ports:
+      - "80:80"
+      - "443:443"
+      - "443:443/udp"
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy-data:/data
+      - caddy-config:/config
+    networks:
+      - vh
+    logging: *default-logging
+
+  # İsteğe bağlı: demo verisini yükler. "docker compose --profile seed run --rm seed"
+  seed:
+    profiles: ["seed"]
+    image: varlik-hafizasi-api:${IMAGE_TAG:-latest}
+    build:
+      context: .
+      dockerfile: api/Dockerfile
+    container_name: vh-seed
+    restart: "no"
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      NODE_ENV: production
+      APP_ROOT: /app
+      RUN_MIGRATIONS: "true"
+      DATABASE_URL: postgresql://${POSTGRES_USER:-vh_app}:${POSTGRES_PASSWORD}@db:5432/${POSTGRES_DB:-varlik_hafizasi}
+      DATABASE_SSL: "false"
+      STORAGE_DRIVER: ${STORAGE_DRIVER:-local}
+      STORAGE_DIR: /app/storage
+    volumes:
+      - media-data:/app/storage
+    networks:
+      - vh
+    logging: *default-logging
+
+networks:
+  vh:
+    name: vh-net
+    driver: bridge
+
+volumes:
+  db-data:
+    name: vh-db-data
+  media-data:
+    name: vh-media-data
+  caddy-data:
+    name: vh-caddy-data
+  caddy-config:
+    name: vh-caddy-config

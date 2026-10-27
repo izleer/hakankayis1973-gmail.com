@@ -1,0 +1,204 @@
+export type Visibility = 'private' | 'selected' | 'public';
+export type AssetStatus = 'active' | 'archived';
+export type EntryType =
+  | 'note'
+  | 'photo'
+  | 'maintenance'
+  | 'acquisition'
+  | 'measurement'
+  | 'health'
+  | 'event'
+  | 'document';
+
+export type UserMini = {
+  id: string;
+  username: string;
+  displayName: string;
+  avatarUrl: string | null;
+};
+
+export type User = UserMini & {
+  email?: string;
+  bio?: string | null;
+  role: 'user' | 'moderator' | 'admin';
+  interests?: string[];
+  createdAt?: string;
+  onboardedAt?: string | null;
+  stats?: {
+    assets: number;
+    entries: number;
+    posts: number;
+    followers: number;
+    following: number;
+  };
+  isSelf?: boolean;
+  isFollowing?: boolean;
+};
+
+export type AttributeField = {
+  key: string;
+  label: string;
+  type?: 'text' | 'date' | 'number' | string;
+  options?: string[];
+};
+
+export type AssetType = {
+  id: string;
+  parentId: string | null;
+  label: string;
+  icon: string | null;
+  sortOrder: number;
+  attributesSchema: { fields?: AttributeField[] };
+  children: AssetType[];
+};
+
+export type Asset = {
+  id: string;
+  title: string;
+  description: string | null;
+  visibility: Visibility;
+  status: AssetStatus;
+  coverUrl: string | null;
+  locationName: string | null;
+  acquiredAt: string | null;
+  attributes: Record<string, unknown>;
+  owner: UserMini;
+  type: { id: string; label: string; parentId: string | null; icon: string | null };
+  entryCount: number;
+  createdAt: string;
+  updatedAt: string;
+};
+
+export type Media = {
+  id: string;
+  kind: 'image' | 'video' | 'document';
+  status: 'pending' | 'ready' | 'failed';
+  url: string | null;
+  mimeType: string;
+  originalName: string | null;
+  byteSize: number;
+  width: number | null;
+  height: number | null;
+  createdAt: string;
+};
+
+export type Entry = {
+  id: string;
+  assetId: string;
+  type: EntryType;
+  title: string | null;
+  body: string | null;
+  occurredAt: string;
+  visibility: Visibility;
+  locationName: string | null;
+  attributes: Record<string, unknown>;
+  author: UserMini;
+  media: Media[];
+  createdAt: string;
+  updatedAt: string;
+  asset?: { id: string; title: string; typeId: string; typeLabel: string };
+};
+
+export type Stats = {
+  assets: number;
+  archivedAssets: number;
+  publicAssets: number;
+  entries: number;
+  media: number;
+  images: number;
+  documents: number;
+  videos: number;
+  sharedWithMe: number;
+  followers: number;
+  following: number;
+  recentEntries: Entry[];
+};
+
+export type Paged<T> = {
+  items: T[];
+  page: number;
+  pageSize: number;
+  total: number;
+};
+
+export type CursorPage<T> = {
+  items: T[];
+  nextCursor: string | null;
+};
+
+export type ArchiveItem = Media & {
+  asset: { id: string; title: string; typeId: string; typeLabel: string };
+  entry: { id: string; title: string | null; occurredAt: string | null } | null;
+};
+
+export type ArchiveResponse = CursorPage<ArchiveItem> & {
+  counts: { total: number; images: number; documents: number; videos: number };
+};
+
+export type Measurement = {
+  id: string;
+  metric: string;
+  value: number;
+  unit: string;
+  measuredAt: string;
+};
+
+export type AssetDetailData = {
+  asset: Asset;
+  entries: Entry[];
+  entriesNextCursor: string | null;
+  ownerships: {
+    id: string;
+    owner: UserMini;
+    status: 'active' | 'ended';
+    startedAt: string;
+    endedAt: string | null;
+    note: string | null;
+  }[];
+  access: {
+    isOwner: boolean;
+    isShared: boolean;
+    viewers: { user: UserMini; grantedAt: string }[];
+  };
+};
+
+export type FeedPost = {
+  id: string;
+  body: string;
+  audience: 'public' | 'community';
+  status: string;
+  createdAt: string;
+  updatedAt: string;
+  author: UserMini;
+  asset: {
+    id: string;
+    title: string;
+    coverUrl: string | null;
+    visibility: Visibility;
+    typeLabel: string;
+  } | null;
+  entry: { id: string; title: string | null; type: EntryType; occurredAt: string | null } | null;
+  community: { id: string; slug: string; name: string } | null;
+  likeCount: number;
+  commentCount: number;
+  likedByMe: boolean;
+  media: Media[];
+};
+
+export type Notification = {
+  id: string;
+  type: string;
+  entityType: string | null;
+  entityId: string | null;
+  message: string | null;
+  readAt: string | null;
+  createdAt: string;
+  actor: UserMini | null;
+};
+
+export type ProfileData = {
+  user: User;
+  assets: Asset[];
+};
+
+export type SessionResponse = { user: User };

@@ -1,0 +1,1133 @@
+'use client';
+
+import Link from 'next/link';
+import { useRouter } from 'next/navigation';
+import { useEffect, useMemo, useRef, useState } from 'react';
+import { uploadMedia, vh } from '@/lib/client';
+import {
+  entryTypeDescriptions,
+  entryTypeLabels,
+  formatBytes,
+  formatDate,
+  formatDateTime,
+  formatNumber,
+  mediaSrc,
+  typeIconName,
+  visibilityLabels,
+} from '@/lib/format';
+import type {
+  Asset,
+  AssetDetailData,
+  Entry,
+  EntryType,
+  Measurement,
+  Media,
+  User,
+  UserMini,
+  Visibility,
+} from '@/lib/types';
+import { EmptyState } from './EmptyState';
+import { Icon, type IconName } from './Icons';
+import { MediaImage } from './MediaImage';
+
+const entryIcons: Record<EntryType, IconName> = {
+  note: 'book',
+  photo: 'camera',
+  maintenance: 'sprout',
+  acquisition: 'sparkles',
+  measurement: 'ruler',
+  health: 'heart',
+  event: 'sparkles',
+  document: 'file',
+};
+
+const entryTypes = Object.keys(entryTypeLabels) as EntryType[];
+const visibilityOrder: Visibility[] = ['private', 'selected', 'public'];
+
+function nowLocalInput(): string {
+  const date = new Date();
+  const offset = date.getTimezoneOffset();
+  return new Date(date.getTime() - offset * 60 * 1000).toISOString().slice(0, 16);
+}
+
+export function AssetDetail({
+  data,
+  measurements,
+  viewer,
+}: {
+  data: AssetDetailData;
+  measurements: Measurement[];
+  viewer: User;
+}) {
+  const router = useRouter();
+  const [asset, setAsset] = useState(data.asset);
+  const [entries, setEntries] = useState(data.entries);
+  const [viewers, setViewers] = useState(data.access.viewers);
+  const [tab, setTab] = useState<'story' | 'archive' | 'measurements' | 'share'>('story');
+  const [composerOpen, setComposerOpen] = useState(false);
+  const [editOpen, setEditOpen] = useState(false);
+  const [lightbox, setLightbox] = useState<{ url: string; alt: string } | null>(null);
+  const [notice, setNotice] = useState<string | null>(null);
+
+  const isOwner = data.access.isOwner || viewer.id === asset.owner.id;
+  const media = useMemo(
+    () =>
+      entries
+        .flatMap((entry) => entry.media)
+        .sort((a, b) => +new Date(b.createdAt) - +new Date(a.createdAt)),
+    [entries],
+  );
+  const images = media.filter((item) => item.kind === 'image');
+  const documents = media.filter((item) => item.kind === 'document');
+
+  function flash(message: string) {
+    setNotice(message);
+    window.setTimeout(() => setNotice(null), 3200);
+  }
+
+  return (
+    <main className="page page-detail">
+      <Link href="/varliklar" className="back-link">
+        <Icon name="arrow-left" size={16} />
+        Varlıklar
+      </Link>
+
+      <header className="detail-banner">
+        <div className="detail-cover">
+          <MediaImage
+            src={asset.coverUrl}
+            alt={asset.title}
+            fallbackIcon={typeIconName(asset.type.icon)}
+            loading="eager"
+          />
+          <span className="detail-type">
+            <Icon name={typeIconName(asset.type.icon)} size={15} />
+            {asset.type.label}
+          </span>
+        </div>
+
+        <div className="detail-info">
+          <div className="detail-kicker">
+            <span className={`visibility-pill is-${asset.visibility}`}>
+              <Icon
+                name={
+                  asset.visibility === 'private'
+                    ? 'lock'
+                    : asset.visibility === 'selected'
+                      ? 'users'
+                      : 'eye'
+                }
+                size={13}
+              />
+              {visibilityLabels[asset.visibility]}
+            </span>
+            <span className={`status-pill${asset.status === 'archived' ? ' is-archived' : ''}`}>
+              {asset.status === 'archived' ? 'Arşivde' : 'Takipte'}
+            </span>
+          </div>
+          <h1>{asset.title}</h1>
+          {asset.description ? <p className="detail-description">{asset.description}</p> : null}
+
+          <dl className="detail-meta">
+            {asset.acquiredAt ? (
+              <div>
+                <dt>Başlangıç</dt>
+                <dd>{formatDate(asset.acquiredAt)}</dd>
+              </div>
+            ) : null}
+            {asset.locationName ? (
+              <div>
+                <dt>Konum</dt>
+                <dd>
+                  <Icon name="pin" size={14} />
+                  {asset.locationName}
+                </dd>
+              </div>
+            ) : null}
+            <div>
+              <dt>Hafıza</dt>
+              <dd>{formatNumber(asset.entryCount)} kayıt</dd>
+            </div>
+            <div>
+              <dt>Arşiv</dt>
+              <dd>
+                {images.length} fotoğraf · {documents.length} belge
+              </dd>
+            </div>
+            {Object.entries(asset.attributes)
+              .filter(([, value]) => value !== null && value !== '')
+              .slice(0, 4)
+              .map(([key, value]) => (
+                <div key={key}>
+                  <dt>{key.replaceAll('_', ' ')}</dt>
+                  <dd>{String(value)}</dd>
+                </div>
+              ))}
+          </dl>
+
+          <div className="detail-actions">
+            {isOwner ? (
+              <>
+                <button
+                  type="button"
+                  className="btn btn-primary"
+                  onClick={() => {
+                    setComposerOpen(true);
+                    setTab('story');
+                  }}
+                >
+                  <Icon name="plus" size={17} />
+                  Kayıt ekle
+                </button>
+                <button type="button" className="btn btn-ghost" onClick={() => setEditOpen(true)}>
+                  <Icon name="edit" size={16} />
+                  Düzenle
+                </button>
+              </>
+            ) : (
+              <span className="shared-note">
+                <Icon name="users" size={16} />
+                {asset.owner.displayName} tarafından paylaşıldı
+              </span>
+            )}
+          </div>
+          <p className="detail-owner">
+            <span className="avatar avatar-tiny">
+              {asset.owner.avatarUrl ? (
+                <img src={asset.owner.avatarUrl} alt="" />
+              ) : (
+                asset.owner.displayName.slice(0, 1)
+              )}
+            </span>
+            {asset.owner.displayName} · @{asset.owner.username}
+          </p>
+        </div>
+      </header>
+
+      <nav className="tabs" aria-label="Varlık bölümleri">
+        <button
+          type="button"
+          className={tab === 'story' ? 'is-active' : ''}
+          onClick={() => setTab('story')}
+        >
+          Hikâye <span>{entries.length}</span>
+        </button>
+        <button
+          type="button"
+          className={tab === 'archive' ? 'is-active' : ''}
+          onClick={() => setTab('archive')}
+        >
+          Arşiv <span>{media.length}</span>
+        </button>
+        <button
+          type="button"
+          className={tab === 'measurements' ? 'is-active' : ''}
+          onClick={() => setTab('measurements')}
+        >
+          Ölçümler <span>{measurements.length}</span>
+        </button>
+        {isOwner ? (
+          <button
+            type="button"
+            className={tab === 'share' ? 'is-active' : ''}
+            onClick={() => setTab('share')}
+          >
+            Paylaşım <span>{viewers.length}</span>
+          </button>
+        ) : null}
+      </nav>
+
+      {notice ? (
+        <div className="toast" role="status">
+          <Icon name="check" size={16} />
+          {notice}
+        </div>
+      ) : null}
+
+      {tab === 'story' ? (
+        <section className="story">
+          {isOwner ? (
+            <button
+              type="button"
+              className="composer-prompt"
+              onClick={() => setComposerOpen(true)}
+            >
+              <span className="composer-prompt-icon">
+                <Icon name="plus" size={18} />
+              </span>
+              <span>
+                <strong>Bugün ne oldu?</strong>
+                <small>Bir fotoğraf, bakım notu ya da küçük bir an ekle.</small>
+              </span>
+              <Icon name="arrow-right" size={18} />
+            </button>
+          ) : null}
+
+          {entries.length > 0 ? (
+            <Timeline
+              entries={entries}
+              onOpenImage={(item, alt) => setLightbox({ url: item, alt })}
+            />
+          ) : (
+            <EmptyState
+              icon="book"
+              title="Hikâye henüz başlamadı"
+              body="İlk kaydı eklediğinde burada bir zaman çizelgesi oluşacak."
+            />
+          )}
+        </section>
+      ) : null}
+
+      {tab === 'archive' ? (
+        <ArchivePanel
+          media={media}
+          onOpenImage={(item, alt) => setLightbox({ url: item, alt })}
+        />
+      ) : null}
+
+      {tab === 'measurements' ? <MeasurementsPanel items={measurements} /> : null}
+
+      {tab === 'share' && isOwner ? (
+        <SharePanel
+          asset={asset}
+          viewers={viewers}
+          onChange={setViewers}
+          onFlash={flash}
+        />
+      ) : null}
+
+      {composerOpen ? (
+        <EntryComposer
+          asset={asset}
+          onClose={() => setComposerOpen(false)}
+          onCreated={(entry) => {
+            setEntries((current) => [entry, ...current]);
+            setAsset((current) => ({ ...current, entryCount: current.entryCount + 1 }));
+            setComposerOpen(false);
+            flash('Kayıt hafızaya eklendi.');
+          }}
+        />
+      ) : null}
+
+      {editOpen ? (
+        <EditAssetModal
+          asset={asset}
+          onClose={() => setEditOpen(false)}
+          onSaved={(next) => {
+            setAsset(next);
+            setEditOpen(false);
+            flash('Varlık bilgileri güncellendi.');
+            router.refresh();
+          }}
+          onDeleted={() => {
+            router.push('/varliklar');
+            router.refresh();
+          }}
+        />
+      ) : null}
+
+      {lightbox ? (
+        <div className="lightbox" onClick={() => setLightbox(null)}>
+          <button type="button" className="lightbox-close" aria-label="Kapat">
+            <Icon name="close" size={22} />
+          </button>
+          <img
+            src={lightbox.url}
+            alt={lightbox.alt}
+            onClick={(event) => event.stopPropagation()}
+          />
+        </div>
+      ) : null}
+    </main>
+  );
+}
+
+function Timeline({
+  entries,
+  onOpenImage,
+}: {
+  entries: Entry[];
+  onOpenImage: (url: string, alt: string) => void;
+}) {
+  let lastYear = '';
+  return (
+    <div className="timeline">
+      {entries.map((entry) => {
+        const year = new Date(entry.occurredAt).getFullYear().toString();
+        const showYear = year !== lastYear;
+        lastYear = year;
+        return (
+          <div key={entry.id}>
+            {showYear ? <div className="year-divider">{year}</div> : null}
+            <article className="timeline-entry">
+              <div className="timeline-date">
+                <strong>{new Date(entry.occurredAt).getDate()}</strong>
+                <span>
+                  {new Date(entry.occurredAt).toLocaleDateString('tr-TR', {
+                    month: 'short',
+                    timeZone: 'Europe/Istanbul',
+                  })}
+                </span>
+              </div>
+              <div className="entry-card">
+                <header className="entry-head">
+                  <span className={`entry-kind type-${entry.type}`}>
+                    <Icon name={entryIcons[entry.type]} size={14} />
+                    {entryTypeLabels[entry.type]}
+                  </span>
+                  {entry.visibility !== 'public' ? (
+                    <span className="entry-privacy">
+                      <Icon name={entry.visibility === 'private' ? 'lock' : 'users'} size={12} />
+                      {visibilityLabels[entry.visibility]}
+                    </span>
+                  ) : null}
+                  <span className="entry-time">
+                    {formatDateTime(entry.occurredAt).split(' ').slice(-1)}
+                  </span>
+                </header>
+                {entry.title ? <h3>{entry.title}</h3> : null}
+                {entry.body ? <p>{entry.body}</p> : null}
+                {Object.keys(entry.attributes ?? {}).length > 0 ? (
+                  <dl className="entry-attrs">
+                    {Object.entries(entry.attributes)
+                      .slice(0, 6)
+                      .map(([key, value]) => (
+                        <div key={key}>
+                          <dt>{key.replaceAll('_', ' ')}</dt>
+                          <dd>{String(value)}</dd>
+                        </div>
+                      ))}
+                  </dl>
+                ) : null}
+                {entry.media.length > 0 ? (
+                  <div className="entry-media">
+                    {entry.media
+                      .filter((item) => item.kind === 'image')
+                      .map((item) => (
+                        <button
+                          type="button"
+                          key={item.id}
+                          className="entry-photo"
+                          onClick={() => onOpenImage(mediaSrc(item.url) ?? '', entry.title ?? '')}
+                        >
+                          <MediaImage src={mediaSrc(item.url)} alt={entry.title ?? ''} />
+                        </button>
+                      ))}
+                    {entry.media
+                      .filter((item) => item.kind === 'document')
+                      .map((item) => (
+                        <DocumentChip key={item.id} media={item} />
+                      ))}
+                  </div>
+                ) : null}
+                <footer className="entry-foot">
+                  <span>
+                    {entry.locationName ? (
+                      <>
+                        <Icon name="pin" size={12} /> {entry.locationName}
+                      </>
+                    ) : (
+                      entryTypeDescriptions[entry.type]
+                    )}
+                  </span>
+                  <span>{formatDate(entry.occurredAt)}</span>
+                </footer>
+              </div>
+            </article>
+          </div>
+        );
+      })}
+    </div>
+  );
+}
+
+function DocumentChip({ media }: { media: Media }) {
+  return (
+    <a
+      className="doc-chip"
+      href={mediaSrc(media.url) ?? '#'}
+      target="_blank"
+      rel="noreferrer"
+      download={media.originalName ?? undefined}
+    >
+      <span className="doc-chip-icon">
+        <Icon name="file" size={18} />
+      </span>
+      <span>
+        <strong>{media.originalName ?? 'Belge'}</strong>
+        <small>{media.mimeType.split('/')[1]?.toUpperCase()} · {formatBytes(media.byteSize)}</small>
+      </span>
+      <Icon name="download" size={15} />
+    </a>
+  );
+}
+
+function ArchivePanel({
+  media,
+  onOpenImage,
+}: {
+  media: Media[];
+  onOpenImage: (url: string, alt: string) => void;
+}) {
+  const [filter, setFilter] = useState<'all' | 'image' | 'document'>('all');
+  const [query, setQuery] = useState('');
+  const filtered = media.filter((item) => {
+    if (filter !== 'all' && item.kind !== filter) return false;
+    if (query && !(item.originalName ?? '').toLowerCase().includes(query.toLowerCase())) return false;
+    return true;
+  });
+
+  return (
+    <section className="archive-panel">
+      <div className="archive-toolbar">
+        <div className="segmented">
+          <button type="button" className={filter === 'all' ? 'is-active' : ''} onClick={() => setFilter('all')}>
+            Tümü
+          </button>
+          <button type="button" className={filter === 'image' ? 'is-active' : ''} onClick={() => setFilter('image')}>
+            Fotoğraf
+          </button>
+          <button type="button" className={filter === 'document' ? 'is-active' : ''} onClick={() => setFilter('document')}>
+            Belge
+          </button>
+        </div>
+        <label className="inline-search">
+          <Icon name="search" size={16} />
+          <input
+            value={query}
+            onChange={(event) => setQuery(event.target.value)}
+            placeholder="Arşivde ara…"
+            aria-label="Arşivde ara"
+          />
+        </label>
+      </div>
+
+      {filtered.length === 0 ? (
+        <EmptyState
+          icon="archive"
+          title="Bu filtrede bir parça yok"
+          body="Fotoğraf ya da belge eklediğinde arşiv burada büyüyecek."
+        />
+      ) : (
+        <div className="archive-grid">
+          {filtered.map((item) =>
+            item.kind === 'image' ? (
+              <button
+                type="button"
+                key={item.id}
+                className="archive-tile"
+                onClick={() => onOpenImage(mediaSrc(item.url) ?? '', item.originalName ?? '')}
+              >
+                <MediaImage src={mediaSrc(item.url)} alt={item.originalName ?? ''} />
+                <span className="archive-tile-info">
+                  <strong>{item.originalName?.replace(/\.[^.]+$/, '') ?? 'Fotoğraf'}</strong>
+                  <small>{formatDate(item.createdAt)}</small>
+                </span>
+              </button>
+            ) : (
+              <a
+                key={item.id}
+                className="archive-tile archive-doc"
+                href={mediaSrc(item.url) ?? '#'}
+                target="_blank"
+                rel="noreferrer"
+              >
+                <span className="archive-doc-icon">
+                  <Icon name="file" size={26} />
+                </span>
+                <span className="archive-tile-info">
+                  <strong>{item.originalName ?? 'Belge'}</strong>
+                  <small>{formatBytes(item.byteSize)} · {formatDate(item.createdAt)}</small>
+                </span>
+                <Icon name="download" size={16} />
+              </a>
+            ),
+          )}
+        </div>
+      )}
+    </section>
+  );
+}
+
+function MeasurementsPanel({ items }: { items: Measurement[] }) {
+  const grouped = useMemo(() => {
+    const map = new Map<string, Measurement[]>();
+    for (const item of items) {
+      const list = map.get(item.metric) ?? [];
+      list.push(item);
+      map.set(item.metric, list);
+    }
+    for (const list of map.values()) {
+      list.sort((a, b) => +new Date(a.measuredAt) - +new Date(b.measuredAt));
+    }
+    return [...map.entries()];
+  }, [items]);
+
+  if (grouped.length === 0) {
+    return (
+      <EmptyState
+        icon="ruler"
+        title="Henüz ölçüm yok"
+        body="Boy, kilo, yaprak sayısı gibi ölçümler eklendiğinde değişim burada grafikleşir."
+      />
+    );
+  }
+
+  return (
+    <section className="measurements">
+      {grouped.map(([metric, list]) => {
+        const latest = list[list.length - 1]!;
+        const first = list[0]!;
+        const delta = latest.value - first.value;
+        const values = list.map((item) => item.value);
+        const min = Math.min(...values);
+        const max = Math.max(...values);
+        const span = max - min || 1;
+        const width = 560;
+        const height = 150;
+        const points = list.map((item, index) => {
+          const x = list.length === 1 ? width / 2 : 24 + (index / (list.length - 1)) * (width - 48);
+          const y = 18 + (1 - (item.value - min) / span) * (height - 48);
+          return { x, y, item };
+        });
+        const path = points.map((point) => `${point.x},${point.y}`).join(' ');
+
+        return (
+          <article className="metric-card" key={metric}>
+            <header>
+              <div>
+                <span className="eyebrow">Ölçüm</span>
+                <h3>{metric}</h3>
+              </div>
+              <div className="metric-latest">
+                <strong>
+                  {formatNumber(latest.value)} <small>{latest.unit}</small>
+                </strong>
+                {list.length > 1 ? (
+                  <span className={delta >= 0 ? 'delta-up' : 'delta-down'}>
+                    {delta >= 0 ? '+' : ''}
+                    {formatNumber(Number(delta.toFixed(2)))} {latest.unit}
+                  </span>
+                ) : null}
+              </div>
+            </header>
+            <svg viewBox={`0 0 ${width} ${height}`} className="metric-chart" role="img" aria-label={`${metric} değişimi`}>
+              <defs>
+                <linearGradient id={`fill-${metric.replace(/\s/g, '-')}`} x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="0%" stopColor="#5b6f55" stopOpacity="0.25" />
+                  <stop offset="100%" stopColor="#5b6f55" stopOpacity="0" />
+                </linearGradient>
+              </defs>
+              <polygon
+                points={`24,${height - 24} ${path} ${width - 24},${height - 24}`}
+                fill={`url(#fill-${metric.replace(/\s/g, '-')})`}
+              />
+              <polyline points={path} fill="none" stroke="#4f6549" strokeWidth="2" />
+              {points.map((point) => (
+                <circle key={point.item.id} cx={point.x} cy={point.y} r="3.5" fill="#f5f0e6" stroke="#4f6549" strokeWidth="2" />
+              ))}
+            </svg>
+            <footer>
+              <span>{formatDate(first.measuredAt)}</span>
+              <span>{list.length} ölçüm</span>
+              <span>{formatDate(latest.measuredAt)}</span>
+            </footer>
+          </article>
+        );
+      })}
+    </section>
+  );
+}
+
+function SharePanel({
+  asset,
+  viewers,
+  onChange,
+  onFlash,
+}: {
+  asset: Asset;
+  viewers: { user: UserMini; grantedAt: string }[];
+  onChange: (next: { user: UserMini; grantedAt: string }[]) => void;
+  onFlash: (message: string) => void;
+}) {
+  const [username, setUsername] = useState('');
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  async function addUser(event: React.FormEvent) {
+    event.preventDefault();
+    setBusy(true);
+    setError(null);
+    try {
+      const data = await vh.post<{ user: UserMini }>(`assets/${asset.id}/access`, { username });
+      onChange([{ user: data.user, grantedAt: new Date().toISOString() }, ...viewers]);
+      setUsername('');
+      onFlash('Erişim verildi.');
+    } catch (caught) {
+      setError(caught instanceof Error ? caught.message : 'Erişim verilemedi.');
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  async function removeUser(userId: string) {
+    setBusy(true);
+    try {
+      await vh.delete(`assets/${asset.id}/access/${userId}`);
+      onChange(viewers.filter((item) => item.user.id !== userId));
+      onFlash('Erişim kaldırıldı.');
+    } catch (caught) {
+      setError(caught instanceof Error ? caught.message : 'Erişim kaldırılamadı.');
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  return (
+    <section className="share-panel">
+      <div className="info-card">
+        <Icon name="users" size={22} />
+        <div>
+          <h3>Seçili kişilerle paylaş</h3>
+          <p>
+            Varlığın görünürlüğü <strong>{visibilityLabels[asset.visibility]}</strong>. Buradan
+            eklediğin kişiler, varlıkla birlikte seçili kayıtlarını da görebilir.
+          </p>
+        </div>
+      </div>
+
+      <form className="share-form" onSubmit={addUser}>
+        <Icon name="user" size={18} />
+        <input
+          value={username}
+          onChange={(event) => setUsername(event.target.value)}
+          placeholder="Kullanıcı adı veya e-posta"
+          aria-label="Paylaşılacak kullanıcı"
+          required
+        />
+        <button className="btn btn-primary btn-sm" type="submit" disabled={busy || !username}>
+          Erişim ver
+        </button>
+      </form>
+      {error ? <div className="form-error">{error}</div> : null}
+
+      <div className="share-list">
+        {viewers.length === 0 ? (
+          <p className="muted-note">Henüz kimseyle paylaşmadın.</p>
+        ) : (
+          viewers.map((item) => (
+            <div className="share-row" key={item.user.id}>
+              <span className="avatar avatar-small">
+                {item.user.avatarUrl ? <img src={item.user.avatarUrl} alt="" /> : item.user.displayName.slice(0, 1)}
+              </span>
+              <span>
+                <strong>{item.user.displayName}</strong>
+                <small>@{item.user.username} · {formatDate(item.grantedAt)}</small>
+              </span>
+              <button
+                type="button"
+                className="icon-btn"
+                onClick={() => removeUser(item.user.id)}
+                disabled={busy}
+                aria-label="Erişimi kaldır"
+              >
+                <Icon name="close" size={17} />
+              </button>
+            </div>
+          ))
+        )}
+      </div>
+    </section>
+  );
+}
+
+function EntryComposer({
+  asset,
+  onClose,
+  onCreated,
+}: {
+  asset: Asset;
+  onClose: () => void;
+  onCreated: (entry: Entry) => void;
+}) {
+  const [type, setType] = useState<EntryType>('note');
+  const [title, setTitle] = useState('');
+  const [body, setBody] = useState('');
+  const [occurredAt, setOccurredAt] = useState(nowLocalInput());
+  const [visibility, setVisibility] = useState<Visibility>(
+    asset.visibility === 'public' ? 'private' : 'private',
+  );
+  const [files, setFiles] = useState<File[]>([]);
+  const [busy, setBusy] = useState(false);
+  const [progress, setProgress] = useState<string | null>(null);
+  const [error, setError] = useState<string | null>(null);
+  const inputRef = useRef<HTMLInputElement>(null);
+
+  const allowedVisibilities = visibilityOrder.filter(
+    (item) => visibilityOrder.indexOf(item) <= visibilityOrder.indexOf(asset.visibility),
+  );
+
+  async function submit(event: React.FormEvent) {
+    event.preventDefault();
+    if (!title && !body) {
+      setError('Bir başlık ya da not yazın.');
+      return;
+    }
+    if (files.length > 8) {
+      setError('Bir kayda en fazla 8 dosya eklenebilir.');
+      return;
+    }
+    setBusy(true);
+    setError(null);
+    try {
+      const mediaIds: string[] = [];
+      for (const [index, file] of files.entries()) {
+        setProgress(`Dosyalar yükleniyor · ${index + 1}/${files.length}`);
+        const media = await uploadMedia(file);
+        mediaIds.push(media.id);
+      }
+      setProgress('Kayıt oluşturuluyor…');
+      const data = await vh.post<{ entry: Entry }>(`assets/${asset.id}/entries`, {
+        type,
+        title: title || null,
+        body: body || null,
+        occurredAt: new Date(occurredAt).toISOString(),
+        visibility,
+        mediaIds,
+      });
+      onCreated(data.entry);
+    } catch (caught) {
+      setError(caught instanceof Error ? caught.message : 'Kayıt eklenemedi.');
+    } finally {
+      setBusy(false);
+      setProgress(null);
+    }
+  }
+
+  return (
+    <div className="modal-backdrop" role="dialog" aria-modal="true" aria-label="Yeni kayıt">
+      <div className="modal">
+        <header className="modal-head">
+          <div>
+            <span className="eyebrow">Yeni iz</span>
+            <h2>Hafızaya kayıt ekle</h2>
+          </div>
+          <button type="button" className="icon-btn" onClick={onClose} aria-label="Kapat">
+            <Icon name="close" size={20} />
+          </button>
+        </header>
+
+        <form className="modal-body" onSubmit={submit}>
+          <div className="entry-type-grid">
+            {entryTypes.map((item) => (
+              <button
+                type="button"
+                key={item}
+                className={`entry-type-option${type === item ? ' is-selected' : ''}`}
+                onClick={() => setType(item)}
+              >
+                <Icon name={entryIcons[item]} size={18} />
+                <span>{entryTypeLabels[item]}</span>
+              </button>
+            ))}
+          </div>
+
+          <label className="field">
+            <span>Başlık</span>
+            <input
+              className="input"
+              value={title}
+              onChange={(event) => setTitle(event.target.value)}
+              placeholder={type === 'maintenance' ? 'Örn. Kök ve tel kontrolü' : 'Kısa bir başlık'}
+              maxLength={140}
+            />
+          </label>
+
+          <label className="field">
+            <span>Not</span>
+            <textarea
+              className="textarea"
+              value={body}
+              onChange={(event) => setBody(event.target.value)}
+              placeholder="Bugün ne oldu? Ne değişti? Ne hissettin?"
+              rows={5}
+              maxLength={5000}
+            />
+          </label>
+
+          <div className="form-grid">
+            <label className="field">
+              <span>Tarih ve saat</span>
+              <input
+                className="input"
+                type="datetime-local"
+                value={occurredAt}
+                onChange={(event) => setOccurredAt(event.target.value)}
+                required
+              />
+            </label>
+            <label className="field">
+              <span>Kimler görebilsin?</span>
+              <select
+                className="select"
+                value={visibility}
+                onChange={(event) => setVisibility(event.target.value as Visibility)}
+              >
+                {allowedVisibilities.map((item) => (
+                  <option key={item} value={item}>
+                    {visibilityLabels[item]}
+                  </option>
+                ))}
+              </select>
+            </label>
+          </div>
+
+          <div className="upload-field">
+            <input
+              ref={inputRef}
+              type="file"
+              multiple
+              hidden
+              accept="image/jpeg,image/png,image/webp,image/gif,image/avif,application/pdf"
+              onChange={(event) => setFiles(Array.from(event.target.files ?? []).slice(0, 8))}
+            />
+            <button
+              type="button"
+              className="btn btn-ghost"
+              onClick={() => inputRef.current?.click()}
+            >
+              <Icon name="camera" size={17} />
+              Fotoğraf veya belge ekle
+            </button>
+            <span className="upload-hint">
+              En fazla 8 dosya · 10 MB / dosya · JPG, PNG, WEBP, GIF, PDF
+            </span>
+            {files.length > 0 ? (
+              <div className="file-list">
+                {files.map((file, index) => (
+                  <span className="file-pill" key={`${file.name}-${index}`}>
+                    <Icon name={file.type.startsWith('image/') ? 'image' : 'file'} size={14} />
+                    {file.name}
+                    <button
+                      type="button"
+                      onClick={() => setFiles((current) => current.filter((_, i) => i !== index))}
+                      aria-label="Dosyayı kaldır"
+                    >
+                      <Icon name="close" size={12} />
+                    </button>
+                  </span>
+                ))}
+              </div>
+            ) : null}
+          </div>
+
+          {error ? <div className="form-error">{error}</div> : null}
+          {progress ? <div className="progress-note">{progress}</div> : null}
+
+          <div className="modal-actions">
+            <button type="button" className="btn btn-ghost" onClick={onClose} disabled={busy}>
+              Vazgeç
+            </button>
+            <button type="submit" className="btn btn-primary" disabled={busy}>
+              {busy ? 'Kaydediliyor…' : 'Hafızaya ekle'}
+              {!busy ? <Icon name="arrow-right" size={17} /> : null}
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  );
+}
+
+function EditAssetModal({
+  asset,
+  onClose,
+  onSaved,
+  onDeleted,
+}: {
+  asset: Asset;
+  onClose: () => void;
+  onSaved: (asset: Asset) => void;
+  onDeleted: () => void;
+}) {
+  const [title, setTitle] = useState(asset.title);
+  const [description, setDescription] = useState(asset.description ?? '');
+  const [visibility, setVisibility] = useState<Visibility>(asset.visibility);
+  const [status, setStatus] = useState(asset.status);
+  const [acquiredAt, setAcquiredAt] = useState(asset.acquiredAt ?? '');
+  const [locationName, setLocationName] = useState(asset.locationName ?? '');
+  const [cover, setCover] = useState<File | null>(null);
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const fileRef = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    function escape(event: KeyboardEvent) {
+      if (event.key === 'Escape') onClose();
+    }
+    window.addEventListener('keydown', escape);
+    return () => window.removeEventListener('keydown', escape);
+  }, [onClose]);
+
+  async function save(event: React.FormEvent) {
+    event.preventDefault();
+    setBusy(true);
+    setError(null);
+    try {
+      let coverMediaId: string | undefined;
+      if (cover) {
+        const media = await uploadMedia(cover);
+        coverMediaId = media.id;
+      }
+      const data = await vh.patch<{ asset: Asset }>(`assets/${asset.id}`, {
+        title,
+        description: description || null,
+        visibility,
+        status,
+        acquiredAt: acquiredAt || null,
+        locationName: locationName || null,
+        ...(coverMediaId ? { coverMediaId } : {}),
+      });
+      onSaved(data.asset);
+    } catch (caught) {
+      setError(caught instanceof Error ? caught.message : 'Güncellenemedi.');
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  async function remove() {
+    if (!window.confirm(`"${asset.title}" ve tüm kayıtları silinsin mi? Bu işlem geri alınamaz.`)) {
+      return;
+    }
+    setBusy(true);
+    try {
+      await vh.delete(`assets/${asset.id}`);
+      onDeleted();
+    } catch (caught) {
+      setError(caught instanceof Error ? caught.message : 'Varlık silinemedi.');
+      setBusy(false);
+    }
+  }
+
+  return (
+    <div className="modal-backdrop" role="dialog" aria-modal="true" aria-label="Varlığı düzenle">
+      <div className="modal">
+        <header className="modal-head">
+          <div>
+            <span className="eyebrow">Varlık bilgileri</span>
+            <h2>Düzenle</h2>
+          </div>
+          <button type="button" className="icon-btn" onClick={onClose} aria-label="Kapat">
+            <Icon name="close" size={20} />
+          </button>
+        </header>
+
+        <form className="modal-body" onSubmit={save}>
+          <label className="field">
+            <span>Adı</span>
+            <input
+              className="input"
+              value={title}
+              onChange={(event) => setTitle(event.target.value)}
+              maxLength={120}
+              required
+            />
+          </label>
+          <label className="field">
+            <span>Açıklama</span>
+            <textarea
+              className="textarea"
+              value={description}
+              onChange={(event) => setDescription(event.target.value)}
+              rows={4}
+              maxLength={2000}
+            />
+          </label>
+          <div className="form-grid">
+            <label className="field">
+              <span>Görünürlük</span>
+              <select
+                className="select"
+                value={visibility}
+                onChange={(event) => setVisibility(event.target.value as Visibility)}
+              >
+                {visibilityOrder.map((item) => (
+                  <option key={item} value={item}>
+                    {visibilityLabels[item]}
+                  </option>
+                ))}
+              </select>
+            </label>
+            <label className="field">
+              <span>Durum</span>
+              <select
+                className="select"
+                value={status}
+                onChange={(event) => setStatus(event.target.value as Asset['status'])}
+              >
+                <option value="active">Takipte</option>
+                <option value="archived">Arşivde</option>
+              </select>
+            </label>
+            <label className="field">
+              <span>Başlangıç tarihi</span>
+              <input
+                className="input"
+                type="date"
+                value={acquiredAt}
+                onChange={(event) => setAcquiredAt(event.target.value)}
+              />
+            </label>
+            <label className="field">
+              <span>Konum</span>
+              <input
+                className="input"
+                value={locationName}
+                onChange={(event) => setLocationName(event.target.value)}
+                maxLength={160}
+              />
+            </label>
+          </div>
+
+          <div className="cover-edit">
+            <div className="cover-edit-preview">
+              <MediaImage src={asset.coverUrl} alt={asset.title} />
+            </div>
+            <div>
+              <input
+                ref={fileRef}
+                type="file"
+                hidden
+                accept="image/jpeg,image/png,image/webp,image/gif,image/avif"
+                onChange={(event) => setCover(event.target.files?.[0] ?? null)}
+              />
+              <button type="button" className="btn btn-ghost btn-sm" onClick={() => fileRef.current?.click()}>
+                <Icon name="camera" size={16} />
+                {cover ? cover.name : 'Kapak fotoğrafını değiştir'}
+              </button>
+              <p className="muted-note">Yeni kapak, kaydettiğinde yüklenir.</p>
+            </div>
+          </div>
+
+          {error ? <div className="form-error">{error}</div> : null}
+
+          <div className="modal-actions spread">
+            <button type="button" className="btn btn-danger btn-sm" onClick={remove} disabled={busy}>
+              <Icon name="trash" size={16} />
+              Varlığı sil
+            </button>
+            <div className="modal-actions-right">
+              <button type="button" className="btn btn-ghost" onClick={onClose} disabled={busy}>
+                Vazgeç
+              </button>
+              <button type="submit" className="btn btn-primary" disabled={busy}>
+                {busy ? 'Kaydediliyor…' : 'Kaydet'}
+              </button>
+            </div>
+          </div>
+        </form>
+      </div>
+    </div>
+  );
+}

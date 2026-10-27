@@ -1,0 +1,33 @@
+# Bağımlılıklar ve derleme çıktıları
+**/node_modules/
+**/.next/
+**/dist/
+**/storage/
+**/*.tsbuildinfo
+*.log
+
+# Ortam dosyaları (örnekler hariç)
+**/.env
+**/.env.*
+!**/.env.example
+!**/.env.production.example
+
+# Yerel veri ve yedekler
+backups/
+
+# Terraform
+**/.terraform/
+**/*.tfstate
+**/*.tfstate.*
+**/terraform.tfvars
+**/*.auto.tfvars
+crash.log
+
+# Android / IDE
+android/.gradle/
+android/.kotlin/
+android/**/build/
+android/local.properties
+android/.idea/
+*.iml
+.DS_Store

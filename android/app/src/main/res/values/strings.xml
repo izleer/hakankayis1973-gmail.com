@@ -1,0 +1,5 @@
+<resources>
+    <string name="app_name">Varlık Hafızası</string>
+    <string name="login_title">Hafızaya dön</string>
+    <string name="login_subtitle">Sahip olduğun her şeyin hikâyesi tek yerde.</string>
+</resources>
