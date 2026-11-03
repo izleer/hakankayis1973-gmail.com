@@ -185,6 +185,16 @@ export type FeedPost = {
   media: Media[];
 };
 
+export type PostComment = {
+  id: string;
+  postId: string;
+  parentId: string | null;
+  body: string;
+  status: string;
+  author: UserMini;
+  createdAt: string;
+};
+
 export type Notification = {
   id: string;
   type: string;
@@ -199,6 +209,81 @@ export type Notification = {
 export type ProfileData = {
   user: User;
   assets: Asset[];
+};
+
+export type CommunityRole = 'member' | 'moderator' | 'admin' | 'owner';
+export type GroupJoinPolicy = 'open' | 'approval';
+export type GroupAssetScope = 'summary' | 'timeline' | 'all';
+
+export type Group = {
+  id: string;
+  slug: string;
+  name: string;
+  description: string | null;
+  category: string | null;
+  rules: string | null;
+  visibility: 'public' | 'private';
+  joinPolicy: GroupJoinPolicy;
+  coverUrl: string | null;
+  memberCount: number;
+  postCount: number;
+  assetCount: number;
+  role: CommunityRole | null;
+  membershipStatus: 'active' | 'pending' | null;
+  owner: UserMini | null;
+  createdAt: string;
+};
+
+export type GroupMember = {
+  user: UserMini;
+  role: CommunityRole;
+  joinedAt: string;
+};
+
+export type GroupDetailData = {
+  community: Group;
+  members: GroupMember[];
+  isMember: boolean;
+  isOwner: boolean;
+  canPost: boolean;
+  canManage: boolean;
+  membershipStatus: 'active' | 'pending' | null;
+};
+
+export type GroupAsset = Asset & {
+  shareId: string;
+  scope: GroupAssetScope;
+  sharedAt: string;
+  addedBy: UserMini;
+};
+
+export type GroupAssetDetail = {
+  asset: Asset;
+  share: {
+    scope: GroupAssetScope;
+    sharedAt: string;
+    addedBy: UserMini;
+  };
+  community: { id: string; slug: string; name: string };
+  entries: Entry[];
+};
+
+export type GroupInvitation = {
+  id: string;
+  createdAt: string;
+  expiresAt: string;
+  community: { id: string; slug: string; name: string; coverUrl: string | null };
+  inviter: UserMini;
+};
+
+export type GroupRequests = {
+  requests: { user: UserMini; requestedAt: string }[];
+  invitations: {
+    id: string;
+    invitee: UserMini;
+    createdAt: string;
+    expiresAt: string;
+  }[];
 };
 
 export type SessionResponse = { user: User };

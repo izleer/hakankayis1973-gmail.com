@@ -6,6 +6,9 @@ type NotificationType =
   | 'comment'
   | 'community_join'
   | 'community_post'
+  | 'community_invite'
+  | 'community_request'
+  | 'community_approved'
   | 'system';
 
 export async function notify(input: {

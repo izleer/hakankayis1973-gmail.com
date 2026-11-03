@@ -117,6 +117,28 @@ export const visibilityHints: Record<Visibility, string> = {
   public: 'Profilinizde ve keşfet akışında görünür.',
 };
 
+const attributeLabels: Record<string, string> = {
+  species: 'Tür',
+  age: 'Yaş',
+  birth_date: 'Doğum tarihi',
+  style: 'Stil',
+  plate: 'Plaka',
+  model_year: 'Model yılı',
+  brand: 'Marka',
+  model: 'Model',
+  km: 'Kilometre',
+  cost_try: 'Maliyet (TL)',
+  from: 'Kaynak',
+  flowers: 'Çiçek sayısı',
+  color: 'Renk',
+  weight: 'Ağırlık',
+  height: 'Boy',
+};
+
+export function attributeLabel(key: string): string {
+  return attributeLabels[key] ?? key.replaceAll('_', ' ');
+}
+
 export type AssetIconName =
   | 'leaf'
   | 'sprout'

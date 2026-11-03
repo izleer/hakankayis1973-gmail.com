@@ -1,6 +1,7 @@
 import { query } from '../db.js';
 import { isStaff, postIsVisibleTo } from './access.js';
 import { forbidden, notFound } from './errors.js';
+import { getGroupAsset, groupScopeAllowsEntry } from './groups.js';
 import { mapPost, mediaForPosts } from './serialize.js';
 import type { Viewer } from './session.js';
 
@@ -12,6 +13,7 @@ export const postSelect = `
          a.cover_url AS asset_cover_url, acm.storage_key AS asset_cover_storage_key,
          at.label AS asset_type_label,
          je.title AS entry_title, je.type AS entry_type, je.occurred_at AS entry_occurred_at,
+         je.visibility AS entry_visibility,
          c.slug AS community_slug, c.name AS community_name,
          (SELECT count(*) FROM likes l WHERE l.post_id = p.id)::int AS like_count,
          (SELECT count(*) FROM comments cm
@@ -68,7 +70,28 @@ export async function getAccessiblePost(
     row.asset_owner !== viewer?.id &&
     !isStaff(viewer)
   ) {
-    forbidden('Bu gönderiye bağlı varlığı görüntüleme yetkiniz yok.');
+    const shared = row.community_id
+      ? await getGroupAsset(row.community_id, row.asset_id)
+      : null;
+    if (!shared || shared.status !== 'active') {
+      forbidden('Bu gönderiye bağlı varlığı görüntüleme yetkiniz yok.');
+    }
+  }
+  if (
+    row.entry_id &&
+    row.community_id &&
+    row.asset_visibility !== 'public' &&
+    row.asset_owner !== viewer?.id &&
+    !isStaff(viewer)
+  ) {
+    const shared = await getGroupAsset(row.community_id, row.asset_id);
+    if (
+      !shared ||
+      shared.status !== 'active' ||
+      !groupScopeAllowsEntry(shared.visibility_scope, row.entry_visibility)
+    ) {
+      forbidden('Bu gönderiye bağlı kaydı görüntüleme yetkiniz yok.');
+    }
   }
   return row;
 }

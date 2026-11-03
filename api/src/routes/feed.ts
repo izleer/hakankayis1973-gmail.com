@@ -29,10 +29,12 @@ export async function feedRoutes(app: FastifyInstance): Promise<void> {
       clauses.push(`c.slug = $${index}`);
       sqlParams.push(params.community);
       index += 1;
-      clauses.push(`(c.visibility = 'public' OR EXISTS (
-        SELECT 1 FROM memberships m WHERE m.community_id = c.id AND m.user_id = $${index}
-      ))`);
-      sqlParams.push(viewerId);
+      // Grup akışı yalnızca etkin üyelere açıktır.
+      clauses.push(`EXISTS (
+        SELECT 1 FROM memberships m
+        WHERE m.community_id = c.id AND m.user_id = $${index} AND m.status = 'active'
+      )`);
+      sqlParams.push(viewerId ?? '00000000-0000-0000-0000-000000000000');
       index += 1;
       if (viewerId) {
         clauses.push(`NOT EXISTS (
@@ -43,7 +45,11 @@ export async function feedRoutes(app: FastifyInstance): Promise<void> {
         sqlParams.push(viewerId);
         index += 1;
       }
-      clauses.push(`(a.id IS NULL OR a.visibility = 'public' OR a.owner_id = $${index})`);
+      clauses.push(`(a.id IS NULL OR a.visibility = 'public' OR a.owner_id = $${index}
+        OR EXISTS (
+          SELECT 1 FROM group_assets ga
+          WHERE ga.community_id = c.id AND ga.asset_id = a.id AND ga.status = 'active'
+        ))`);
       sqlParams.push(viewerId ?? '00000000-0000-0000-0000-000000000000');
       index += 1;
     } else if (params.scope === 'explore') {
@@ -81,6 +87,7 @@ export async function feedRoutes(app: FastifyInstance): Promise<void> {
         OR (p.audience = 'community' AND EXISTS (
           SELECT 1 FROM memberships m
           WHERE m.user_id = $${index} AND m.community_id = p.community_id
+            AND m.status = 'active'
         ))
       )`);
       sqlParams.push(viewerId);
@@ -92,7 +99,11 @@ export async function feedRoutes(app: FastifyInstance): Promise<void> {
       )`);
       sqlParams.push(viewerId);
       index += 1;
-      clauses.push(`(a.id IS NULL OR a.visibility = 'public' OR a.owner_id = $${index})`);
+      clauses.push(`(a.id IS NULL OR a.visibility = 'public' OR a.owner_id = $${index}
+        OR EXISTS (
+          SELECT 1 FROM group_assets ga
+          WHERE ga.community_id = p.community_id AND ga.asset_id = a.id AND ga.status = 'active'
+        ))`);
       sqlParams.push(viewerId);
       index += 1;
     }

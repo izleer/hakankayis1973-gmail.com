@@ -1962,6 +1962,17 @@ dd {
   color: var(--ink-faint);
 }
 
+.entry-edit-btn {
+  width: 30px;
+  height: 30px;
+  margin: -6px -6px -6px 0;
+  color: var(--ink-faint);
+}
+
+.entry-edit-btn:hover {
+  color: var(--ink);
+}
+
 .entry-card h3 {
   font-size: 1.16rem;
   margin-bottom: 6px;

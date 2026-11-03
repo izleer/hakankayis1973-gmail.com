@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { uploadMedia, vh } from '@/lib/client';
 import {
+  attributeLabel,
   entryTypeDescriptions,
   entryTypeLabels,
   formatBytes,
@@ -50,14 +51,22 @@ function nowLocalInput(): string {
   return new Date(date.getTime() - offset * 60 * 1000).toISOString().slice(0, 16);
 }
 
+function isoToLocalInput(value: string): string {
+  const date = new Date(value);
+  const offset = date.getTimezoneOffset();
+  return new Date(date.getTime() - offset * 60 * 1000).toISOString().slice(0, 16);
+}
+
 export function AssetDetail({
   data,
   measurements,
   viewer,
+  attributeLabels = {},
 }: {
   data: AssetDetailData;
   measurements: Measurement[];
   viewer: User;
+  attributeLabels?: Record<string, string>;
 }) {
   const router = useRouter();
   const [asset, setAsset] = useState(data.asset);
@@ -66,6 +75,7 @@ export function AssetDetail({
   const [tab, setTab] = useState<'story' | 'archive' | 'measurements' | 'share'>('story');
   const [composerOpen, setComposerOpen] = useState(false);
   const [editOpen, setEditOpen] = useState(false);
+  const [editingEntry, setEditingEntry] = useState<Entry | null>(null);
   const [lightbox, setLightbox] = useState<{ url: string; alt: string } | null>(null);
   const [notice, setNotice] = useState<string | null>(null);
 
@@ -159,7 +169,7 @@ export function AssetDetail({
               .slice(0, 4)
               .map(([key, value]) => (
                 <div key={key}>
-                  <dt>{key.replaceAll('_', ' ')}</dt>
+                  <dt>{attributeLabels[key] ?? attributeLabel(key)}</dt>
                   <dd>{String(value)}</dd>
                 </div>
               ))}
@@ -266,6 +276,8 @@ export function AssetDetail({
           {entries.length > 0 ? (
             <Timeline
               entries={entries}
+              canEditEntry={(entry) => isOwner || entry.author.id === viewer.id}
+              onEditEntry={setEditingEntry}
               onOpenImage={(item, alt) => setLightbox({ url: item, alt })}
             />
           ) : (
@@ -326,6 +338,34 @@ export function AssetDetail({
         />
       ) : null}
 
+      {editingEntry ? (
+        <EntryEditModal
+          asset={asset}
+          entry={editingEntry}
+          onClose={() => setEditingEntry(null)}
+          onSaved={(next) => {
+            setEntries((current) =>
+              current
+                .map((item) => (item.id === next.id ? next : item))
+                .sort((a, b) => +new Date(b.occurredAt) - +new Date(a.occurredAt)),
+            );
+            setEditingEntry(null);
+            flash('Kayıt güncellendi.');
+            router.refresh();
+          }}
+          onDeleted={(entryId) => {
+            setEntries((current) => current.filter((item) => item.id !== entryId));
+            setAsset((current) => ({
+              ...current,
+              entryCount: Math.max(0, current.entryCount - 1),
+            }));
+            setEditingEntry(null);
+            flash('Kayıt silindi.');
+            router.refresh();
+          }}
+        />
+      ) : null}
+
       {lightbox ? (
         <div className="lightbox" onClick={() => setLightbox(null)}>
           <button type="button" className="lightbox-close" aria-label="Kapat">
@@ -344,9 +384,13 @@ export function AssetDetail({
 
 function Timeline({
   entries,
+  canEditEntry,
+  onEditEntry,
   onOpenImage,
 }: {
   entries: Entry[];
+  canEditEntry: (entry: Entry) => boolean;
+  onEditEntry: (entry: Entry) => void;
   onOpenImage: (url: string, alt: string) => void;
 }) {
   let lastYear = '';
@@ -384,6 +428,17 @@ function Timeline({
                   <span className="entry-time">
                     {formatDateTime(entry.occurredAt).split(' ').slice(-1)}
                   </span>
+                  {canEditEntry(entry) ? (
+                    <button
+                      type="button"
+                      className="icon-btn entry-edit-btn"
+                      onClick={() => onEditEntry(entry)}
+                      aria-label="Kaydı düzenle"
+                      title="Kaydı düzenle"
+                    >
+                      <Icon name="edit" size={14} />
+                    </button>
+                  ) : null}
                 </header>
                 {entry.title ? <h3>{entry.title}</h3> : null}
                 {entry.body ? <p>{entry.body}</p> : null}
@@ -393,7 +448,7 @@ function Timeline({
                       .slice(0, 6)
                       .map(([key, value]) => (
                         <div key={key}>
-                          <dt>{key.replaceAll('_', ' ')}</dt>
+                          <dt>{attributeLabel(key)}</dt>
                           <dd>{String(value)}</dd>
                         </div>
                       ))}
@@ -932,6 +987,233 @@ function EntryComposer({
               {busy ? 'Kaydediliyor…' : 'Hafızaya ekle'}
               {!busy ? <Icon name="arrow-right" size={17} /> : null}
             </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  );
+}
+
+function EntryEditModal({
+  asset,
+  entry,
+  onClose,
+  onSaved,
+  onDeleted,
+}: {
+  asset: Asset;
+  entry: Entry;
+  onClose: () => void;
+  onSaved: (entry: Entry) => void;
+  onDeleted: (entryId: string) => void;
+}) {
+  const [type, setType] = useState<EntryType>(entry.type);
+  const [title, setTitle] = useState(entry.title ?? '');
+  const [body, setBody] = useState(entry.body ?? '');
+  const [occurredAt, setOccurredAt] = useState(isoToLocalInput(entry.occurredAt));
+  const [locationName, setLocationName] = useState(entry.locationName ?? '');
+  const [visibility, setVisibility] = useState<Visibility>(entry.visibility);
+  const [attributes, setAttributes] = useState<Record<string, string>>(() =>
+    Object.fromEntries(
+      Object.entries(entry.attributes ?? {}).map(([key, value]) => [key, String(value ?? '')]),
+    ),
+  );
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  const allowedVisibilities = visibilityOrder.filter(
+    (item) =>
+      item === entry.visibility ||
+      visibilityOrder.indexOf(item) <= visibilityOrder.indexOf(asset.visibility),
+  );
+
+  useEffect(() => {
+    function escape(event: KeyboardEvent) {
+      if (event.key === 'Escape') onClose();
+    }
+    window.addEventListener('keydown', escape);
+    return () => window.removeEventListener('keydown', escape);
+  }, [onClose]);
+
+  async function save(event: React.FormEvent) {
+    event.preventDefault();
+    if (!title.trim() && !body.trim()) {
+      setError('Bir başlık ya da not yazın.');
+      return;
+    }
+    setBusy(true);
+    setError(null);
+    try {
+      const nextAttributes = Object.fromEntries(
+        Object.entries(attributes)
+          .filter(([, value]) => value.trim() !== '')
+          .map(([key, value]) => {
+            const original = entry.attributes?.[key];
+            const numeric =
+              typeof original === 'number' &&
+              value.trim() !== '' &&
+              !Number.isNaN(Number(value));
+            return [key, numeric ? Number(value) : value];
+          }),
+      );
+      const data = await vh.patch<{ entry: Entry }>(`entries/${entry.id}`, {
+        type,
+        title: title.trim() || null,
+        body: body.trim() || null,
+        occurredAt: new Date(occurredAt).toISOString(),
+        locationName: locationName.trim() || null,
+        visibility,
+        attributes: nextAttributes,
+      });
+      onSaved(data.entry);
+    } catch (caught) {
+      setError(caught instanceof Error ? caught.message : 'Kayıt güncellenemedi.');
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  async function remove() {
+    if (!window.confirm('Bu kayıt silinsin mi? Bu işlem geri alınamaz.')) return;
+    setBusy(true);
+    setError(null);
+    try {
+      await vh.delete(`entries/${entry.id}`);
+      onDeleted(entry.id);
+    } catch (caught) {
+      setError(caught instanceof Error ? caught.message : 'Kayıt silinemedi.');
+      setBusy(false);
+    }
+  }
+
+  return (
+    <div className="modal-backdrop" role="dialog" aria-modal="true" aria-label="Kaydı düzenle">
+      <div className="modal">
+        <header className="modal-head">
+          <div>
+            <span className="eyebrow">Hafıza kaydı</span>
+            <h2>Kaydı düzenle</h2>
+          </div>
+          <button type="button" className="icon-btn" onClick={onClose} aria-label="Kapat">
+            <Icon name="close" size={20} />
+          </button>
+        </header>
+
+        <form className="modal-body" onSubmit={save}>
+          <div className="entry-type-grid">
+            {entryTypes.map((item) => (
+              <button
+                type="button"
+                key={item}
+                className={`entry-type-option${type === item ? ' is-selected' : ''}`}
+                onClick={() => setType(item)}
+              >
+                <Icon name={entryIcons[item]} size={18} />
+                <span>{entryTypeLabels[item]}</span>
+              </button>
+            ))}
+          </div>
+
+          <label className="field">
+            <span>Başlık</span>
+            <input
+              className="input"
+              value={title}
+              onChange={(event) => setTitle(event.target.value)}
+              placeholder="Kısa bir başlık"
+              maxLength={140}
+            />
+          </label>
+
+          <label className="field">
+            <span>Not</span>
+            <textarea
+              className="textarea"
+              value={body}
+              onChange={(event) => setBody(event.target.value)}
+              rows={5}
+              maxLength={5000}
+            />
+          </label>
+
+          <div className="form-grid">
+            <label className="field">
+              <span>Tarih ve saat</span>
+              <input
+                className="input"
+                type="datetime-local"
+                value={occurredAt}
+                onChange={(event) => setOccurredAt(event.target.value)}
+                required
+              />
+            </label>
+            <label className="field">
+              <span>Kimler görebilsin?</span>
+              <select
+                className="select"
+                value={visibility}
+                onChange={(event) => setVisibility(event.target.value as Visibility)}
+              >
+                {allowedVisibilities.map((item) => (
+                  <option key={item} value={item}>
+                    {visibilityLabels[item]}
+                  </option>
+                ))}
+              </select>
+            </label>
+          </div>
+
+          <label className="field">
+            <span>Konum</span>
+            <input
+              className="input"
+              value={locationName}
+              onChange={(event) => setLocationName(event.target.value)}
+              placeholder="İstanbul, Kadıköy"
+              maxLength={160}
+            />
+          </label>
+
+          {Object.keys(attributes).length > 0 ? (
+            <div className="form-grid">
+              {Object.entries(attributes).map(([key, value]) => (
+                <label className="field" key={key}>
+                  <span>{attributeLabel(key)}</span>
+                  <input
+                    className="input"
+                    value={value}
+                    onChange={(event) =>
+                      setAttributes((current) => ({ ...current, [key]: event.target.value }))
+                    }
+                    maxLength={120}
+                  />
+                </label>
+              ))}
+            </div>
+          ) : null}
+
+          {entry.media.length > 0 ? (
+            <p className="muted-note">
+              Bu kayda bağlı {entry.media.length} dosya korunur; metin ve tarih
+              düzenlemesi dosyaları etkilemez.
+            </p>
+          ) : null}
+
+          {error ? <div className="form-error">{error}</div> : null}
+
+          <div className="modal-actions spread">
+            <button type="button" className="btn btn-danger btn-sm" onClick={remove} disabled={busy}>
+              <Icon name="trash" size={16} />
+              Kaydı sil
+            </button>
+            <div className="modal-actions-right">
+              <button type="button" className="btn btn-ghost" onClick={onClose} disabled={busy}>
+                Vazgeç
+              </button>
+              <button type="submit" className="btn btn-primary" disabled={busy}>
+                {busy ? 'Kaydediliyor…' : 'Kaydet'}
+              </button>
+            </div>
           </div>
         </form>
       </div>

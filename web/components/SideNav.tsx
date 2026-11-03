@@ -7,6 +7,7 @@ import { Icon, type IconName } from './Icons';
 const items: { href: string; label: string; icon: IconName }[] = [
   { href: '/', label: 'Hafıza', icon: 'leaf' },
   { href: '/varliklar', label: 'Varlıklar', icon: 'grid' },
+  { href: '/gruplar', label: 'Gruplar', icon: 'users' },
   { href: '/arsiv', label: 'Arşiv', icon: 'archive' },
   { href: '/kesfet', label: 'Keşfet', icon: 'compass' },
   { href: '/bildirimler', label: 'Bildirimler', icon: 'bell' },
@@ -45,7 +46,7 @@ const mobileItems: { href: string; label: string; icon: IconName }[] = [
   { href: '/', label: 'Hafıza', icon: 'leaf' },
   { href: '/varliklar', label: 'Varlık', icon: 'grid' },
   { href: '/varliklar/yeni', label: 'Ekle', icon: 'plus' },
-  { href: '/arsiv', label: 'Arşiv', icon: 'archive' },
+  { href: '/gruplar', label: 'Gruplar', icon: 'users' },
   { href: '/kesfet', label: 'Keşfet', icon: 'compass' },
 ];
 

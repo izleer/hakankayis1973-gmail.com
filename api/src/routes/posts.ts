@@ -3,11 +3,13 @@ import { z } from 'zod';
 import { query, queryOne } from '../db.js';
 import {
   assertNotBlocked,
+  canManageCommunity,
   communityRole,
   getAsset,
 } from '../lib/access.js';
 import { audit } from '../lib/audit.js';
 import { ApiError, forbidden, notFound } from '../lib/errors.js';
+import { getGroupAsset, groupScopeAllowsEntry } from '../lib/groups.js';
 import { iso, parseBody, parseQuery } from '../lib/http.js';
 import { attachMedia } from '../lib/media.js';
 import { notify } from '../lib/notify.js';
@@ -48,17 +50,23 @@ async function mapComment(row: Record<string, any>) {
   };
 }
 
-async function assertShareableAsset(assetId: string | null | undefined): Promise<void> {
+async function assertShareableAsset(
+  assetId: string | null | undefined,
+  communityId: string | null | undefined,
+): Promise<void> {
   if (!assetId) return;
   const asset = await getAsset(assetId);
   if (asset.deleted_at) notFound('Varlık bulunamadı.');
-  if (asset.visibility !== 'public') {
-    throw new ApiError(
-      422,
-      'ASSET_NOT_PUBLIC',
-      'Gönderiye yalnızca herkese açık varlıklar eklenebilir.',
-    );
+  if (asset.visibility === 'public') return;
+  if (communityId) {
+    const shared = await getGroupAsset(communityId, assetId);
+    if (shared?.status === 'active') return;
   }
+  throw new ApiError(
+    422,
+    'ASSET_NOT_SHARED',
+    'Gönderiye yalnızca herkese açık veya bu grupla paylaşılmış varlıklar eklenebilir.',
+  );
 }
 
 export async function postRoutes(app: FastifyInstance): Promise<void> {
@@ -87,25 +95,35 @@ export async function postRoutes(app: FastifyInstance): Promise<void> {
     if (body.entryId) {
       const entry = await queryOne<{
         asset_id: string;
-        visibility: string;
+        visibility: 'private' | 'selected' | 'public';
         deleted_at: Date | null;
       }>(`SELECT asset_id, visibility, deleted_at FROM journal_entries WHERE id = $1`, [
         body.entryId,
       ]);
       if (!entry || entry.deleted_at) notFound('Kayıt bulunamadı.');
-      if (entry.visibility !== 'public') {
-        throw new ApiError(
-          422,
-          'ENTRY_NOT_PUBLIC',
-          'Gönderiye yalnızca herkese açık kayıtlar eklenebilir.',
-        );
-      }
       if (assetId && assetId !== entry.asset_id) {
         throw new ApiError(422, 'ASSET_MISMATCH', 'Kayıt seçilen varlığa ait değil.');
       }
       assetId = entry.asset_id;
+
+      if (entry.visibility !== 'public') {
+        const shared = body.communityId
+          ? await getGroupAsset(body.communityId, assetId)
+          : null;
+        if (
+          !shared ||
+          shared.status !== 'active' ||
+          !groupScopeAllowsEntry(shared.visibility_scope, entry.visibility)
+        ) {
+          throw new ApiError(
+            422,
+            'ENTRY_NOT_SHARED',
+            'Bu kayıt grubun paylaşım kapsamında değil.',
+          );
+        }
+      }
     }
-    await assertShareableAsset(assetId);
+    await assertShareableAsset(assetId, body.communityId);
 
     const rows = await query<{ id: string }>(
       `INSERT INTO posts (author_id, asset_id, entry_id, community_id, audience, body)
@@ -170,7 +188,14 @@ export async function postRoutes(app: FastifyInstance): Promise<void> {
     const viewer = await requireViewer(req);
     const { id } = z.object({ id: uuid }).parse(req.params);
     const row = await getAccessiblePost(viewer, id);
-    if (row.author_id !== viewer.id && viewer.role !== 'admin') {
+    const groupRole = row.community_id
+      ? await communityRole(row.community_id, viewer.id)
+      : null;
+    if (
+      row.author_id !== viewer.id &&
+      viewer.role !== 'admin' &&
+      !canManageCommunity(groupRole)
+    ) {
       forbidden('Bu gönderiyi silme yetkiniz yok.');
     }
     await query(`UPDATE posts SET status = 'deleted' WHERE id = $1`, [id]);
@@ -298,7 +323,15 @@ export async function postRoutes(app: FastifyInstance): Promise<void> {
     );
     if (!row) notFound('Yorum bulunamadı.');
     const post = await getAccessiblePost(viewer, row.post_id);
-    if (row.author_id !== viewer.id && post.author_id !== viewer.id && viewer.role === 'user') {
+    const groupRole = post.community_id
+      ? await communityRole(post.community_id, viewer.id)
+      : null;
+    if (
+      row.author_id !== viewer.id &&
+      post.author_id !== viewer.id &&
+      viewer.role === 'user' &&
+      !canManageCommunity(groupRole)
+    ) {
       forbidden('Bu yorumu silme yetkiniz yok.');
     }
     await query(

@@ -145,21 +145,18 @@ export async function postIsVisibleTo(
   if (post.audience === 'public') return true;
   if (!post.community_id) return false;
 
-  const community = await queryOne<{
-    visibility: 'public' | 'private';
-    is_member: boolean;
-  }>(
-    `SELECT c.visibility,
-            EXISTS (
+  // Grup içeriği yalnızca etkin üyelere açıktır. Grubun herkese açık olması
+  // yalnızca keşfedilebilirliği belirler, gönderileri herkese açmaz.
+  const community = await queryOne<{ is_member: boolean }>(
+    `SELECT EXISTS (
               SELECT 1 FROM memberships m
-              WHERE m.community_id = c.id AND m.user_id = $2
+              WHERE m.community_id = c.id AND m.user_id = $2 AND m.status = 'active'
             ) AS is_member
      FROM communities c
      WHERE c.id = $1 AND c.deleted_at IS NULL`,
     [post.community_id, viewer.id],
   );
-  if (!community) return false;
-  return community.visibility === 'public' || community.is_member;
+  return Boolean(community?.is_member);
 }
 
 export async function assertPostVisible(
@@ -177,12 +174,15 @@ export async function assertPostVisible(
   if (!(await postIsVisibleTo(viewer, post))) forbidden('Bu gönderiyi görüntüleme yetkiniz yok.');
 }
 
+export type CommunityRole = 'member' | 'moderator' | 'admin' | 'owner';
+
 export async function communityRole(
   communityId: string,
   userId: string,
-): Promise<'member' | 'moderator' | 'owner' | null> {
-  const row = await queryOne<{ role: 'member' | 'moderator' | 'owner' }>(
-    `SELECT role FROM memberships WHERE community_id = $1 AND user_id = $2`,
+): Promise<CommunityRole | null> {
+  const row = await queryOne<{ role: CommunityRole }>(
+    `SELECT role FROM memberships
+     WHERE community_id = $1 AND user_id = $2 AND status = 'active'`,
     [communityId, userId],
   );
   return row?.role ?? null;
@@ -190,8 +190,13 @@ export async function communityRole(
 
 export async function requireMembership(communityId: string, userId: string): Promise<void> {
   const row = await queryOne<{ exists: boolean }>(
-    `SELECT true AS exists FROM memberships WHERE community_id = $1 AND user_id = $2`,
+    `SELECT true AS exists FROM memberships
+     WHERE community_id = $1 AND user_id = $2 AND status = 'active'`,
     [communityId, userId],
   );
   if (!row) forbidden('Bu topluluğa katılmanız gerekiyor.');
+}
+
+export function canManageCommunity(role: CommunityRole | null): boolean {
+  return role === 'owner' || role === 'admin' || role === 'moderator';
 }
