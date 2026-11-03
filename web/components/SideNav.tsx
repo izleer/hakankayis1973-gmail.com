@@ -11,6 +11,7 @@ const items: { href: string; label: string; icon: IconName }[] = [
   { href: '/arsiv', label: 'Arşiv', icon: 'archive' },
   { href: '/kesfet', label: 'Keşfet', icon: 'compass' },
   { href: '/bildirimler', label: 'Bildirimler', icon: 'bell' },
+  { href: '/ayarlar/sosyal', label: 'Sosyal', icon: 'share' },
 ];
 
 export function SideNav() {

@@ -287,3 +287,46 @@ export type GroupRequests = {
 };
 
 export type SessionResponse = { user: User };
+
+export type SocialProvider = 'facebook' | 'instagram';
+export type SocialShareFormat = 'post' | 'story' | 'reel';
+
+export type SocialConfig = {
+  configured: boolean;
+  missing: string[];
+  graphVersion: string;
+  redirectUri: string;
+  webReturnUrl: string;
+  mediaPublicReady: boolean;
+  instagramReady: boolean;
+};
+
+export type SocialConnection = {
+  id: string;
+  provider: SocialProvider;
+  externalId: string;
+  accountName: string;
+  accountUsername: string | null;
+  pageId: string;
+  pageName: string;
+  createdAt: string;
+};
+
+export type SocialConnectionsResponse = {
+  config: SocialConfig;
+  items: SocialConnection[];
+};
+
+export type SocialShare = {
+  id: string;
+  assetId: string;
+  provider: SocialProvider;
+  format: SocialShareFormat;
+  status: 'pending' | 'published' | 'failed';
+  caption: string | null;
+  permalink: string | null;
+  externalId: string | null;
+  error: string | null;
+  createdAt: string;
+  publishedAt: string | null;
+};

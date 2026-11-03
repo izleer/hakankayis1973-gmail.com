@@ -42,7 +42,10 @@ export type IconName =
   | 'menu'
   | 'download'
   | 'ruler'
-  | 'user';
+  | 'user'
+  | 'share'
+  | 'facebook'
+  | 'instagram';
 
 const paths: Record<IconName, ReactNode> = {
   leaf: (
@@ -269,6 +272,28 @@ const paths: Record<IconName, ReactNode> = {
     <>
       <circle cx="12" cy="8" r="3.5" />
       <path d="M5 21c0-3.9 3.1-7 7-7s7 3.1 7 7" />
+    </>
+  ),
+  share: (
+    <>
+      <circle cx="18" cy="5" r="2.8" />
+      <circle cx="6" cy="12" r="2.8" />
+      <circle cx="18" cy="19" r="2.8" />
+      <path d="m8.5 10.6 7-4.2M8.5 13.4l7 4.2" />
+    </>
+  ),
+  facebook: (
+    <path
+      d="M14 8.5h3V4.5h-3c-2.6 0-4.7 2.1-4.7 4.7v2.3H6.5v4h2.8v8h4v-8h3.2l.5-4h-3.7V9.2c0-.4.3-.7.7-.7Z"
+      fill="currentColor"
+      stroke="none"
+    />
+  ),
+  instagram: (
+    <>
+      <rect x="3" y="3" width="18" height="18" rx="5.2" />
+      <circle cx="12" cy="12" r="4.1" />
+      <circle cx="17.4" cy="6.6" r="1" fill="currentColor" stroke="none" />
     </>
   ),
 };

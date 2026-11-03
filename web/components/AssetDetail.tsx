@@ -30,6 +30,7 @@ import type {
 import { EmptyState } from './EmptyState';
 import { Icon, type IconName } from './Icons';
 import { MediaImage } from './MediaImage';
+import { SocialShareModal } from './SocialShareModal';
 
 const entryIcons: Record<EntryType, IconName> = {
   note: 'book',
@@ -75,6 +76,7 @@ export function AssetDetail({
   const [tab, setTab] = useState<'story' | 'archive' | 'measurements' | 'share'>('story');
   const [composerOpen, setComposerOpen] = useState(false);
   const [editOpen, setEditOpen] = useState(false);
+  const [socialOpen, setSocialOpen] = useState(false);
   const [editingEntry, setEditingEntry] = useState<Entry | null>(null);
   const [lightbox, setLightbox] = useState<{ url: string; alt: string } | null>(null);
   const [notice, setNotice] = useState<string | null>(null);
@@ -88,6 +90,7 @@ export function AssetDetail({
     [entries],
   );
   const images = media.filter((item) => item.kind === 'image');
+  const videos = media.filter((item) => item.kind === 'video');
   const documents = media.filter((item) => item.kind === 'document');
 
   function flash(message: string) {
@@ -192,6 +195,10 @@ export function AssetDetail({
                 <button type="button" className="btn btn-ghost" onClick={() => setEditOpen(true)}>
                   <Icon name="edit" size={16} />
                   Düzenle
+                </button>
+                <button type="button" className="btn btn-ghost" onClick={() => setSocialOpen(true)}>
+                  <Icon name="share" size={16} />
+                  Sosyal paylaş
                 </button>
               </>
             ) : (
@@ -335,6 +342,16 @@ export function AssetDetail({
             router.push('/varliklar');
             router.refresh();
           }}
+        />
+      ) : null}
+
+      {socialOpen ? (
+        <SocialShareModal
+          asset={asset}
+          images={images}
+          videos={videos}
+          onClose={() => setSocialOpen(false)}
+          onShared={(message) => flash(message)}
         />
       ) : null}
 

@@ -22,6 +22,7 @@ import { safetyRoutes } from './routes/safety.js';
 import { adminRoutes } from './routes/admin.js';
 import { searchRoutes } from './routes/search.js';
 import { statsRoutes } from './routes/stats.js';
+import { socialRoutes } from './routes/social.js';
 
 export async function buildApp(): Promise<FastifyInstance> {
   const app = Fastify({
@@ -143,6 +144,7 @@ export async function buildApp(): Promise<FastifyInstance> {
   await app.register(adminRoutes, { prefix: '/v1/admin' });
   await app.register(searchRoutes, { prefix: '/v1/search' });
   await app.register(statsRoutes, { prefix: '/v1/stats' });
+  await app.register(socialRoutes, { prefix: '/v1/social' });
 
   return app;
 }

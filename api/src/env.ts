@@ -1,6 +1,16 @@
 import 'dotenv/config';
 import { z } from 'zod';
 
+const optionalText = z.preprocess(
+  (value) => (typeof value === 'string' && value.trim() === '' ? undefined : value),
+  z.string().trim().optional(),
+);
+
+const optionalUrl = z.preprocess(
+  (value) => (typeof value === 'string' && value.trim() === '' ? undefined : value),
+  z.string().url().optional(),
+);
+
 const schema = z.object({
   NODE_ENV: z.enum(['development', 'test', 'production']).default('development'),
   HOST: z.string().default('0.0.0.0'),
@@ -25,6 +35,17 @@ const schema = z.object({
     .enum(['true', 'false'])
     .default('false')
     .transform((value) => value === 'true'),
+  // Meta (Facebook / Instagram) içerik paylaşımı
+  META_APP_ID: optionalText,
+  META_APP_SECRET: optionalText,
+  META_GRAPH_VERSION: z.preprocess(
+    (value) => (typeof value === 'string' && value.trim() === '' ? undefined : value),
+    z.string().trim().default('v26.0'),
+  ),
+  META_REDIRECT_URI: optionalUrl,
+  SOCIAL_TOKEN_KEY: optionalText,
+  SOCIAL_WEB_RETURN_URL: optionalUrl,
+  MEDIA_PUBLIC_BASE_URL: optionalUrl,
 });
 
 const parsed = schema.safeParse(process.env);

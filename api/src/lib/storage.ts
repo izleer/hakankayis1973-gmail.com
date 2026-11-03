@@ -1,5 +1,5 @@
 import { randomUUID } from 'node:crypto';
-import { mkdir, writeFile } from 'node:fs/promises';
+import { mkdir, readFile, writeFile } from 'node:fs/promises';
 import path from 'node:path';
 import { GetObjectCommand, HeadObjectCommand, PutObjectCommand, S3Client } from '@aws-sdk/client-s3';
 import { getSignedUrl } from '@aws-sdk/s3-request-presigner';
@@ -125,4 +125,33 @@ export async function mediaUrl(key: string | null | undefined): Promise<string |
     console.error('Medya URL imzalanamadı:', error);
     return null;
   }
+}
+
+/**
+ * Meta'nın (Instagram içerik yayınlama) indirebileceği mutlak adres.
+ * Yerel depolamada yalnızca herkese açık bir taban adres yapılandırıldıysa
+ * üretilir; aksi halde paylaşım uçları anlaşılır bir hata döndürür.
+ */
+export async function publicMediaUrl(key: string | null | undefined): Promise<string | null> {
+  if (!key) return null;
+  if (env.STORAGE_DRIVER === 's3') return mediaUrl(key);
+  const base =
+    env.MEDIA_PUBLIC_BASE_URL ??
+    (/^https:\/\//i.test(env.PUBLIC_API_URL) ? env.PUBLIC_API_URL : null);
+  if (!base) return null;
+  return `${base.replace(/\/$/, '')}/files/${key}`;
+}
+
+export async function readStorageObject(key: string): Promise<Buffer> {
+  if (env.STORAGE_DRIVER === 'local') {
+    const target = path.join(storageRoot, key);
+    if (!target.startsWith(storageRoot)) throw new Error('Geçersiz depolama yolu.');
+    return readFile(target);
+  }
+  const object = await s3Client().send(
+    new GetObjectCommand({ Bucket: env.S3_BUCKET, Key: key }),
+  );
+  if (!object.Body) throw new Error('Depolama nesnesi boş.');
+  const bytes = await object.Body.transformToByteArray();
+  return Buffer.from(bytes);
 }
