@@ -9,14 +9,11 @@ export function AppShell({ user, children }: { user: User; children: React.React
   return (
     <div className="shell">
       <aside className="sidebar">
-        <Link href="/" className="brand" aria-label="Varlık Hafızası, ana sayfa">
+        <Link href="/" className="brand" aria-label="izleer, ana sayfa">
           <span className="brand-emblem">
             <Icon name="leaf" size={22} />
           </span>
-          <span className="brand-word">
-            Varlık
-            <em>Hafızası</em>
-          </span>
+          <span className="brand-word brand-word-single">izleer</span>
         </Link>
 
         <SideNav />
@@ -43,10 +40,7 @@ export function AppShell({ user, children }: { user: User; children: React.React
             <span className="brand-emblem">
               <Icon name="leaf" size={20} />
             </span>
-            <span className="brand-word">
-              Varlık
-              <em>Hafızası</em>
-            </span>
+            <span className="brand-word brand-word-single">izleer</span>
           </Link>
           <Link href="/profil" className="avatar avatar-small">
             {user.avatarUrl ? <img src={user.avatarUrl} alt={user.displayName} /> : initials(user.displayName)}

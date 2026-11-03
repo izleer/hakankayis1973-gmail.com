@@ -10,10 +10,7 @@ export default function NotFound() {
         <span className="brand-emblem">
           <Icon name="leaf" size={22} />
         </span>
-        <span className="brand-word">
-          Varlık
-          <em>Hafızası</em>
-        </span>
+        <span className="brand-word brand-word-single">izleer</span>
       </Link>
 
       <div className="notfound">

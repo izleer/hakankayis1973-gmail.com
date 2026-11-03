@@ -225,7 +225,7 @@ export default async function DashboardPage() {
             yere bakmak gerekir.”
           </blockquote>
           <p>
-            Varlık Hafızası, yalnızca envanter tutmaz. Bakımın, değişimin ve
+            izleer, yalnızca envanter tutmaz. Bakımın, değişimin ve
             biriktirdiğin anların arasındaki bağı görünür kılar.
           </p>
           <div className="manifesto-stats">

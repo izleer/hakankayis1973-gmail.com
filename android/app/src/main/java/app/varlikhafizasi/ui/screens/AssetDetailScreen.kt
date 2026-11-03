@@ -444,7 +444,7 @@ fun AssetDetailScreen(
             item {
                 Spacer(Modifier.height(24.dp))
                 Text(
-                    "Varlık Hafızası · ${asset?.type?.label ?: ""} · ${if (asset != null) visibilityLabel(asset.visibility) else ""}",
+                    "izleer · ${asset?.type?.label ?: ""} · ${if (asset != null) visibilityLabel(asset.visibility) else ""}",
                     style = MaterialTheme.typography.labelSmall,
                     color = Muted,
                     modifier = Modifier

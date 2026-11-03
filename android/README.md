@@ -1,6 +1,6 @@
-# Varlık Hafızası — Android (Jetpack Compose)
+# izleer — Android (Jetpack Compose)
 
-Varlık Hafızası'nın Android istemcisi. Web uygulamasıyla aynı REST API'yi kullanır; sahip olunan varlıkları, zaman çizelgesini, fotoğraf/belge arşivini ve keşfet akışını mobilde sunar.
+izleer'ın Android istemcisi. Web uygulamasıyla aynı REST API'yi kullanır; sahip olunan varlıkları, zaman çizelgesini, fotoğraf/belge arşivini ve keşfet akışını mobilde sunar.
 
 ## Gereksinimler
 

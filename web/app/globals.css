@@ -1,5 +1,5 @@
 /* ==========================================================================
-   Varlık Hafızası — tasarım sistemi
+   izleer — tasarım sistemi
    Sıcak arşiv kâğıdı, koyu orman yeşili ve editoryal tipografi.
    ========================================================================== */
 
@@ -221,6 +221,12 @@ dd {
   font-style: italic;
   opacity: 0.76;
   padding-left: 2px;
+}
+
+.brand-word-single {
+  font-size: 1.55rem;
+  font-style: italic;
+  letter-spacing: -0.01em;
 }
 
 .side-nav {
@@ -491,6 +497,15 @@ dd {
 
 .eyebrow-light {
   color: var(--sage-light);
+}
+
+.eyebrow-brand {
+  font-family: var(--serif);
+  font-size: 1.1rem;
+  font-style: italic;
+  font-weight: 400;
+  letter-spacing: 0.02em;
+  text-transform: none;
 }
 
 .section {

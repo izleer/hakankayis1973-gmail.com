@@ -271,7 +271,7 @@ INSERT INTO notifications (id, user_id, actor_id, type, entity_type, entity_id, 
   ('f0000000-0000-4000-8000-000000000001', '11111111-1111-4111-8111-111111111111', '22222222-2222-4222-8222-222222222222', 'like', 'post', 'b0000000-0000-4000-8000-000000000001', 'Mert Kaya gönderini beğendi.', NULL, now() - interval '20 hours'),
   ('f0000000-0000-4000-8000-000000000002', '11111111-1111-4111-8111-111111111111', '33333333-3333-4333-8333-333333333333', 'comment', 'post', 'b0000000-0000-4000-8000-000000000001', 'Selin Aksoy gönderine yorum yaptı.', NULL, now() - interval '19 hours'),
   ('f0000000-0000-4000-8000-000000000003', '11111111-1111-4111-8111-111111111111', '44444444-4444-4444-8444-444444444444', 'follow', 'user', '44444444-4444-4444-8444-444444444444', 'Deniz Arslan seni takip etmeye başladı.', now() - interval '10 days', now() - interval '12 days'),
-  ('f0000000-0000-4000-8000-000000000004', '11111111-1111-4111-8111-111111111111', '11111111-1111-4111-8111-111111111111', 'system', NULL, NULL, 'Varlık Hafızası''na hoş geldin. İlk varlığını oluşturmak birkaç saniye sürer.', now() - interval '20 days', now() - interval '100 days')
+  ('f0000000-0000-4000-8000-000000000004', '11111111-1111-4111-8111-111111111111', '11111111-1111-4111-8111-111111111111', 'system', NULL, NULL, 'izleer''a hoş geldin. İlk varlığını oluşturmak birkaç saniye sürer.', now() - interval '20 days', now() - interval '100 days')
 ON CONFLICT (id) DO NOTHING;
 
 INSERT INTO reports (id, reporter_id, target_type, target_id, reason, details, status, created_at) VALUES

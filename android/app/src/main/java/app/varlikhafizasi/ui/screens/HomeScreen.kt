@@ -88,7 +88,7 @@ fun HomeScreen(
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Column(Modifier.weight(1f)) {
                     Text(
-                        "VARLIK HAFIZASI",
+                        "İZLEER",
                         style = MaterialTheme.typography.labelSmall,
                         color = Clay,
                     )
@@ -287,7 +287,7 @@ fun HomeScreen(
                     )
                     Spacer(Modifier.height(8.dp))
                     Text(
-                        "Varlık Hafızası · günlük arşiv",
+                        "izleer · günlük arşiv",
                         style = MaterialTheme.typography.labelSmall,
                         color = Muted,
                     )

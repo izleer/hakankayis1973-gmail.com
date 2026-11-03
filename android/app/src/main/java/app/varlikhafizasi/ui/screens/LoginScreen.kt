@@ -81,7 +81,7 @@ fun LoginScreen(vm: VhViewModel, sessionError: String? = null) {
                 contentAlignment = Alignment.Center,
             ) {
                 Text(
-                    "VH",
+                    "iz",
                     style = MaterialTheme.typography.titleMedium,
                     color = Paper,
                     fontFamily = FontFamily.Serif,
@@ -90,7 +90,7 @@ fun LoginScreen(vm: VhViewModel, sessionError: String? = null) {
             Spacer(Modifier.size(12.dp))
             Column {
                 Text(
-                    "VARLIK HAFIZASI",
+                    "İZLEER",
                     style = MaterialTheme.typography.labelMedium,
                     color = Forest,
                 )

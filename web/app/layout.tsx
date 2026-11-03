@@ -5,15 +5,15 @@ import './social.css';
 
 export const metadata: Metadata = {
   title: {
-    default: 'Varlık Hafızası — yaşayan ve dönüşen her şeyin izi',
-    template: '%s · Varlık Hafızası',
+    default: 'izleer — yaşayan ve dönüşen her şeyin izi',
+    template: '%s · izleer',
   },
   description:
     'Bonsai, evcil hayvan, sanat eseri, ev ya da bir çiçek… Sahip olduğunuz her şeyin bakımını, fotoğraflarını ve hikâyesini tek bir hafızada saklayın.',
-  applicationName: 'Varlık Hafızası',
-  authors: [{ name: 'Varlık Hafızası' }],
+  applicationName: 'izleer',
+  authors: [{ name: 'izleer' }],
   openGraph: {
-    title: 'Varlık Hafızası',
+    title: 'izleer',
     description: 'Yaşayan ve dönüşen her şeyin izi.',
     type: 'website',
     locale: 'tr_TR',

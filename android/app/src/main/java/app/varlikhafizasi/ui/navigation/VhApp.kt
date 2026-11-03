@@ -106,7 +106,7 @@ private fun Splash() {
                 contentAlignment = Alignment.Center,
             ) {
                 Text(
-                    "VH",
+                    "iz",
                     style = MaterialTheme.typography.headlineMedium,
                     color = Paper,
                     fontFamily = FontFamily.Serif,
@@ -114,7 +114,7 @@ private fun Splash() {
             }
             androidx.compose.foundation.layout.Spacer(Modifier.size(16.dp))
             Text(
-                "Varlık Hafızası",
+                "izleer",
                 style = MaterialTheme.typography.headlineSmall,
                 color = Paper,
             )

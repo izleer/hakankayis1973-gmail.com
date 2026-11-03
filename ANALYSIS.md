@@ -1,4 +1,4 @@
-# Varlık Hafızası — v1 Ürün ve Teknik Analiz
+# izleer — v1 Ürün ve Teknik Analiz
 
 > **Tek cümle:** Sahip olduğunuz canlı, dönüşen ve süreç içeren her şeyin bakımını, fotoğraflarını, belgelerini ve hikâyesini tek bir zamansal hafızada toplayan; web ve Android'de çalışan arşiv odaklı bir uygulama.
 
@@ -10,7 +10,7 @@ Sürüm: **v1.0 (MVP)** · Dil: Türkçe · Tarih: Ekim 2026
 
 İnsanların hayatında "sahip olunan" ama klasik envanter uygulamalarına sığmayan şeyler vardır: bir bonsai, bir köpek, bir çiçek, bir tablo, bir heykel, bir ev. Bunların ortak paydası **zaman içinde değişmeleri** ve **bakım/olay geçmişi** taşımalarıdır. Bugün bu geçmiş; telefon galerisi, WhatsApp sohbetleri, not defterleri, e-postalar ve klasörler arasında dağınık durur. Kaybolur, bağlamını yitirir, paylaşılması zordur.
 
-**Varlık Hafızası**, her varlık için bir profil ve kesintisiz bir zaman çizelgesi kurar. Kullanıcı bir anı, bakımı, ölçümü, sağlık notunu, satın alma belgesini veya fotoğrafı tek akışta kaydeder. Varlık ister özel kalsın ister seçili kişilerle ya da herkese açık paylaşılsın; arşiv sahibinin kontrolündedir.
+**izleer**, her varlık için bir profil ve kesintisiz bir zaman çizelgesi kurar. Kullanıcı bir anı, bakımı, ölçümü, sağlık notunu, satın alma belgesini veya fotoğrafı tek akışta kaydeder. Varlık ister özel kalsın ister seçili kişilerle ya da herkese açık paylaşılsın; arşiv sahibinin kontrolündedir.
 
 MVP'nin odağı kullanıcı kararıyla **belge ve fotoğraf arşivi** olarak belirlendi. Sosyal katman (keşfet, beğeni, yorum, takip, topluluk) bu arşivi besleyen ve görünür kılan **destekleyici** katmandır; ürünün merkezi değildir.
 

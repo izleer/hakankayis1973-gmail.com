@@ -238,7 +238,7 @@ fun ProfileScreen(
                 }
                 Spacer(Modifier.height(22.dp))
                 Text(
-                    "Varlık Hafızası · v1.0",
+                    "izleer · v1.0",
                     style = MaterialTheme.typography.labelSmall,
                     color = Muted,
                 )

@@ -1,4 +1,4 @@
-# Varlık Hafızası
+# izleer
 
 Yaşayan ve süreç içinde değişen şeylerin hafızası: bonsai, evcil hayvan, bitki, heykel, tablo, ev… Her varlık için profil, zaman çizelgesi, fotoğraf/belge arşivi, bakım ve ölçüm kayıtları; seçili kişilerle paylaşım ve hafif bir keşfet katmanı.
 

@@ -313,7 +313,7 @@ export async function socialRoutes(app: FastifyInstance): Promise<void> {
       }
       if (connection.token_expires_at && connection.token_expires_at < new Date()) {
         throw new ApiError(
-          401,
+          403,
           'SOCIAL_TOKEN_EXPIRED',
           'Sosyal bağlantının süresi dolmuş. Lütfen hesabı yeniden bağlayın.',
         );
@@ -328,7 +328,7 @@ export async function socialRoutes(app: FastifyInstance): Promise<void> {
       const caption =
         body.format === 'story'
           ? null
-          : body.caption?.trim() || `${asset.title} · Varlık Hafızası`;
+          : body.caption?.trim() || `${asset.title} · izleer`;
 
       const created = await query<Record<string, any>>(
         `INSERT INTO social_shares

@@ -107,7 +107,7 @@ export async function buildApp(): Promise<FastifyInstance> {
 
   app.get('/', async () => ({
     data: {
-      name: 'Varlık Hafızası API',
+      name: 'izleer API',
       version: '0.1.0',
       docs: '/v1',
       health: '/health',

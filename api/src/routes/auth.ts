@@ -90,7 +90,7 @@ export async function authRoutes(app: FastifyInstance): Promise<void> {
       await notify({
         userId: user.id,
         type: 'system',
-        message: 'Varlık Hafızası’na hoş geldin. İlk varlığını oluşturmak birkaç saniye sürer.',
+        message: 'izleer’a hoş geldin. İlk varlığını oluşturmak birkaç saniye sürer.',
       });
       await audit(user.id, 'auth.register', 'user', user.id, {}, req.ip);
 

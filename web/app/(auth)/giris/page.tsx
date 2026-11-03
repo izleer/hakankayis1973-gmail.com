@@ -10,7 +10,7 @@ export default function LoginPage() {
         <div className="auth-photo" style={{ backgroundImage: "url('/files/seed/bonsai.jpg')" }} />
         <div className="auth-visual-shade" />
         <div className="auth-visual-content">
-          <span className="eyebrow eyebrow-light">Varlık Hafızası</span>
+          <span className="eyebrow eyebrow-light eyebrow-brand">izleer</span>
           <blockquote>
             “Bir şeyi saklamak,
             <br />
