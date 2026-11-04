@@ -127,7 +127,7 @@ export async function feedRoutes(app: FastifyInstance): Promise<void> {
 
     return {
       data: {
-        items: await hydratePosts(pageRows),
+        items: await hydratePosts(pageRows, req.locale),
         nextCursor:
           hasMore && last
             ? encodeCursor({ at: new Date(last.created_at).toISOString(), id: last.id })

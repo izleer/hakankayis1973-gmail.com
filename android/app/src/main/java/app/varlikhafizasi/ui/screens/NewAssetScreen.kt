@@ -45,8 +45,10 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import app.varlikhafizasi.R
 import app.varlikhafizasi.data.AssetType
 import app.varlikhafizasi.ui.VhViewModel
 import app.varlikhafizasi.ui.components.GoldRule
@@ -60,7 +62,7 @@ import app.varlikhafizasi.ui.theme.Line
 import app.varlikhafizasi.ui.theme.Muted
 import app.varlikhafizasi.ui.theme.Paper
 import app.varlikhafizasi.ui.theme.PaperDeep
-import app.varlikhafizasi.ui.theme.Sage
+import app.varlikhafizasi.ui.theme.SageInk
 import app.varlikhafizasi.ui.theme.Ivory
 import coil.compose.AsyncImage
 
@@ -94,6 +96,7 @@ fun NewAssetScreen(
 
     val options = remember(types) { flattenTypes(types) }
     val selected = options.firstOrNull { it.id == selectedId }
+    val typeRequiredNotice = stringResource(R.string.assets_error_type_required)
 
     LaunchedEffect(Unit) {
         vm.ensureAssetTypes()
@@ -104,24 +107,28 @@ fun NewAssetScreen(
         if (uri != null) coverUri = uri
     }
 
-    Column(
+    Box(
         modifier = Modifier
             .fillMaxSize()
-            .background(Paper)
-            .verticalScroll(rememberScrollState())
-            .imePadding(),
+            .background(Paper),
     ) {
-        VhTopBar(title = "Yeni varlık", onBack = onBack)
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .verticalScroll(rememberScrollState())
+                .imePadding(),
+        ) {
+            VhTopBar(title = stringResource(R.string.assets_new_title), onBack = onBack)
 
         Column(Modifier.padding(horizontal = 20.dp)) {
             Text(
-                "HAFIZAYA YENİ BİR İZ",
+                stringResource(R.string.assets_new_kicker),
                 style = MaterialTheme.typography.labelSmall,
                 color = Clay,
             )
             Spacer(Modifier.height(4.dp))
             Text(
-                "Adını koy,\nilkini paylaş.",
+                stringResource(R.string.assets_new_headline),
                 style = MaterialTheme.typography.displayMedium,
                 color = Forest,
             )
@@ -129,13 +136,13 @@ fun NewAssetScreen(
             GoldRule()
             Spacer(Modifier.height(12.dp))
             Text(
-                "Bir canlı, bir eser, bir mekân… İlk fotoğrafını ekle ve hikâyesini başlat.",
+                stringResource(R.string.assets_new_body),
                 style = MaterialTheme.typography.bodyMedium,
                 color = Muted,
             )
 
             Spacer(Modifier.height(22.dp))
-            SectionLabel("Varlık türü")
+            SectionLabel(stringResource(R.string.assets_type_label))
             Box {
                 OutlinedButton(
                     onClick = { menuOpen = true },
@@ -145,8 +152,12 @@ fun NewAssetScreen(
                 ) {
                     Text(
                         text = selected?.let {
-                            if (it.parent != null) "${it.parent} · ${it.label}" else it.label
-                        } ?: "Bir tür seçin",
+                            if (it.parent != null) {
+                                stringResource(R.string.assets_type_parent_format, it.parent, it.label)
+                            } else {
+                                it.label
+                            }
+                        } ?: stringResource(R.string.assets_type_placeholder),
                         color = if (selected != null) Forest else Muted,
                         style = MaterialTheme.typography.bodyMedium,
                         modifier = Modifier.weight(1f),
@@ -185,8 +196,8 @@ fun NewAssetScreen(
             OutlinedTextField(
                 value = title,
                 onValueChange = { title = it.take(120) },
-                label = { Text("Varlığın adı") },
-                placeholder = { Text("Örn. Bonzai · Ada'nın çamı") },
+                label = { Text(stringResource(R.string.assets_name_label)) },
+                placeholder = { Text(stringResource(R.string.assets_name_placeholder)) },
                 singleLine = true,
                 enabled = !busy,
                 modifier = Modifier.fillMaxWidth(),
@@ -196,32 +207,44 @@ fun NewAssetScreen(
             OutlinedTextField(
                 value = description,
                 onValueChange = { description = it.take(2000) },
-                label = { Text("Kısa açıklama (isteğe bağlı)") },
+                label = { Text(stringResource(R.string.assets_description_label)) },
                 minLines = 3,
                 enabled = !busy,
                 modifier = Modifier.fillMaxWidth(),
             )
 
             Spacer(Modifier.height(20.dp))
-            SectionLabel("Kimler görebilir?")
+            SectionLabel(stringResource(R.string.assets_visibility_label))
             Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                Pill("Özel", visibility == "private", onClick = { visibility = "private" })
-                Pill("Seçili", visibility == "selected", onClick = { visibility = "selected" })
-                Pill("Herkese açık", visibility == "public", onClick = { visibility = "public" })
+                Pill(
+                    stringResource(R.string.visibility_private),
+                    visibility == "private",
+                    onClick = { visibility = "private" },
+                )
+                Pill(
+                    stringResource(R.string.assets_visibility_selected_short),
+                    visibility == "selected",
+                    onClick = { visibility = "selected" },
+                )
+                Pill(
+                    stringResource(R.string.visibility_public),
+                    visibility == "public",
+                    onClick = { visibility = "public" },
+                )
             }
             Spacer(Modifier.height(6.dp))
             Text(
                 text = when (visibility) {
-                    "public" -> "Keşfet akışında görünür. Sonradan değiştirebilirsin."
-                    "selected" -> "Yalnızca paylaştığın kişiler görebilir."
-                    else -> "Yalnızca sen görürsün. Varsayılan budur."
+                    "public" -> stringResource(R.string.assets_visibility_public_hint)
+                    "selected" -> stringResource(R.string.assets_visibility_selected_hint)
+                    else -> stringResource(R.string.assets_visibility_private_hint)
                 },
                 style = MaterialTheme.typography.bodySmall,
                 color = Muted,
             )
 
             Spacer(Modifier.height(20.dp))
-            SectionLabel("Kapak fotoğrafı")
+            SectionLabel(stringResource(R.string.assets_cover_label))
             Surface(
                 color = PaperDeep,
                 shape = RoundedCornerShape(16.dp),
@@ -235,12 +258,12 @@ fun NewAssetScreen(
                     Box(Modifier.fillMaxSize()) {
                         AsyncImage(
                             model = coverUri,
-                            contentDescription = "Kapak önizleme",
+                            contentDescription = stringResource(R.string.assets_cover_preview),
                             contentScale = ContentScale.Crop,
                             modifier = Modifier.fillMaxSize(),
                         )
                         Text(
-                            "Değiştir",
+                            stringResource(R.string.assets_cover_change),
                             style = MaterialTheme.typography.labelSmall,
                             color = Color.White,
                             modifier = Modifier
@@ -259,11 +282,11 @@ fun NewAssetScreen(
                         Icon(
                             Icons.Outlined.AddPhotoAlternate,
                             contentDescription = null,
-                            tint = Sage,
+                            tint = SageInk,
                         )
                         Spacer(Modifier.height(6.dp))
                         Text(
-                            "Galeriden bir fotoğraf seç",
+                            stringResource(R.string.assets_cover_pick),
                             style = MaterialTheme.typography.bodySmall,
                             color = Muted,
                         )
@@ -276,12 +299,22 @@ fun NewAssetScreen(
                 Text(error ?: "", style = MaterialTheme.typography.bodySmall, color = Danger)
             }
 
-            Spacer(Modifier.height(22.dp))
+            Spacer(Modifier.height(104.dp))
+        }
+        }
+
+        Surface(
+            color = Paper,
+            shadowElevation = 12.dp,
+            modifier = Modifier
+                .align(Alignment.BottomCenter)
+                .fillMaxWidth(),
+        ) {
             Button(
                 onClick = {
                     val typeId = selectedId
                     if (typeId == null) {
-                        vm.setNotice("Önce bir varlık türü seçin.")
+                        vm.setNotice(typeRequiredNotice)
                         return@Button
                     }
                     vm.createAsset(
@@ -301,6 +334,8 @@ fun NewAssetScreen(
                 shape = RoundedCornerShape(50),
                 modifier = Modifier
                     .fillMaxWidth()
+                    .padding(horizontal = 20.dp)
+                    .padding(vertical = 12.dp)
                     .height(52.dp),
             ) {
                 if (busy) {
@@ -310,10 +345,9 @@ fun NewAssetScreen(
                         modifier = Modifier.size(20.dp),
                     )
                 } else {
-                    Text("Hafızaya ekle", style = MaterialTheme.typography.labelLarge)
+                    Text(stringResource(R.string.assets_submit), style = MaterialTheme.typography.labelLarge)
                 }
             }
-            Spacer(Modifier.height(28.dp))
         }
     }
 }

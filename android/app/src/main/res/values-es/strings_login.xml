@@ -1,0 +1,17 @@
+<resources>
+    <!-- Iniciar sesión / registrarse -->
+    <string name="login_tagline">la huella de todo lo que vive y se transforma</string>
+    <string name="login_headline_login">Vuelve a\ntu memoria.</string>
+    <string name="login_headline_register">Empieza una\nnueva memoria.</string>
+    <string name="login_body">Bonsái, mascota, cuadro, casa o una flor… Guarda su cuidado, sus documentos y su historia en un solo lugar.</string>
+    <string name="login_tab_login">Iniciar sesión</string>
+    <string name="login_tab_register">Registrarse</string>
+    <string name="login_field_display_name">Nombre visible</string>
+    <string name="login_field_email">Correo electrónico</string>
+    <string name="login_field_username">Nombre de usuario</string>
+    <string name="login_field_identifier">Correo o nombre de usuario</string>
+    <string name="login_field_password">Contraseña</string>
+    <string name="login_action_login">Iniciar sesión</string>
+    <string name="login_action_register">Crear cuenta</string>
+    <string name="login_demo_hint">Cuenta de demostración: ada@demo.local · Demo1234!</string>
+</resources>

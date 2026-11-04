@@ -36,9 +36,12 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.pluralStringResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import app.varlikhafizasi.R
 import app.varlikhafizasi.ui.VhViewModel
 import app.varlikhafizasi.ui.components.AssetRow
 import app.varlikhafizasi.ui.components.EmptyState
@@ -71,11 +74,17 @@ fun AssetsScreen(
             .background(Paper),
     ) {
         VhTopBar(
-            title = "Varlıklar",
-            subtitle = state.data?.let { "${it.size} varlık hafızanda" },
+            title = stringResource(R.string.nav_assets),
+            subtitle = state.data?.let { data ->
+                pluralStringResource(R.plurals.assets_count, data.size, data.size)
+            },
             actions = {
                 IconButton(onClick = onNewAsset) {
-                    Icon(Icons.Outlined.Add, contentDescription = "Yeni varlık", tint = Forest)
+                    Icon(
+                        Icons.Outlined.Add,
+                        contentDescription = stringResource(R.string.assets_new_title),
+                        tint = Forest,
+                    )
                 }
             },
         )
@@ -83,7 +92,9 @@ fun AssetsScreen(
         OutlinedTextField(
             value = query,
             onValueChange = { query = it },
-            placeholder = { Text("Ad veya açıklamada ara", color = Muted) },
+            placeholder = {
+                Text(stringResource(R.string.assets_search_placeholder), color = Muted)
+            },
             leadingIcon = {
                 Icon(Icons.Outlined.Search, contentDescription = null, tint = Muted)
             },
@@ -93,7 +104,11 @@ fun AssetsScreen(
                         query = ""
                         vm.loadAssets()
                     }) {
-                        Icon(Icons.Outlined.Close, contentDescription = "Temizle", tint = Muted)
+                        Icon(
+                            Icons.Outlined.Close,
+                            contentDescription = stringResource(R.string.assets_search_clear),
+                            tint = Muted,
+                        )
                     }
                 }
             },
@@ -133,13 +148,21 @@ fun AssetsScreen(
                             .padding(4.dp),
                     ) {
                         EmptyState(
-                            title = if (query.isBlank()) "Hafıza henüz boş" else "Eşleşen varlık yok",
-                            body = if (query.isBlank()) {
-                                "İlk varlığını ekle; fotoğrafları, belgeleri ve bakım notlarıyla birlikte yaşasın."
+                            title = if (query.isBlank()) {
+                                stringResource(R.string.assets_empty_title)
                             } else {
-                                "Farklı bir kelimeyle aramayı deneyin."
+                                stringResource(R.string.assets_no_match_title)
                             },
-                            actionLabel = if (query.isBlank()) "Yeni varlık" else null,
+                            body = if (query.isBlank()) {
+                                stringResource(R.string.assets_empty_body)
+                            } else {
+                                stringResource(R.string.assets_no_match_body)
+                            },
+                            actionLabel = if (query.isBlank()) {
+                                stringResource(R.string.assets_new_title)
+                            } else {
+                                null
+                            },
                             onAction = if (query.isBlank()) onNewAsset else null,
                         )
                     }
@@ -147,14 +170,14 @@ fun AssetsScreen(
             }
 
             if (state.data.orEmpty().isNotEmpty()) {
-                item { SectionLabel("Arşivindeki varlıklar") }
+                item { SectionLabel(stringResource(R.string.profile_assets_title)) }
             }
             items(state.data.orEmpty(), key = { it.id }) { asset ->
                 AssetRow(asset = asset, onClick = { onOpenAsset(asset.id) })
             }
             item {
                 Text(
-                    text = "Her varlık, kendi hikâyesinin kapısıdır.",
+                    text = stringResource(R.string.assets_footer),
                     style = MaterialTheme.typography.bodySmall,
                     color = Muted,
                     modifier = Modifier

@@ -1,0 +1,37 @@
+<resources>
+    <!-- Add entry screen -->
+    <string name="add_entry_title">Add entry</string>
+    <string name="add_entry_eyebrow">TO THE TIMELINE</string>
+    <string name="add_entry_headline">What happened today?</string>
+    <string name="add_entry_intro">A maintenance, a moment, a measurement… Whatever it is, let it stay with its date.</string>
+
+    <string name="add_entry_section_type">Entry type</string>
+    <string name="add_entry_field_title">Title (optional)</string>
+    <string name="add_entry_field_notes">Notes</string>
+    <string name="add_entry_notes_placeholder">What did you do, what changed, how did it feel?</string>
+
+    <string name="add_entry_section_when">When?</string>
+    <string name="add_entry_change_datetime">Change date and time</string>
+
+    <string name="add_entry_section_measurement">Measurement</string>
+    <string name="add_entry_metric">Metric</string>
+    <string name="add_entry_metric_placeholder">Height</string>
+    <string name="add_entry_value">Value</string>
+    <string name="add_entry_unit">Unit</string>
+    <string name="add_entry_unit_placeholder">cm</string>
+    <string name="add_entry_measurement_hint">If you fill this in, it is added to the measurement history.</string>
+
+    <string name="add_entry_section_visibility">Who can see it?</string>
+    <string name="add_entry_visibility_hint">An entry cannot be more visible than its asset.</string>
+
+    <string name="add_entry_section_files">Photo / document</string>
+    <string name="add_entry_add_file">Add a file (%1$s, %2$d MB)</string>
+    <string name="add_entry_remove_file">Remove</string>
+    <plurals name="add_entry_media_limit_count">
+        <item quantity="one">up to %1$d file</item>
+        <item quantity="other">up to %1$d files</item>
+    </plurals>
+
+    <string name="add_entry_footer_hint">The entry is added to the timeline with the date and time you choose; you can edit it later.</string>
+    <string name="add_entry_save">Add to story</string>
+</resources>

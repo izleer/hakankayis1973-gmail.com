@@ -4,6 +4,7 @@ import Link from 'next/link';
 import { useState } from 'react';
 import { vh } from '@/lib/client';
 import { formatBytes, formatDate, typeIconName } from '@/lib/format';
+import { useI18n } from '@/lib/i18n/client';
 import type { ArchiveItem, ArchiveResponse } from '@/lib/types';
 import { Icon } from './Icons';
 import { MediaImage } from './MediaImage';
@@ -17,6 +18,7 @@ export function ArchiveGallery({
   kind: string;
   query: string;
 }) {
+  const { t, locale } = useI18n();
   const [items, setItems] = useState<ArchiveItem[]>(initial.items);
   const [cursor, setCursor] = useState<string | null>(initial.nextCursor);
   const [busy, setBusy] = useState(false);
@@ -34,7 +36,7 @@ export function ArchiveGallery({
       setItems((current) => [...current, ...data.items]);
       setCursor(data.nextCursor);
     } catch (caught) {
-      setError(caught instanceof Error ? caught.message : 'Arşivin devamı yüklenemedi.');
+      setError(caught instanceof Error ? caught.message : t('Arşivin devamı yüklenemedi.'));
     } finally {
       setBusy(false);
     }
@@ -46,14 +48,14 @@ export function ArchiveGallery({
         <span className="empty-icon">
           <Icon name="archive" size={28} />
         </span>
-        <h3>Burada henüz bir parça yok</h3>
+        <h3>{t('Burada henüz bir parça yok')}</h3>
         <p>
           {query
-            ? 'Farklı bir kelime dene ya da filtreyi değiştir.'
-            : 'Varlıklarına fotoğraf ve belge ekledikçe arşivin burada büyüyecek.'}
+            ? t('Farklı bir kelime dene ya da filtreyi değiştir.')
+            : t('Varlıklarına fotoğraf ve belge ekledikçe arşivin burada büyüyecek.')}
         </p>
         <Link href="/varliklar" className="btn btn-primary btn-sm">
-          Varlıklara git
+          {t('Varlıklara git')}
           <Icon name="arrow-right" size={16} />
         </Link>
       </div>
@@ -87,7 +89,7 @@ export function ArchiveGallery({
               >
                 <span className="archive-page-file">
                   <Icon name={item.kind === 'video' ? 'camera' : 'file'} size={30} />
-                  <small>{item.mimeType.split('/')[1]?.toUpperCase() ?? 'DOSYA'}</small>
+                  <small>{item.mimeType.split('/')[1]?.toUpperCase() ?? t('DOSYA')}</small>
                 </span>
               </a>
             )}
@@ -100,9 +102,9 @@ export function ArchiveGallery({
                 {item.asset.title}
               </Link>
               <p className="archive-page-meta">
-                <span>{formatDate(item.createdAt)}</span>
+                <span>{formatDate(item.createdAt, locale)}</span>
                 {item.entry?.title ? <span>{item.entry.title}</span> : null}
-                <span>{formatBytes(item.byteSize)}</span>
+                <span>{formatBytes(item.byteSize, locale)}</span>
               </p>
             </div>
           </article>
@@ -114,18 +116,20 @@ export function ArchiveGallery({
       {cursor ? (
         <div className="archive-more">
           <button type="button" className="btn btn-ghost" onClick={loadMore} disabled={busy}>
-            {busy ? 'Yükleniyor…' : 'Daha fazla göster'}
+            {busy ? t('Yükleniyor…') : t('Daha fazla göster')}
             {!busy ? <Icon name="chevron-down" size={17} /> : null}
           </button>
-          <small>{items.length} parça gösteriliyor</small>
+          <small>{t('{count} parça gösteriliyor', { count: items.length })}</small>
         </div>
       ) : (
-        <p className="archive-end">Arşivin sonuna geldin · {items.length} parça</p>
+        <p className="archive-end">
+          {t('Arşivin sonuna geldin · {count} parça', { count: items.length })}
+        </p>
       )}
 
       {lightbox ? (
         <div className="lightbox" onClick={() => setLightbox(null)}>
-          <button type="button" className="lightbox-close" aria-label="Kapat">
+          <button type="button" className="lightbox-close" aria-label={t('Kapat')}>
             <Icon name="close" size={22} />
           </button>
           <img

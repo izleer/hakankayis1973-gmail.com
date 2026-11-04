@@ -32,8 +32,11 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.pluralStringResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import app.varlikhafizasi.R
 import app.varlikhafizasi.data.VhNotification
 import app.varlikhafizasi.ui.VhViewModel
 import app.varlikhafizasi.ui.components.Avatar
@@ -63,15 +66,27 @@ fun NotificationsScreen(vm: VhViewModel, onBack: () -> Unit) {
             .background(Paper),
     ) {
         VhTopBar(
-            title = "Bildirimler",
+            title = stringResource(R.string.common_notifications),
             subtitle = state.data?.let {
-                if (it.unreadCount > 0) "${it.unreadCount} okunmamış" else "Her şey okundu"
+                if (it.unreadCount > 0) {
+                    pluralStringResource(
+                        R.plurals.archive_unread_count,
+                        it.unreadCount,
+                        it.unreadCount,
+                    )
+                } else {
+                    stringResource(R.string.archive_all_read)
+                }
             },
             onBack = onBack,
             actions = {
                 if ((state.data?.unreadCount ?: 0) > 0) {
                     IconButton(onClick = { vm.markAllRead() }) {
-                        Icon(Icons.Outlined.DoneAll, contentDescription = "Tümünü okundu işaretle", tint = Forest)
+                        Icon(
+                            Icons.Outlined.DoneAll,
+                            contentDescription = stringResource(R.string.archive_mark_all_read),
+                            tint = Forest,
+                        )
                     }
                 }
             },
@@ -93,8 +108,8 @@ fun NotificationsScreen(vm: VhViewModel, onBack: () -> Unit) {
                     .background(PaperDeep, RoundedCornerShape(18.dp)),
             ) {
                 EmptyState(
-                    title = "Bildirim yok",
-                    body = "Biri seni takip ettiğinde, bir varlığını paylaştığında ya da bir kaydını beğendiğinde burada görünür.",
+                    title = stringResource(R.string.archive_notifications_empty_title),
+                    body = stringResource(R.string.archive_notifications_empty_body),
                 )
             }
         }
@@ -113,7 +128,7 @@ fun NotificationsScreen(vm: VhViewModel, onBack: () -> Unit) {
             }
             item {
                 Text(
-                    "Bildirimler yalnızca senin için üretilir; kimseyle paylaşılmaz.",
+                    stringResource(R.string.archive_notifications_footer),
                     style = MaterialTheme.typography.bodySmall,
                     color = Muted,
                     modifier = Modifier.padding(vertical = 16.dp),
@@ -164,7 +179,7 @@ private fun NotificationRow(notification: VhNotification, onClick: () -> Unit) {
         Spacer(Modifier.width(10.dp))
         Column(Modifier.weight(1f)) {
             Text(
-                text = notification.message ?: "Yeni bir bildirim",
+                text = notification.message ?: stringResource(R.string.archive_notification_fallback),
                 style = MaterialTheme.typography.bodyMedium,
                 color = Forest,
             )

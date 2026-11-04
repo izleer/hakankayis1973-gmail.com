@@ -1,0 +1,31 @@
+<resources>
+    <!-- Archive -->
+    <string name="archive_filter_all">All</string>
+    <string name="archive_subtitle">%1$d images · %2$d documents · %3$d videos</string>
+    <string name="archive_search_placeholder">Search the archive</string>
+    <string name="archive_clear_search">Clear</string>
+    <string name="archive_empty_title">The archive is quiet for now</string>
+    <string name="archive_empty_body">Photos, documents, and videos you add to your assets gather here.</string>
+    <string name="archive_no_match_title">No matching file</string>
+    <string name="archive_no_match_body">Try searching with a different word.</string>
+    <string name="archive_footer">Tap a photo to enlarge it. Documents and videos open in your device\'s viewer.</string>
+    <string name="archive_close">Close</string>
+
+    <plurals name="archive_file_count">
+        <item quantity="one">%1$d file</item>
+        <item quantity="other">%1$d files</item>
+    </plurals>
+
+    <!-- Notifications -->
+    <string name="archive_all_read">All caught up</string>
+    <string name="archive_mark_all_read">Mark all as read</string>
+    <string name="archive_notifications_empty_title">No notifications</string>
+    <string name="archive_notifications_empty_body">When someone follows you, shares one of your assets, or likes one of your entries, it shows up here.</string>
+    <string name="archive_notifications_footer">Notifications are generated only for you; they are never shared with anyone.</string>
+    <string name="archive_notification_fallback">A new notification</string>
+
+    <plurals name="archive_unread_count">
+        <item quantity="one">%1$d unread</item>
+        <item quantity="other">%1$d unread</item>
+    </plurals>
+</resources>

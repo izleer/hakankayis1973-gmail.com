@@ -4,6 +4,7 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useRef, useState } from 'react';
 import { uploadMedia, vh } from '@/lib/client';
+import { useT } from '@/lib/i18n/client';
 import type { Group, GroupJoinPolicy } from '@/lib/types';
 import { Icon } from './Icons';
 import { MediaImage } from './MediaImage';
@@ -20,6 +21,7 @@ const categories = [
 ];
 
 export function NewGroupForm() {
+  const t = useT();
   const router = useRouter();
   const fileRef = useRef<HTMLInputElement>(null);
   const [name, setName] = useState('');
@@ -61,7 +63,7 @@ export function NewGroupForm() {
       router.push(`/gruplar/${data.community.slug}`);
       router.refresh();
     } catch (caught) {
-      setError(caught instanceof Error ? caught.message : 'Grup oluşturulamadı.');
+      setError(caught instanceof Error ? caught.message : t('Grup oluşturulamadı.'));
     } finally {
       setBusy(false);
     }
@@ -73,35 +75,35 @@ export function NewGroupForm() {
         <div className="form-section-head">
           <span className="step">01</span>
           <div>
-            <h2>Grubun kimliği</h2>
-            <p>İnsanların ne için bir araya geldiğini birkaç cümleyle anlat.</p>
+            <h2>{t('Grubun kimliği')}</h2>
+            <p>{t('İnsanların ne için bir araya geldiğini birkaç cümleyle anlat.')}</p>
           </div>
         </div>
         <div className="form-grid">
           <label className="field wide">
-            <span>Grup adı</span>
+            <span>{t('Grup adı')}</span>
             <input
               className="input"
               value={name}
               onChange={(event) => setName(event.target.value)}
-              placeholder="Örn. İzmir Bonsai Topluluğu"
+              placeholder={t('Örn. İzmir Bonsai Topluluğu')}
               maxLength={80}
               required
             />
           </label>
           <label className="field wide">
-            <span>Açıklama</span>
+            <span>{t('Açıklama')}</span>
             <textarea
               className="textarea"
               value={description}
               onChange={(event) => setDescription(event.target.value)}
-              placeholder="Grubun amacı, konusu ve kapsamı…"
+              placeholder={t('Grubun amacı, konusu ve kapsamı…')}
               rows={3}
               maxLength={1000}
             />
           </label>
           <label className="field">
-            <span>Kategori</span>
+            <span>{t('Kategori')}</span>
             <select
               className="select"
               value={category}
@@ -109,43 +111,43 @@ export function NewGroupForm() {
             >
               {categories.map((item) => (
                 <option key={item} value={item}>
-                  {item}
+                  {t(item)}
                 </option>
               ))}
             </select>
           </label>
           <label className="field">
-            <span>Kimler katılabilir?</span>
+            <span>{t('Kimler katılabilir?')}</span>
             <select
               className="select"
               value={visibility}
               onChange={(event) => setVisibility(event.target.value as 'public' | 'private')}
             >
-              <option value="public">Herkese açık grup</option>
-              <option value="private">Özel grup (yalnızca davetle)</option>
+              <option value="public">{t('Herkese açık grup')}</option>
+              <option value="private">{t('Özel grup (yalnızca davetle)')}</option>
             </select>
           </label>
           <label className="field">
-            <span>Katılım modeli</span>
+            <span>{t('Katılım modeli')}</span>
             <select
               className="select"
               value={joinPolicy}
               onChange={(event) => setJoinPolicy(event.target.value as GroupJoinPolicy)}
               disabled={visibility === 'private'}
             >
-              <option value="open">Serbest katılım</option>
-              <option value="approval">Yönetici onayı</option>
+              <option value="open">{t('Serbest katılım')}</option>
+              <option value="approval">{t('Yönetici onayı')}</option>
             </select>
             <small>
               {visibility === 'private'
-                ? 'Özel gruplarda katılım yalnızca davetle olur.'
+                ? t('Özel gruplarda katılım yalnızca davetle olur.')
                 : joinPolicy === 'approval'
-                  ? 'Katılmak isteyenler onayınızı bekler.'
-                  : 'Üyelik, katılma isteğiyle hemen açılır.'}
+                  ? t('Katılmak isteyenler onayınızı bekler.')
+                  : t('Üyelik, katılma isteğiyle hemen açılır.')}
             </small>
           </label>
           <label className="field">
-            <span>Kapak görseli</span>
+            <span>{t('Kapak görseli')}</span>
             <span className="cover-picker">
               <span className="cover-preview">
                 {preview ? (
@@ -161,7 +163,7 @@ export function NewGroupForm() {
                   onClick={() => fileRef.current?.click()}
                 >
                   <Icon name="upload" size={15} />
-                  Görsel seç
+                  {t('Görsel seç')}
                 </button>
                 {cover ? <small>{cover.name}</small> : null}
               </span>
@@ -175,12 +177,12 @@ export function NewGroupForm() {
             </span>
           </label>
           <label className="field wide">
-            <span>Grup kuralları</span>
+            <span>{t('Grup kuralları')}</span>
             <textarea
               className="textarea"
               value={rules}
               onChange={(event) => setRules(event.target.value)}
-              placeholder="Nazik ol, kaynak belirt, satış baskısı kurma…"
+              placeholder={t('Nazik ol, kaynak belirt, satış baskısı kurma…')}
               rows={4}
               maxLength={2000}
             />
@@ -192,11 +194,11 @@ export function NewGroupForm() {
 
       <div className="editor-actions">
         <Link href="/gruplar" className="btn btn-ghost">
-          Vazgeç
+          {t('Vazgeç')}
         </Link>
         <button type="submit" className="btn btn-primary" disabled={busy || name.trim().length < 2}>
           <Icon name="users" size={17} />
-          {busy ? 'Oluşturuluyor…' : 'Grubu oluştur'}
+          {busy ? t('Oluşturuluyor…') : t('Grubu oluştur')}
         </button>
       </div>
     </form>

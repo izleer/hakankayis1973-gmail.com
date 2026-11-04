@@ -1,6 +1,8 @@
 import { query } from '../db.js';
 import { iso } from './http.js';
+import type { Locale } from './locale.js';
 import { mediaUrl } from './storage.js';
+import { translateTypeLabel } from './taxonomy.js';
 
 type Row = Record<string, any>;
 
@@ -134,7 +136,7 @@ function dateOnly(value: Date | string | null | undefined): string | null {
   return `${year}-${month}-${day}`;
 }
 
-export async function mapAsset(row: Row): Promise<AssetDto> {
+export async function mapAsset(row: Row, locale: Locale = 'tr'): Promise<AssetDto> {
   const cover = row.cover_storage_key ? await mediaUrl(row.cover_storage_key) : row.cover_url;
   return {
     id: row.id,
@@ -149,7 +151,7 @@ export async function mapAsset(row: Row): Promise<AssetDto> {
     owner: mapUserMini(row, 'owner_'),
     type: {
       id: row.type_id,
-      label: row.type_label,
+      label: translateTypeLabel(locale, row.type_label),
       parentId: row.type_parent_id,
       icon: row.type_icon,
     },
@@ -177,7 +179,11 @@ export async function mapEntry(row: Row, media: MediaDto[] = []): Promise<Record
   };
 }
 
-export async function mapPost(row: Row, media: MediaDto[] = []): Promise<Record<string, unknown>> {
+export async function mapPost(
+  row: Row,
+  media: MediaDto[] = [],
+  locale: Locale = 'tr',
+): Promise<Record<string, unknown>> {
   const assetCover = row.asset_cover_storage_key
     ? await mediaUrl(row.asset_cover_storage_key)
     : row.asset_cover_url;
@@ -196,7 +202,7 @@ export async function mapPost(row: Row, media: MediaDto[] = []): Promise<Record<
           title: row.asset_title,
           coverUrl: assetCover ?? null,
           visibility: row.asset_visibility,
-          typeLabel: row.asset_type_label,
+          typeLabel: translateTypeLabel(locale, row.asset_type_label),
         }
       : null,
     entry: row.entry_id

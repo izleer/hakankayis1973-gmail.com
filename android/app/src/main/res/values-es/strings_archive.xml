@@ -1,0 +1,31 @@
+<resources>
+    <!-- Archivo -->
+    <string name="archive_filter_all">Todo</string>
+    <string name="archive_subtitle">%1$d imágenes · %2$d documentos · %3$d vídeos</string>
+    <string name="archive_search_placeholder">Buscar en el archivo</string>
+    <string name="archive_clear_search">Borrar</string>
+    <string name="archive_empty_title">Tu archivo aún está en silencio</string>
+    <string name="archive_empty_body">Las fotos, documentos y vídeos que añadas a tus bienes se reúnen aquí.</string>
+    <string name="archive_no_match_title">Ningún archivo coincide</string>
+    <string name="archive_no_match_body">Prueba con otra palabra.</string>
+    <string name="archive_footer">Toca una foto para ampliarla. Los documentos y vídeos se abren en el visor de tu dispositivo.</string>
+    <string name="archive_close">Cerrar</string>
+
+    <plurals name="archive_file_count">
+        <item quantity="one">%1$d archivo</item>
+        <item quantity="other">%1$d archivos</item>
+    </plurals>
+
+    <!-- Notificaciones -->
+    <string name="archive_all_read">Todo leído</string>
+    <string name="archive_mark_all_read">Marcar todo como leído</string>
+    <string name="archive_notifications_empty_title">No hay notificaciones</string>
+    <string name="archive_notifications_empty_body">Cuando alguien te siga, comparta uno de tus bienes o le guste una de tus entradas, aparecerá aquí.</string>
+    <string name="archive_notifications_footer">Las notificaciones se generan solo para ti; nunca se comparten con nadie.</string>
+    <string name="archive_notification_fallback">Una nueva notificación</string>
+
+    <plurals name="archive_unread_count">
+        <item quantity="one">%1$d sin leer</item>
+        <item quantity="other">%1$d sin leer</item>
+    </plurals>
+</resources>

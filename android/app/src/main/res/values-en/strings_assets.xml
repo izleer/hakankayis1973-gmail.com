@@ -1,0 +1,38 @@
+<resources>
+    <!-- Asset list -->
+    <string name="assets_search_placeholder">Search by name or description</string>
+    <string name="assets_search_clear">Clear</string>
+    <string name="assets_empty_title">Your memory is still empty</string>
+    <string name="assets_empty_body">Add your first asset; let it live together with photos, documents and maintenance notes.</string>
+    <string name="assets_no_match_title">No matching assets</string>
+    <string name="assets_no_match_body">Try searching with a different word.</string>
+    <string name="assets_footer">Every asset is a door to its own story.</string>
+
+    <plurals name="assets_count">
+        <item quantity="one">%1$d asset in your memory</item>
+        <item quantity="other">%1$d assets in your memory</item>
+    </plurals>
+
+    <!-- New asset -->
+    <string name="assets_new_title">New asset</string>
+    <string name="assets_new_kicker">A NEW TRACE IN YOUR MEMORY</string>
+    <string name="assets_new_headline">Give it a name,\nshare the first entry.</string>
+    <string name="assets_new_body">A living thing, a work, a place… Add its first photo and start its story.</string>
+    <string name="assets_type_label">Asset type</string>
+    <string name="assets_type_placeholder">Choose a type</string>
+    <string name="assets_type_parent_format">%1$s · %2$s</string>
+    <string name="assets_name_label">Asset name</string>
+    <string name="assets_name_placeholder">E.g. Bonzai · Ada\'s pine</string>
+    <string name="assets_description_label">Short description (optional)</string>
+    <string name="assets_visibility_label">Who can see it?</string>
+    <string name="assets_visibility_selected_short">Selected</string>
+    <string name="assets_visibility_public_hint">Visible in the Explore feed. You can change this later.</string>
+    <string name="assets_visibility_selected_hint">Only the people you share it with can see it.</string>
+    <string name="assets_visibility_private_hint">Only you can see it. This is the default.</string>
+    <string name="assets_cover_label">Cover photo</string>
+    <string name="assets_cover_preview">Cover preview</string>
+    <string name="assets_cover_change">Change</string>
+    <string name="assets_cover_pick">Choose a photo from your gallery</string>
+    <string name="assets_error_type_required">Choose an asset type first.</string>
+    <string name="assets_submit">Add to memory</string>
+</resources>

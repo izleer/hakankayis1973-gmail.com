@@ -1,80 +1,135 @@
 import type { EntryType, Visibility } from './types';
+import { localeTags, type Locale } from './i18n/config';
 
-const dateFmt = new Intl.DateTimeFormat('tr-TR', {
-  day: 'numeric',
-  month: 'long',
-  year: 'numeric',
-  timeZone: 'Europe/Istanbul',
-});
+const TIME_ZONE = 'Europe/Istanbul';
 
-const dateTimeFmt = new Intl.DateTimeFormat('tr-TR', {
-  day: 'numeric',
-  month: 'long',
-  year: 'numeric',
-  hour: '2-digit',
-  minute: '2-digit',
-  timeZone: 'Europe/Istanbul',
-});
+const formatterCache = new Map<string, Intl.DateTimeFormat>();
 
-const shortFmt = new Intl.DateTimeFormat('tr-TR', {
-  day: '2-digit',
-  month: '2-digit',
-  year: 'numeric',
-  timeZone: 'Europe/Istanbul',
-});
+function dateFormatter(locale: Locale, options: Intl.DateTimeFormatOptions): Intl.DateTimeFormat {
+  const tag = localeTags[locale];
+  const key = `${tag}:${JSON.stringify(options)}`;
+  let formatter = formatterCache.get(key);
+  if (!formatter) {
+    formatter = new Intl.DateTimeFormat(tag, { ...options, timeZone: TIME_ZONE });
+    formatterCache.set(key, formatter);
+  }
+  return formatter;
+}
 
-const dayFmt = new Intl.DateTimeFormat('tr-TR', {
-  day: 'numeric',
-  month: 'short',
-  timeZone: 'Europe/Istanbul',
-});
-
-const yearFmt = new Intl.DateTimeFormat('tr-TR', {
-  year: 'numeric',
-  timeZone: 'Europe/Istanbul',
-});
-
-export function formatDate(value: string | Date | null | undefined): string {
+export function formatDate(
+  value: string | Date | null | undefined,
+  locale: Locale = 'tr',
+): string {
   if (!value) return '—';
-  return dateFmt.format(new Date(value));
+  return dateFormatter(locale, { day: 'numeric', month: 'long', year: 'numeric' }).format(
+    new Date(value),
+  );
 }
 
-export function formatDateTime(value: string | Date | null | undefined): string {
+export function formatDateTime(
+  value: string | Date | null | undefined,
+  locale: Locale = 'tr',
+): string {
   if (!value) return '—';
-  return dateTimeFmt.format(new Date(value));
+  return dateFormatter(locale, {
+    day: 'numeric',
+    month: 'long',
+    year: 'numeric',
+    hour: '2-digit',
+    minute: '2-digit',
+  }).format(new Date(value));
 }
 
-export function formatShort(value: string | Date | null | undefined): string {
+export function formatTime(
+  value: string | Date | null | undefined,
+  locale: Locale = 'tr',
+): string {
   if (!value) return '—';
-  return shortFmt.format(new Date(value));
+  return dateFormatter(locale, { hour: '2-digit', minute: '2-digit' }).format(new Date(value));
 }
 
-export function formatDay(value: string | Date | null | undefined): string {
+export function formatDayNumber(
+  value: string | Date | null | undefined,
+  locale: Locale = 'tr',
+): string {
   if (!value) return '—';
-  return dayFmt.format(new Date(value));
+  return dateFormatter(locale, { day: 'numeric' }).format(new Date(value));
 }
 
-export function formatYear(value: string | Date | null | undefined): string {
+export function formatShort(
+  value: string | Date | null | undefined,
+  locale: Locale = 'tr',
+): string {
   if (!value) return '—';
-  return yearFmt.format(new Date(value));
+  return dateFormatter(locale, {
+    day: '2-digit',
+    month: '2-digit',
+    year: 'numeric',
+  }).format(new Date(value));
 }
 
-export function formatNumber(value: number | null | undefined): string {
-  return new Intl.NumberFormat('tr-TR').format(value ?? 0);
+export function formatDay(
+  value: string | Date | null | undefined,
+  locale: Locale = 'tr',
+): string {
+  if (!value) return '—';
+  return dateFormatter(locale, { day: 'numeric', month: 'short' }).format(new Date(value));
 }
 
-export function formatBytes(bytes: number): string {
+export function formatYear(
+  value: string | Date | null | undefined,
+  locale: Locale = 'tr',
+): string {
+  if (!value) return '—';
+  return dateFormatter(locale, { year: 'numeric' }).format(new Date(value));
+}
+
+export function formatMonthYear(
+  value: string | Date | null | undefined,
+  locale: Locale = 'tr',
+): string {
+  if (!value) return '—';
+  return dateFormatter(locale, { month: 'short', year: 'numeric' }).format(new Date(value));
+}
+
+export function formatLocation(value: string | null | undefined, locale: Locale = 'tr'): string {
+  if (!value) return '';
+  const tag = localeTags[locale];
+  return value
+    .split(',')
+    .map((part) => {
+      const trimmed = part.trim();
+      if (!trimmed) return trimmed;
+      if (trimmed === trimmed.toLocaleLowerCase(tag)) {
+        return trimmed.charAt(0).toLocaleUpperCase(tag) + trimmed.slice(1);
+      }
+      return trimmed;
+    })
+    .join(', ');
+}
+
+export function formatNumber(value: number | null | undefined, locale: Locale = 'tr'): string {
+  return new Intl.NumberFormat(localeTags[locale]).format(value ?? 0);
+}
+
+export function formatBytes(bytes: number, locale: Locale = 'tr'): string {
   if (!bytes) return '0 KB';
-  if (bytes < 1024 * 1024) return `${Math.max(1, Math.round(bytes / 1024))} KB`;
-  return `${(bytes / (1024 * 1024)).toFixed(1).replace('.', ',')} MB`;
+  if (bytes < 1024 * 1024) {
+    return `${new Intl.NumberFormat(localeTags[locale]).format(Math.max(1, Math.round(bytes / 1024)))} KB`;
+  }
+  return `${new Intl.NumberFormat(localeTags[locale], {
+    minimumFractionDigits: 1,
+    maximumFractionDigits: 1,
+  }).format(bytes / (1024 * 1024))} MB`;
 }
 
-export function initials(name: string): string {
+export function initials(name: string, locale: Locale = 'tr'): string {
+  const tag = localeTags[locale];
   return name
     .split(' ')
     .filter(Boolean)
     .slice(0, 2)
-    .map((part) => part[0]?.toLocaleUpperCase('tr-TR'))
+    .map((part) => part[0]?.toLocaleUpperCase(tag))
     .join('');
 }
 
@@ -118,7 +173,7 @@ export const visibilityHints: Record<Visibility, string> = {
 };
 
 const attributeLabels: Record<string, string> = {
-  species: 'Tür',
+  species: 'Tür / çeşit',
   age: 'Yaş',
   birth_date: 'Doğum tarihi',
   style: 'Stil',
@@ -137,6 +192,38 @@ const attributeLabels: Record<string, string> = {
 
 export function attributeLabel(key: string): string {
   return attributeLabels[key] ?? key.replaceAll('_', ' ');
+}
+
+/** Sunucudan gelen şema etiketlerini, ürün sözlüğündeki bilinen etiketlerle birleştirir. */
+export function resolveAttributeLabel(
+  key: string,
+  serverLabels?: Record<string, string>,
+): string {
+  return attributeLabels[key] ?? serverLabels?.[key] ?? key.replaceAll('_', ' ');
+}
+
+const numeric = /^\d+(?:[.,]\d+)?$/;
+
+/** Yaş, ağırlık gibi çıplak sayıları birimle birlikte okunur hâle getirir. */
+export function formatAttributeValue(key: string, value: unknown): string {
+  if (value === null || value === undefined) return '';
+  const text = String(value).trim();
+  if (!text) return '';
+  if (!numeric.test(text)) return text;
+  switch (key) {
+    case 'age':
+      return `${text} yaş`;
+    case 'weight':
+      return `${text} kg`;
+    case 'height':
+      return `${text} cm`;
+    case 'km':
+      return `${text} km`;
+    case 'cost_try':
+      return `${text} TL`;
+    default:
+      return text;
+  }
 }
 
 export type AssetIconName =

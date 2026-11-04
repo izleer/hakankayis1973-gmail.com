@@ -1,9 +1,16 @@
+import type { Metadata } from 'next';
 import Link from 'next/link';
 import { Icon } from '@/components/Icons';
+import { getT } from '@/lib/i18n/server';
 
-export const metadata = { title: 'Bulunamadı' };
+export async function generateMetadata(): Promise<Metadata> {
+  const t = await getT();
+  return { title: t('Bulunamadı') };
+}
 
-export default function NotFound() {
+export default async function NotFound() {
+  const t = await getT();
+
   return (
     <main className="page page-narrow">
       <Link href="/" className="brand notfound-brand">
@@ -15,20 +22,21 @@ export default function NotFound() {
 
       <div className="notfound">
         <span className="notfound-number">404</span>
-        <span className="eyebrow">Bu iz silinmiş olabilir</span>
-        <h1>Aradığın sayfa burada değil.</h1>
+        <span className="eyebrow">{t('Bu iz silinmiş olabilir')}</span>
+        <h1>{t('Aradığın sayfa burada değil.')}</h1>
         <p>
-          Bağlantı eskimiş, varlık kaldırılmış ya da bu sayfayı görmek için
-          erişimin olmayabilir.
+          {t(
+            'Bağlantı eskimiş, varlık kaldırılmış ya da bu sayfayı görmek için erişimin olmayabilir.',
+          )}
         </p>
         <div className="notfound-actions">
           <Link href="/" className="btn btn-primary">
             <Icon name="arrow-left" size={17} />
-            Hafızaya dön
+            {t('Hafızaya dön')}
           </Link>
           <Link href="/varliklar" className="btn btn-ghost">
             <Icon name="grid" size={16} />
-            Varlıklar
+            {t('Varlıklar')}
           </Link>
         </div>
       </div>

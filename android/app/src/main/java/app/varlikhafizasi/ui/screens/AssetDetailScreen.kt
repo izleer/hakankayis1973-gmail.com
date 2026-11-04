@@ -43,10 +43,13 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.res.pluralStringResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import app.varlikhafizasi.R
 import app.varlikhafizasi.data.Entry
 import app.varlikhafizasi.data.MediaUrl
 import app.varlikhafizasi.data.User
@@ -75,7 +78,12 @@ import app.varlikhafizasi.ui.theme.SageLight
 import app.varlikhafizasi.ui.theme.Ivory
 import coil.compose.AsyncImage
 
-private val tabs = listOf("Zaman", "Arşiv", "Ölçümler", "Paylaşım")
+private val tabs = listOf(
+    R.string.asset_detail_tab_story,
+    R.string.asset_detail_tab_media,
+    R.string.asset_detail_tab_measurements,
+    R.string.asset_detail_tab_people,
+)
 
 @Composable
 fun AssetDetailScreen(
@@ -106,17 +114,25 @@ fun AssetDetailScreen(
         ) {
             item {
                 VhTopBar(
-                    title = asset?.title ?: "Varlık",
+                    title = asset?.title ?: stringResource(R.string.common_asset),
                     onBack = onBack,
                     subtitle = asset?.type?.label,
                     actions = {
                         if (data?.detail?.access?.isOwner == true) {
                             IconButton(onClick = onAddEntry) {
-                                Icon(Icons.Outlined.Add, contentDescription = "Kayıt ekle", tint = Forest)
+                                Icon(
+                                    Icons.Outlined.Add,
+                                    contentDescription = stringResource(R.string.asset_detail_add_entry),
+                                    tint = Forest,
+                                )
                             }
                         }
                         IconButton(onClick = { selectedTab = 3 }) {
-                            Icon(Icons.Outlined.Share, contentDescription = "Paylaşım", tint = Forest)
+                            Icon(
+                                Icons.Outlined.Share,
+                                contentDescription = stringResource(R.string.asset_detail_share_with_people),
+                                tint = Forest,
+                            )
                         }
                     },
                 )
@@ -142,7 +158,7 @@ fun AssetDetailScreen(
                         if (data.detail.access.isShared) {
                             Surface(color = SageLight, shape = RoundedCornerShape(8.dp)) {
                                 Text(
-                                    "Bu varlık sizinle paylaşıldı.",
+                                    stringResource(R.string.asset_detail_shared_with_you),
                                     style = MaterialTheme.typography.bodySmall,
                                     color = Forest,
                                     modifier = Modifier.padding(horizontal = 10.dp, vertical = 6.dp),
@@ -159,26 +175,34 @@ fun AssetDetailScreen(
                             Spacer(Modifier.height(12.dp))
                         }
                         Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                            MiniMeta("${asset.entryCount}", "kayıt", Modifier.weight(1f))
                             MiniMeta(
-                                asset.acquiredAt?.let { formatDate(it) } ?: "—",
-                                "edinme",
+                                "${asset.entryCount}",
+                                stringResource(R.string.asset_detail_meta_entries),
                                 Modifier.weight(1f),
                             )
-                            MiniMeta(asset.locationName ?: "—", "mekân", Modifier.weight(1f))
+                            MiniMeta(
+                                asset.acquiredAt?.let { formatDate(it) } ?: "—",
+                                stringResource(R.string.asset_detail_meta_acquired),
+                                Modifier.weight(1f),
+                            )
+                            MiniMeta(
+                                asset.locationName ?: "—",
+                                stringResource(R.string.asset_detail_meta_location),
+                                Modifier.weight(1f),
+                            )
                         }
                         Spacer(Modifier.height(14.dp))
                         Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                             if (data.detail.access.isOwner) {
                                 Surface(
-                                    color = Clay,
+                                    color = Forest,
                                     shape = RoundedCornerShape(50),
                                     modifier = Modifier
                                         .weight(1f)
                                         .clickable { onAddEntry() },
                                 ) {
                                     Text(
-                                        "Kayıt ekle",
+                                        stringResource(R.string.asset_detail_add_entry),
                                         style = MaterialTheme.typography.labelLarge,
                                         color = Color.White,
                                         modifier = Modifier.padding(vertical = 11.dp),
@@ -195,7 +219,7 @@ fun AssetDetailScreen(
                                     .clickable { selectedTab = 3 },
                             ) {
                                 Text(
-                                    "Paylaşım",
+                                    stringResource(R.string.asset_detail_tab_people),
                                     style = MaterialTheme.typography.labelLarge,
                                     color = Forest,
                                     modifier = Modifier.padding(vertical = 11.dp),
@@ -214,9 +238,9 @@ fun AssetDetailScreen(
                             .padding(horizontal = 20.dp, vertical = 4.dp),
                         horizontalArrangement = Arrangement.spacedBy(8.dp),
                     ) {
-                        tabs.forEachIndexed { index, label ->
+                        tabs.forEachIndexed { index, labelRes ->
                             Pill(
-                                text = label,
+                                text = stringResource(labelRes),
                                 selected = selectedTab == index,
                                 onClick = { selectedTab = index },
                             )
@@ -230,9 +254,13 @@ fun AssetDetailScreen(
                         if (data.detail.entries.isEmpty()) {
                             item {
                                 EmptyState(
-                                    title = "Henüz bir iz yok",
-                                    body = "İlk notunu, fotoğrafını ya da bakım kaydını ekle; zaman çizelgesi burada başlasın.",
-                                    actionLabel = if (data.detail.access.isOwner) "Kayıt ekle" else null,
+                                    title = stringResource(R.string.asset_detail_story_empty_title),
+                                    body = stringResource(R.string.asset_detail_story_empty_body),
+                                    actionLabel = if (data.detail.access.isOwner) {
+                                        stringResource(R.string.asset_detail_add_entry)
+                                    } else {
+                                        null
+                                    },
                                     onAction = if (data.detail.access.isOwner) onAddEntry else null,
                                 )
                             }
@@ -252,14 +280,18 @@ fun AssetDetailScreen(
                         if (media.isEmpty()) {
                             item {
                                 EmptyState(
-                                    title = "Arşiv sessiz",
-                                    body = "Kayıtlara eklediğin fotoğraf ve belgeler burada toplanır.",
+                                    title = stringResource(R.string.asset_detail_media_empty_title),
+                                    body = stringResource(R.string.asset_detail_media_empty_body),
                                 )
                             }
                         } else {
                             item {
                                 Text(
-                                    "${media.size} dosya · dokunarak büyüt",
+                                    pluralStringResource(
+                                        R.plurals.asset_detail_media_count,
+                                        media.size,
+                                        media.size,
+                                    ),
                                     style = MaterialTheme.typography.bodySmall,
                                     color = Muted,
                                     modifier = Modifier.padding(horizontal = 20.dp, vertical = 8.dp),
@@ -297,12 +329,17 @@ fun AssetDetailScreen(
                         if (measurements.isEmpty()) {
                             item {
                                 EmptyState(
-                                    title = "Ölçüm yok",
-                                    body = "Boy, ağırlık, sulama miktarı… Ölçüm tipinde bir kayıt ekleyince burada birikir.",
+                                    title = stringResource(R.string.asset_detail_measurements_empty_title),
+                                    body = stringResource(R.string.asset_detail_measurements_empty_body),
                                 )
                             }
                         } else {
-                            item { SectionLabel("Ölçüm geçmişi", modifier = Modifier.padding(horizontal = 20.dp)) }
+                            item {
+                                SectionLabel(
+                                    stringResource(R.string.asset_detail_measurement_history),
+                                    modifier = Modifier.padding(horizontal = 20.dp),
+                                )
+                            }
                             items(measurements, key = { it.id }) { measurement ->
                                 Row(
                                     modifier = Modifier
@@ -337,9 +374,12 @@ fun AssetDetailScreen(
                     3 -> {
                         item {
                             Column(Modifier.padding(horizontal = 20.dp, vertical = 8.dp)) {
-                                SectionLabel("Kimler görebilir?")
+                                SectionLabel(stringResource(R.string.asset_detail_access_section))
                                 Text(
-                                    "Varlık ${visibilityLabel(asset.visibility).lowercase()} olsa da aşağıdaki kişiler yalnızca bu varlığı görüntüleyebilir. Kayıtların görünürlüğü ayrıca yönetilir.",
+                                    stringResource(
+                                        R.string.asset_detail_access_body,
+                                        visibilityLabel(asset.visibility).lowercase(),
+                                    ),
                                     style = MaterialTheme.typography.bodySmall,
                                     color = Muted,
                                 )
@@ -358,7 +398,7 @@ fun AssetDetailScreen(
                                             accessName = it
                                             vm.clearFormError()
                                         },
-                                        label = { Text("Kullanıcı adı") },
+                                        label = { Text(stringResource(R.string.asset_detail_username_label)) },
                                         singleLine = true,
                                         enabled = !formBusy,
                                         modifier = Modifier.weight(1f),
@@ -371,7 +411,7 @@ fun AssetDetailScreen(
                                         },
                                         enabled = !formBusy,
                                     ) {
-                                        Text("Ekle", color = Forest)
+                                        Text(stringResource(R.string.asset_detail_add), color = Forest)
                                     }
                                 }
                                 if (formError != null) {
@@ -386,8 +426,8 @@ fun AssetDetailScreen(
                             if (data.detail.access.viewers.isEmpty()) {
                                 item {
                                     EmptyState(
-                                        title = "Kimseyle paylaşılmadı",
-                                        body = "Bir kullanıcı adı ekleyerek bu varlığın hikâyesini seçtiğin kişiyle paylaşabilirsin.",
+                                        title = stringResource(R.string.asset_detail_no_viewers_title),
+                                        body = stringResource(R.string.asset_detail_no_viewers_body),
                                     )
                                 }
                             }
@@ -423,7 +463,7 @@ fun AssetDetailScreen(
                                     ) {
                                         Icon(
                                             Icons.Outlined.Delete,
-                                            contentDescription = "Erişimi kaldır",
+                                            contentDescription = stringResource(R.string.asset_detail_remove_access),
                                             tint = Clay,
                                         )
                                     }
@@ -432,8 +472,8 @@ fun AssetDetailScreen(
                         } else {
                             item {
                                 EmptyState(
-                                    title = "Sadece sahibi yönetir",
-                                    body = "Bu varlığın erişim listesini yalnızca sahibi düzenleyebilir.",
+                                    title = stringResource(R.string.asset_detail_owner_only_title),
+                                    body = stringResource(R.string.asset_detail_owner_only_body),
                                 )
                             }
                         }
@@ -458,16 +498,18 @@ fun AssetDetailScreen(
     pendingDelete?.let { entryId ->
         AlertDialog(
             onDismissRequest = { pendingDelete = null },
-            title = { Text("Kayıt silinsin mi?") },
-            text = { Text("Bu kayıt ve bağlı medyaları arşivden kaldırılacak. Bu işlem geri alınamaz.") },
+            title = { Text(stringResource(R.string.asset_detail_delete_title)) },
+            text = { Text(stringResource(R.string.asset_detail_delete_body)) },
             confirmButton = {
                 TextButton(onClick = {
                     vm.deleteEntry(assetId, entryId)
                     pendingDelete = null
-                }) { Text("Sil", color = Danger) }
+                }) { Text(stringResource(R.string.asset_detail_delete), color = Danger) }
             },
             dismissButton = {
-                TextButton(onClick = { pendingDelete = null }) { Text("Vazgeç", color = Forest) }
+                TextButton(onClick = { pendingDelete = null }) {
+                    Text(stringResource(R.string.asset_detail_cancel), color = Forest)
+                }
             },
         )
     }
@@ -488,7 +530,7 @@ fun AssetDetailScreen(
                         .height(420.dp),
                 )
                 Text(
-                    "Kapat",
+                    stringResource(R.string.asset_detail_close),
                     style = MaterialTheme.typography.labelLarge,
                     color = Color.White,
                     modifier = Modifier
@@ -542,7 +584,10 @@ private fun Cover(
                 .matchParentSize()
                 .background(
                     Brush.verticalGradient(
-                        listOf(Color.Transparent, Forest.copy(alpha = 0.86f)),
+                        0f to Color.Transparent,
+                        0.35f to Forest.copy(alpha = 0.10f),
+                        0.62f to Forest.copy(alpha = 0.55f),
+                        1f to Forest.copy(alpha = 0.94f),
                     ),
                 ),
         )
@@ -552,7 +597,7 @@ private fun Cover(
                 .padding(20.dp),
         ) {
             Text(
-                (typeLabel ?: "VARLIK").uppercase(),
+                (typeLabel ?: stringResource(R.string.asset_detail_cover_type_fallback)).uppercase(),
                 style = MaterialTheme.typography.labelSmall,
                 color = Gold,
             )
@@ -568,7 +613,7 @@ private fun Cover(
             Text(
                 visibilityLabel(visibility),
                 style = MaterialTheme.typography.labelMedium,
-                color = Paper.copy(alpha = 0.72f),
+                color = Paper.copy(alpha = 0.92f),
             )
         }
     }
@@ -629,7 +674,7 @@ private fun EntryCard(
                 IconButton(onClick = onDelete, modifier = Modifier.size(32.dp)) {
                     Icon(
                         Icons.Outlined.Delete,
-                        contentDescription = "Sil",
+                        contentDescription = stringResource(R.string.asset_detail_delete),
                         tint = Muted,
                         modifier = Modifier.size(17.dp),
                     )

@@ -1,0 +1,17 @@
+<resources>
+    <!-- Connexion / inscription -->
+    <string name="login_tagline">la trace de tout ce qui vit et se transforme</string>
+    <string name="login_headline_login">Retournez à\nvotre mémoire.</string>
+    <string name="login_headline_register">Lancez une\nnouvelle mémoire.</string>
+    <string name="login_body">Bonsaï, animal de compagnie, tableau, maison ou fleur… Gardez son entretien, ses documents et son histoire au même endroit.</string>
+    <string name="login_tab_login">Connexion</string>
+    <string name="login_tab_register">Inscription</string>
+    <string name="login_field_display_name">Nom affiché</string>
+    <string name="login_field_email">E-mail</string>
+    <string name="login_field_username">Nom d\'utilisateur</string>
+    <string name="login_field_identifier">E-mail ou nom d\'utilisateur</string>
+    <string name="login_field_password">Mot de passe</string>
+    <string name="login_action_login">Se connecter</string>
+    <string name="login_action_register">Créer un compte</string>
+    <string name="login_demo_hint">Compte démo : ada@demo.local · Demo1234!</string>
+</resources>

@@ -4,11 +4,13 @@ import { useRouter } from 'next/navigation';
 import { useState } from 'react';
 import { vh } from '@/lib/client';
 import { initials } from '@/lib/format';
+import { useT } from '@/lib/i18n/client';
 import type { GroupInvitation } from '@/lib/types';
 import { Icon } from './Icons';
 import { MediaImage } from './MediaImage';
 
 export function GroupInvites({ initial }: { initial: GroupInvitation[] }) {
+  const t = useT();
   const router = useRouter();
   const [items, setItems] = useState(initial);
   const [busyId, setBusyId] = useState<string | null>(null);
@@ -32,7 +34,7 @@ export function GroupInvites({ initial }: { initial: GroupInvitation[] }) {
         router.refresh();
       }
     } catch (caught) {
-      setError(caught instanceof Error ? caught.message : 'Davet yanıtlanamadı.');
+      setError(caught instanceof Error ? caught.message : t('Davet yanıtlanamadı.'));
     } finally {
       setBusyId(null);
     }
@@ -43,8 +45,8 @@ export function GroupInvites({ initial }: { initial: GroupInvitation[] }) {
   return (
     <section className="invite-banner">
       <div className="invite-banner-head">
-        <span className="eyebrow">Davetler</span>
-        <h2>Seni bir gruba çağırdılar</h2>
+        <span className="eyebrow">{t('Davetler')}</span>
+        <h2>{t('Seni bir gruba çağırdılar')}</h2>
         {error ? <p className="form-error">{error}</p> : null}
       </div>
       <div className="invite-list">
@@ -67,7 +69,7 @@ export function GroupInvites({ initial }: { initial: GroupInvitation[] }) {
                     initials(invitation.inviter.displayName)
                   )}
                 </span>
-                {invitation.inviter.displayName} davet etti
+                {t('{name} davet etti', { name: invitation.inviter.displayName })}
               </small>
             </span>
             <span className="invite-actions">
@@ -78,7 +80,7 @@ export function GroupInvites({ initial }: { initial: GroupInvitation[] }) {
                 onClick={() => respond(invitation, 'accept')}
               >
                 <Icon name="check" size={15} />
-                Katıl
+                {t('Katıl')}
               </button>
               <button
                 type="button"
@@ -86,7 +88,7 @@ export function GroupInvites({ initial }: { initial: GroupInvitation[] }) {
                 disabled={busyId === invitation.id}
                 onClick={() => respond(invitation, 'decline')}
               >
-                Geç
+                {t('Geç')}
               </button>
             </span>
           </div>

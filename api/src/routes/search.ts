@@ -85,9 +85,9 @@ export async function searchRoutes(app: FastifyInstance): Promise<void> {
           bio: row.bio,
           followerCount: Number(row.follower_count),
         })),
-        assets: await Promise.all(assets.map((row) => mapAsset(row))),
+        assets: await Promise.all(assets.map((row) => mapAsset(row, req.locale))),
         communities: communities.map((row) => mapCommunity(row)),
-        posts: await hydratePosts(posts),
+        posts: await hydratePosts(posts, req.locale),
       },
     };
   });

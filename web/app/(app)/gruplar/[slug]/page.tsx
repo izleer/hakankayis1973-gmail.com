@@ -2,6 +2,7 @@ import type { Metadata } from 'next';
 import { notFound } from 'next/navigation';
 import { GroupDetail } from '@/components/GroupDetail';
 import { ApiError, api, requireViewer } from '@/lib/api';
+import { getT } from '@/lib/i18n/server';
 import type {
   Asset,
   CursorPage,
@@ -26,15 +27,17 @@ async function loadGroup(slug: string): Promise<GroupDetailData | null> {
 }
 
 export async function generateMetadata({ params }: { params: Params }): Promise<Metadata> {
+  const t = await getT();
   const { slug } = await params;
   try {
     const data = await api<GroupDetailData>(`/v1/communities/${encodeURIComponent(slug)}`);
     return {
       title: data.community.name,
-      description: data.community.description ?? `${data.community.name} grubu`,
+      description:
+        data.community.description ?? t('{name} grubu', { name: data.community.name }),
     };
   } catch {
-    return { title: 'Grup' };
+    return { title: t('Grup') };
   }
 }
 

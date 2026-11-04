@@ -1,0 +1,27 @@
+<resources>
+    <!-- Home screen -->
+    <string name="home_greeting">Hello, %1$s.</string>
+    <string name="home_subtitle">What will you add to your memory today?</string>
+    <string name="home_summary_label">MEMORY SUMMARY</string>
+    <string name="home_summary_stats">%1$s\n%2$s</string>
+    <string name="home_summary_empty">Everything has\na story.</string>
+    <string name="home_stat_media">Media</string>
+    <string name="home_new_asset">New asset</string>
+    <string name="home_open_archive">Browse the archive</string>
+    <string name="home_see_all">All</string>
+    <string name="home_empty_title">Leave the first trace</string>
+    <string name="home_empty_body">A bonsai, a friend or the painting on the wall… Add your first asset and let its story begin here.</string>
+    <string name="home_recent_title">Recent activity</string>
+    <string name="home_entry_fallback">Entry</string>
+    <string name="home_quote">“Keeping something is\nfor looking at it again.”</string>
+    <string name="home_quote_attribution">izleer · daily archive</string>
+
+    <plurals name="home_summary_assets">
+        <item quantity="one">%1$d asset</item>
+        <item quantity="other">%1$d assets</item>
+    </plurals>
+    <plurals name="home_summary_traces">
+        <item quantity="one">left %1$d trace.</item>
+        <item quantity="other">left %1$d traces.</item>
+    </plurals>
+</resources>

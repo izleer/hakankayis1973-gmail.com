@@ -1,0 +1,98 @@
+<resources>
+    <string name="app_name">izleer</string>
+
+    <!-- Común -->
+    <string name="common_error_title">Algo salió mal</string>
+    <string name="common_retry">Reintentar</string>
+    <string name="common_back">Atrás</string>
+    <string name="common_notifications">Notificaciones</string>
+    <string name="common_notifications_unread">Notificaciones, %1$d sin leer</string>
+    <string name="common_asset">Bien</string>
+    <string name="common_like_count">%1$d me gusta</string>
+    <string name="common_comment_count">%1$d comentarios</string>
+    <string name="common_share">Publicación</string>
+
+    <!-- Visibilidad -->
+    <string name="visibility_public">Público</string>
+    <string name="visibility_selected">Personas seleccionadas</string>
+    <string name="visibility_private">Privado</string>
+
+    <!-- Tipo de medio -->
+    <string name="kind_document">Documento</string>
+    <string name="kind_video">Vídeo</string>
+    <string name="kind_image">Imagen</string>
+
+    <!-- Tipo de entrada -->
+    <string name="entry_type_photo">Foto</string>
+    <string name="entry_type_maintenance">Mantenimiento</string>
+    <string name="entry_type_acquisition">Adquisición</string>
+    <string name="entry_type_measurement">Medición</string>
+    <string name="entry_type_health">Salud</string>
+    <string name="entry_type_event">Evento</string>
+    <string name="entry_type_document">Documento</string>
+    <string name="entry_type_note">Nota</string>
+
+    <plurals name="common_entry_count">
+        <item quantity="one">%1$d entrada</item>
+        <item quantity="other">%1$d entradas</item>
+    </plurals>
+
+    <!-- Navegación -->
+    <string name="nav_home">Panel</string>
+    <string name="nav_assets">Bienes</string>
+    <string name="nav_archive">Archivo</string>
+    <string name="nav_explore">Explorar</string>
+    <string name="nav_profile">Perfil</string>
+    <string name="splash_loading">preparando tu memoria…</string>
+
+    <!-- Perfil -->
+    <string name="profile_logout">Cerrar sesión</string>
+    <string name="profile_stat_assets">bienes</string>
+    <string name="profile_stat_entries">entradas</string>
+    <string name="profile_stat_followers">seguidores</string>
+    <string name="profile_stat_following">siguiendo</string>
+    <string name="profile_assets_title">Tus bienes</string>
+    <string name="profile_posts_title">Tus publicaciones</string>
+    <string name="profile_empty_title">Este es tu archivo</string>
+    <string name="profile_empty_body">Aún no has añadido un bien. Usa la pestaña Bienes para empezar tu primera historia.</string>
+    <string name="profile_data_title">Tus datos son tuyos.</string>
+    <string name="profile_data_body">Puedes exportar tu archivo o eliminar tu cuenta en cualquier momento. Estas acciones se realizan desde la página de perfil de la versión web.</string>
+    <string name="profile_version">izleer · v1.0</string>
+    <string name="profile_logout_title">¿Cerrar sesión?</string>
+    <string name="profile_logout_body">Se cerrará tu sesión; tu archivo seguirá a salvo.</string>
+    <string name="profile_logout_confirm">Cerrar sesión</string>
+    <string name="profile_logout_cancel">Cancelar</string>
+
+    <!-- Idioma -->
+    <string name="language_title">Idioma</string>
+    <string name="language_section">Idioma y región</string>
+    <string name="language_current">Idioma de la aplicación: %1$s</string>
+    <string name="language_dialog_title">Idioma de la aplicación</string>
+    <string name="language_dialog_body">La aplicación usa este idioma. Tus contenidos conservan su propio idioma.</string>
+    <string name="language_follow_system">Idioma del dispositivo</string>
+    <string name="language_cancel">Cancelar</string>
+
+    <!-- Errores -->
+    <string name="error_fields_required">Se requieren correo/nombre de usuario y contraseña.</string>
+    <string name="error_fill_all">Completa todos los campos.</string>
+    <string name="error_password_short">La contraseña debe tener al menos 8 caracteres.</string>
+    <string name="error_asset_required">Se requieren el tipo y el nombre del bien.</string>
+    <string name="error_entry_text_required">Escribe un título o una descripción.</string>
+    <string name="error_username_required">Introduce un nombre de usuario.</string>
+    <string name="error_unexpected">Se produjo un error inesperado.</string>
+    <string name="error_generic_status">La operación falló (%1$d).</string>
+    <string name="error_offline">No se pudo contactar con el servidor. Comprueba que la API funciona y que la dirección es correcta.</string>
+    <string name="error_no_data">El servidor no devolvió datos.</string>
+    <string name="error_file_unreadable">No se pudo leer el archivo.</string>
+    <string name="error_file_empty">El archivo está vacío.</string>
+    <string name="error_file_too_large">El archivo puede ocupar como máximo 10 MB.</string>
+
+    <!-- Avisos -->
+    <string name="notice_asset_added">«%1$s» se añadió a tu memoria.</string>
+    <string name="notice_entry_added">La entrada se añadió a la cronología.</string>
+    <string name="notice_entry_deleted">La entrada se eliminó.</string>
+    <string name="notice_access_granted">@%1$s ya puede ver este bien.</string>
+    <string name="notice_access_removed">Acceso retirado.</string>
+    <string name="notice_unfollowed">Has dejado de seguir a @%1$s.</string>
+    <string name="notice_following">Ahora sigues a @%1$s.</string>
+</resources>

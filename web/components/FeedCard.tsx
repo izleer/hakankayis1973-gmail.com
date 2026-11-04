@@ -4,11 +4,13 @@ import Link from 'next/link';
 import { useState } from 'react';
 import { vh } from '@/lib/client';
 import { entryTypeLabels, formatDate, initials, mediaSrc } from '@/lib/format';
+import { useI18n } from '@/lib/i18n/client';
 import type { FeedPost } from '@/lib/types';
 import { Icon } from './Icons';
 import { MediaImage } from './MediaImage';
 
 export function FeedCard({ post }: { post: FeedPost }) {
+  const { t, locale } = useI18n();
   const [liked, setLiked] = useState(post.likedByMe);
   const [likeCount, setLikeCount] = useState(post.likeCount);
   const [busy, setBusy] = useState(false);
@@ -44,13 +46,13 @@ export function FeedCard({ post }: { post: FeedPost }) {
             {post.author.avatarUrl ? (
               <img src={post.author.avatarUrl} alt="" />
             ) : (
-              initials(post.author.displayName)
+              initials(post.author.displayName, locale)
             )}
           </span>
           <span>
             <strong>{post.author.displayName}</strong>
             <small>
-              @{post.author.username} · {formatDate(post.createdAt)}
+              @{post.author.username} · {formatDate(post.createdAt, locale)}
             </small>
           </span>
         </Link>
@@ -78,7 +80,7 @@ export function FeedCard({ post }: { post: FeedPost }) {
           rel="noreferrer"
         >
           <Icon name="file" size={16} />
-          {document.originalName ?? 'Belge'}
+          {document.originalName ?? t('Belge')}
         </a>
       ) : null}
 
@@ -87,8 +89,8 @@ export function FeedCard({ post }: { post: FeedPost }) {
           <span>
             <Icon name="book" size={14} />
             {post.entry
-              ? `${entryTypeLabels[post.entry.type]} · ${post.entry.title ?? 'İsimsiz kayıt'}`
-              : 'Varlık hafızası'}
+              ? `${t(entryTypeLabels[post.entry.type])} · ${post.entry.title ?? t('İsimsiz kayıt')}`
+              : t('Varlık hafızası')}
           </span>
           {post.asset?.typeLabel ? (
             <span className="feed-source-type">
@@ -109,11 +111,11 @@ export function FeedCard({ post }: { post: FeedPost }) {
           aria-pressed={liked}
         >
           <Icon name="heart" size={17} />
-          {likeCount > 0 ? likeCount : 'Beğen'}
+          {likeCount > 0 ? likeCount : t('Beğen')}
         </button>
         <Link href={post.asset ? `/varliklar/${post.asset.id}` : '#'} className="feed-action">
           <Icon name="message" size={17} />
-          {post.commentCount > 0 ? post.commentCount : 'Yorum'}
+          {post.commentCount > 0 ? post.commentCount : t('Yorum')}
         </Link>
         {post.community ? (
           <span className="feed-community">
@@ -123,7 +125,7 @@ export function FeedCard({ post }: { post: FeedPost }) {
         ) : (
           <span className="feed-community">
             <Icon name="eye" size={14} />
-            Herkese açık
+            {t('Herkese açık')}
           </span>
         )}
       </footer>

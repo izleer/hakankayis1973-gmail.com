@@ -127,7 +127,7 @@ export async function userRoutes(app: FastifyInstance): Promise<void> {
           blockedBy: Boolean(blockedMe),
           isSelf,
         },
-        assets: await Promise.all(assetRows.map((asset) => mapAsset(asset))),
+        assets: await Promise.all(assetRows.map((asset) => mapAsset(asset, req.locale))),
       },
     };
   });
@@ -178,7 +178,7 @@ export async function userRoutes(app: FastifyInstance): Promise<void> {
     );
     return {
       data: {
-        items: await Promise.all(rows.map((asset) => mapAsset(asset))),
+        items: await Promise.all(rows.map((asset) => mapAsset(asset, req.locale))),
         page: params.page,
         pageSize: params.limit,
         total: Number(total?.count ?? 0),
@@ -205,7 +205,8 @@ export async function userRoutes(app: FastifyInstance): Promise<void> {
         type: 'follow',
         entityType: 'user',
         entityId: viewer.id,
-        message: `${viewer.displayName} seni takip etmeye başladı.`,
+        messageKey: '{actor} seni takip etmeye başladı.',
+        messageParams: { actor: viewer.displayName },
       });
       await audit(viewer.id, 'user.followed', 'user', target.id, {}, req.ip);
     }
@@ -303,7 +304,7 @@ export async function userRoutes(app: FastifyInstance): Promise<void> {
     return {
       data: {
         stats: { ...stats, unreadNotifications: Number(unread?.count ?? 0) },
-        recentAssets: await Promise.all(assets.map((asset) => mapAsset(asset))),
+        recentAssets: await Promise.all(assets.map((asset) => mapAsset(asset, req.locale))),
       },
     };
   });

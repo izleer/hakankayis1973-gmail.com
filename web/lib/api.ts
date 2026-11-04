@@ -1,6 +1,7 @@
 import { cookies } from 'next/headers';
 import { redirect } from 'next/navigation';
 import { cache } from 'react';
+import { LOCALE_COOKIE, isLocale, type Locale } from './i18n/config';
 import type { SessionResponse, User } from './types';
 
 export const API_URL = process.env.API_URL ?? 'http://127.0.0.1:4000';
@@ -24,12 +25,19 @@ async function tokenFromCookies(): Promise<string | null> {
   return store.get(SESSION_COOKIE)?.value ?? null;
 }
 
+async function localeFromCookies(): Promise<Locale | null> {
+  const store = await cookies();
+  const value = store.get(LOCALE_COOKIE)?.value;
+  return isLocale(value) ? value : null;
+}
+
 export async function api<T>(path: string, init?: RequestInit): Promise<T> {
-  const token = await tokenFromCookies();
+  const [token, locale] = await Promise.all([tokenFromCookies(), localeFromCookies()]);
   const response = await fetch(`${API_URL}${path}`, {
     ...init,
     headers: {
       Accept: 'application/json',
+      ...(locale ? { 'Accept-Language': locale } : {}),
       ...(init?.body ? { 'Content-Type': 'application/json' } : {}),
       ...(token ? { Authorization: `Bearer ${token}` } : {}),
       ...(init?.headers ?? {}),

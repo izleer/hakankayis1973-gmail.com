@@ -34,6 +34,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
@@ -41,6 +42,7 @@ import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import app.varlikhafizasi.R
 import app.varlikhafizasi.ui.VhViewModel
 import app.varlikhafizasi.ui.components.GoldRule
 import app.varlikhafizasi.ui.components.Pill
@@ -95,7 +97,7 @@ fun LoginScreen(vm: VhViewModel, sessionError: String? = null) {
                     color = Forest,
                 )
                 Text(
-                    "yaşayan ve dönüşen her şeyin izi",
+                    stringResource(R.string.login_tagline),
                     style = MaterialTheme.typography.bodySmall,
                     color = Muted,
                 )
@@ -104,7 +106,9 @@ fun LoginScreen(vm: VhViewModel, sessionError: String? = null) {
 
         Spacer(Modifier.height(44.dp))
         Text(
-            text = if (registerMode) "Yeni bir hafıza\nbaşlat." else "Hafızana\ndön.",
+            text = stringResource(
+                if (registerMode) R.string.login_headline_register else R.string.login_headline_login
+            ),
             style = MaterialTheme.typography.displayMedium,
             color = Forest,
         )
@@ -112,7 +116,7 @@ fun LoginScreen(vm: VhViewModel, sessionError: String? = null) {
         GoldRule()
         Spacer(Modifier.height(14.dp))
         Text(
-            text = "Bonsai, evcil hayvan, tablo, ev ya da bir çiçek… Bakımı, belgeleri ve hikâyesi tek yerde kalsın.",
+            text = stringResource(R.string.login_body),
             style = MaterialTheme.typography.bodyMedium,
             color = Muted,
         )
@@ -127,12 +131,12 @@ fun LoginScreen(vm: VhViewModel, sessionError: String? = null) {
             Column(Modifier.padding(18.dp)) {
                 Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                     Pill(
-                        text = "Giriş",
+                        text = stringResource(R.string.login_tab_login),
                         selected = !registerMode,
                         onClick = { registerMode = false },
                     )
                     Pill(
-                        text = "Kayıt ol",
+                        text = stringResource(R.string.login_tab_register),
                         selected = registerMode,
                         onClick = { registerMode = true },
                     )
@@ -143,7 +147,7 @@ fun LoginScreen(vm: VhViewModel, sessionError: String? = null) {
                     OutlinedTextField(
                         value = displayName,
                         onValueChange = { displayName = it },
-                        label = { Text("Görünen ad") },
+                        label = { Text(stringResource(R.string.login_field_display_name)) },
                         singleLine = true,
                         enabled = !busy,
                         modifier = Modifier.fillMaxWidth(),
@@ -152,7 +156,7 @@ fun LoginScreen(vm: VhViewModel, sessionError: String? = null) {
                     OutlinedTextField(
                         value = email,
                         onValueChange = { email = it },
-                        label = { Text("E-posta") },
+                        label = { Text(stringResource(R.string.login_field_email)) },
                         singleLine = true,
                         enabled = !busy,
                         keyboardOptions = KeyboardOptions(
@@ -165,7 +169,7 @@ fun LoginScreen(vm: VhViewModel, sessionError: String? = null) {
                     OutlinedTextField(
                         value = username,
                         onValueChange = { username = it },
-                        label = { Text("Kullanıcı adı") },
+                        label = { Text(stringResource(R.string.login_field_username)) },
                         singleLine = true,
                         enabled = !busy,
                         keyboardOptions = KeyboardOptions(imeAction = ImeAction.Next),
@@ -175,7 +179,7 @@ fun LoginScreen(vm: VhViewModel, sessionError: String? = null) {
                     OutlinedTextField(
                         value = identifier,
                         onValueChange = { identifier = it },
-                        label = { Text("E-posta veya kullanıcı adı") },
+                        label = { Text(stringResource(R.string.login_field_identifier)) },
                         singleLine = true,
                         enabled = !busy,
                         keyboardOptions = KeyboardOptions(
@@ -190,7 +194,7 @@ fun LoginScreen(vm: VhViewModel, sessionError: String? = null) {
                 OutlinedTextField(
                     value = password,
                     onValueChange = { password = it },
-                    label = { Text("Şifre") },
+                    label = { Text(stringResource(R.string.login_field_password)) },
                     singleLine = true,
                     enabled = !busy,
                     visualTransformation = PasswordVisualTransformation(),
@@ -213,7 +217,7 @@ fun LoginScreen(vm: VhViewModel, sessionError: String? = null) {
                 if (sessionError != null && !busy) {
                     Spacer(Modifier.height(8.dp))
                     Text(
-                        text = "Yeniden dene",
+                        text = stringResource(R.string.common_retry),
                         style = MaterialTheme.typography.labelLarge,
                         color = Forest,
                         modifier = Modifier
@@ -251,7 +255,11 @@ fun LoginScreen(vm: VhViewModel, sessionError: String? = null) {
                         )
                     } else {
                         Text(
-                            if (registerMode) "Hesabı oluştur" else "Giriş yap",
+                            if (registerMode) {
+                                stringResource(R.string.login_action_register)
+                            } else {
+                                stringResource(R.string.login_action_login)
+                            },
                             style = MaterialTheme.typography.labelLarge,
                         )
                     }
@@ -261,7 +269,7 @@ fun LoginScreen(vm: VhViewModel, sessionError: String? = null) {
 
         Spacer(Modifier.height(18.dp))
         Text(
-            text = "Demo hesabı: ada@demo.local · Demo1234!",
+            text = stringResource(R.string.login_demo_hint),
             style = MaterialTheme.typography.bodySmall,
             color = Muted,
             textAlign = TextAlign.Center,

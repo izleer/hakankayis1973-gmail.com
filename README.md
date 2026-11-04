@@ -87,6 +87,16 @@ android (Compose) ── bearer ───────┘        └──► yer
 - API oturumları veritabanında tutulduğu için yatay ölçeklenebilir; medya S3'ye taşınabilir.
 - Ayrıntılı veri modeli, uç sözleşmeleri, güvenlik ve NFR'ler: [`ANALYSIS.md`](ANALYSIS.md).
 
+## Çok dillilik
+
+Desteklenen diller: Türkçe (varsayılan), İngilizce, Almanca, Fransızca, İspanyolca. Kullanıcı içeriği (varlık adları, notlar) çevrilmez.
+
+- **Web:** İlk açılışta tarayıcı dili (`Accept-Language`) seçilir, tercih `vh_locale` çerezinde saklanır. `?lang=en` gibi parametreyle de değiştirilebilir. Kataloglar `web/lib/i18n/messages/<dil>/` altındadır; BFF ve sunucu bileşenleri bu dili API'ye `Accept-Language` olarak iletir.
+- **API:** Her istek `Accept-Language` başlığına göre yerelleşir. Mesaj katalogları `api/src/lib/i18n/<dil>.ts`, varlık türü çevirileri `asset_type_translations` tablosundadır (`db/migrations/004_i18n.sql`). Bildirimler `message_key` + parametre olarak saklanır ve okunurken alıcının dilinde üretilir.
+- **Android:** Metinler `res/values-<dil>/strings*.xml` dosyalarındadır. Dil, Profil → Dil ekranından seçilir; seçim Android 13+ sistem dil ayarıyla da eşlenir ve isteklerde `Accept-Language` gönderilir.
+
+Yeni bir dil eklemek için sırasıyla: (1) `web/lib/i18n/config.ts` içindeki `locales` listesine kodu ekleyip katalog klasörünü oluşturun, (2) API'de `api/src/lib/locale.ts` listesine ve yeni katalog dosyasına ekleyin, (3) 004 migration'ındaki `CHECK` kısıtını yeni dili kapsayacak şekilde güncelleyip `asset_type_translations` satırlarını ekleyin, (4) Android'de `AppLanguage` listesi, `values-<dil>` klasörleri ve `res/xml/locales_config.xml` dosyasını güncelleyin.
+
 ## Üretim
 
 Docker Compose ile tek sunucu:
@@ -108,10 +118,10 @@ Yedekler:
 
 ## Doğrulama durumu
 
-- API: `tsc --noEmit`, `tsup` derlemesi ve `vitest` (3 test) başarılı; uçtan uca giriş, okuma, yükleme, varlık/kayıt/ölçüm oluşturma ve silme curl ile doğrulandı.
-- Web: `tsc --noEmit` ve `next build` (17 rota) başarılı; standalone sunucu `/api/health` ile ayağa kalktı; giriş, panel, varlıklar, arşiv, keşfet, profil, bildirimler ve varlık detayı oturumlu olarak 200 döndü.
+- API: `tsc --noEmit`, `tsup` derlemesi ve `vitest` (7 test) başarılı; uçtan uca giriş, okuma, yükleme, varlık/kayıt/ölçüm oluşturma ve silme curl ile doğrulandı. Migration'lar taze bir PostgreSQL 18 kümesinde uygulandı; `Accept-Language` ile varlık türü etiketleri, doğrulama/hata mesajları ve bildirimler tr/en/de/fr/es dillerinde doğrulandı.
+- Web: `tsc --noEmit` ve `next build` (17 rota) başarılı; standalone sunucu `/api/health` ile ayağa kalktı; giriş, panel, varlıklar, arşiv, keşfet, profil, bildirimler ve varlık detayı oturumlu olarak 200 döndü. Dil değişimi SSR'de (`<html lang>`) ve BFF üzerinden API yanıtlarında tr/en/de/fr/es için doğrulandı.
 - Altyapı: `docker compose config` ve `terraform validate` (Terraform 1.9.8, Docker sağlayıcısı 3.9.0) başarılı; Caddyfile `caddy validate` ile doğrulandı.
-- Android: Temurin JDK 17, Android SDK 35 (build-tools 35.0.0) ve Gradle 8.9 ile `assembleDebug` başarılı; debug APK üretildi ve `apksigner`/`aapt` ile imza, paket ve SDK bilgileri doğrulandı. Uygulama emülatör veya fiziksel cihazda çalıştırılmadı.
+- Android: Temurin JDK 17, Android SDK 35 (build-tools 35.0.0) ve Gradle 8.9 ile `assembleDebug` başarılı; debug APK emülatöre kuruldu, İngilizce ve Almanca arayüz, sistem dil değişimi ve uygulama içi dil seçici (TR→DE→EN→TR) görsel olarak doğrulandı; dil kaynaklarının beş dilde anahtar eşitliği kontrol edildi.
 - Docker motoru bu ortamda bulunmadığından imajlar çalıştırılmadı; TLS ve yedek geri yükleme uçtan uca denenmedi.
 
 ## Bilinen sınırlar (v1)

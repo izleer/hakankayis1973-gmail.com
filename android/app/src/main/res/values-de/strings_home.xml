@@ -1,0 +1,27 @@
+<resources>
+    <!-- Startbildschirm -->
+    <string name="home_greeting">Hallo, %1$s.</string>
+    <string name="home_subtitle">Was kommt heute in deine Erinnerung?</string>
+    <string name="home_summary_label">DEINE ERINNERUNG</string>
+    <string name="home_summary_stats">%1$s\n%2$s</string>
+    <string name="home_summary_empty">Alles hat eine\nGeschichte.</string>
+    <string name="home_stat_media">Medien</string>
+    <string name="home_new_asset">Neues Objekt</string>
+    <string name="home_open_archive">Im Archiv stöbern</string>
+    <string name="home_see_all">Alle</string>
+    <string name="home_empty_title">Setz die erste Spur</string>
+    <string name="home_empty_body">Ein Bonsai, ein Freund oder das Bild an der Wand… Füge dein erstes Objekt hinzu, damit seine Geschichte hier beginnt.</string>
+    <string name="home_recent_title">Letzte Aktivitäten</string>
+    <string name="home_entry_fallback">Eintrag</string>
+    <string name="home_quote">„Etwas aufzubewahren,\num es wieder anzusehen.“</string>
+    <string name="home_quote_attribution">izleer · tägliches Archiv</string>
+
+    <plurals name="home_summary_assets">
+        <item quantity="one">%1$d Objekt</item>
+        <item quantity="other">%1$d Objekte</item>
+    </plurals>
+    <plurals name="home_summary_traces">
+        <item quantity="one">hinterließ %1$d Spur.</item>
+        <item quantity="other">hinterließen %1$d Spuren.</item>
+    </plurals>
+</resources>

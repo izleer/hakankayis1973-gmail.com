@@ -1,0 +1,16 @@
+<resources>
+    <!-- Keşfet -->
+    <string name="explore_subtitle">Başkalarının süreçlerinden ilham al</string>
+    <string name="explore_hero_eyebrow">MERAKLILARIN ARŞİVİ</string>
+    <string name="explore_hero_title">Her varlık,\nbir süreç.</string>
+    <string name="explore_hero_body">Bonzai budamaları, bir köpeğin ilk yılı, restorasyon notları… Gerçek süreçleri keşfet.</string>
+    <string name="explore_assets_title">İlham veren varlıklar</string>
+    <string name="explore_people_title">Tanışılacak kişiler</string>
+    <string name="explore_feed_title">Akış</string>
+    <string name="explore_empty_title">Akış sakin</string>
+    <string name="explore_empty_body">Herkese açık paylaşılan kayıtlar burada görünür. Sen de bir varlığını herkese açarak başlayabilirsin.</string>
+    <string name="explore_footer_note">Keşfet yalnızca herkese açık varlıkları ve paylaşımları gösterir. Özel arşivin sana aittir.</string>
+    <string name="explore_follow">Takip et</string>
+    <string name="explore_following">Takipte</string>
+    <string name="explore_like">Beğen</string>
+</resources>

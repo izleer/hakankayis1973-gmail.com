@@ -18,9 +18,11 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.outlined.ArrowBack
+import androidx.compose.material.icons.outlined.ChevronRight
 import androidx.compose.material.icons.outlined.Description
 import androidx.compose.material.icons.outlined.Image
 import androidx.compose.material.icons.outlined.Movie
+import androidx.compose.material.icons.outlined.NotificationsNone
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -35,8 +37,12 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.res.pluralStringResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
+import app.varlikhafizasi.R
 import app.varlikhafizasi.data.Asset
 import app.varlikhafizasi.data.Media
 import app.varlikhafizasi.data.MediaUrl
@@ -49,6 +55,7 @@ import app.varlikhafizasi.ui.theme.Muted
 import app.varlikhafizasi.ui.theme.Paper
 import app.varlikhafizasi.ui.theme.PaperDeep
 import app.varlikhafizasi.ui.theme.Sage
+import app.varlikhafizasi.ui.theme.SageInk
 import app.varlikhafizasi.ui.theme.SageLight
 import app.varlikhafizasi.ui.theme.Ivory
 import coil.compose.AsyncImage
@@ -58,12 +65,13 @@ import java.time.ZoneId
 import java.time.format.DateTimeFormatter
 import java.util.Locale
 
-private val trLocale = Locale.forLanguageTag("tr")
+private val appLocale: Locale
+    get() = Locale.getDefault()
 
 fun formatDate(value: String?, withTime: Boolean = false): String {
     if (value.isNullOrBlank()) return ""
     val pattern = if (withTime) "d MMMM yyyy · HH:mm" else "d MMMM yyyy"
-    val formatter = DateTimeFormatter.ofPattern(pattern, trLocale)
+    val formatter = DateTimeFormatter.ofPattern(pattern, appLocale)
     return runCatching {
         formatter.withZone(ZoneId.systemDefault()).format(Instant.parse(value))
     }.getOrElse {
@@ -72,27 +80,76 @@ fun formatDate(value: String?, withTime: Boolean = false): String {
     }
 }
 
-fun entryTypeLabel(type: String): String = when (type) {
-    "photo" -> "Fotoğraf"
-    "maintenance" -> "Bakım"
-    "acquisition" -> "Edinme"
-    "measurement" -> "Ölçüm"
-    "health" -> "Sağlık"
-    "event" -> "Olay"
-    "document" -> "Belge"
-    else -> "Not"
-}
+fun formatDateTime(millis: Long): String =
+    DateTimeFormatter.ofPattern("d MMMM yyyy · HH:mm", appLocale)
+        .withZone(ZoneId.systemDefault())
+        .format(Instant.ofEpochMilli(millis))
 
-fun visibilityLabel(visibility: String): String = when (visibility) {
-    "public" -> "Herkese açık"
-    "selected" -> "Seçili kişiler"
-    else -> "Özel"
-}
+@Composable
+fun entryTypeLabel(type: String): String = stringResource(
+    when (type) {
+        "photo" -> R.string.entry_type_photo
+        "maintenance" -> R.string.entry_type_maintenance
+        "acquisition" -> R.string.entry_type_acquisition
+        "measurement" -> R.string.entry_type_measurement
+        "health" -> R.string.entry_type_health
+        "event" -> R.string.entry_type_event
+        "document" -> R.string.entry_type_document
+        else -> R.string.entry_type_note
+    },
+)
 
-fun kindLabel(kind: String): String = when (kind) {
-    "document" -> "Belge"
-    "video" -> "Video"
-    else -> "Görsel"
+@Composable
+fun visibilityLabel(visibility: String): String = stringResource(
+    when (visibility) {
+        "public" -> R.string.visibility_public
+        "selected" -> R.string.visibility_selected
+        else -> R.string.visibility_private
+    },
+)
+
+@Composable
+fun kindLabel(kind: String): String = stringResource(
+    when (kind) {
+        "document" -> R.string.kind_document
+        "video" -> R.string.kind_video
+        else -> R.string.kind_image
+    },
+)
+
+@Composable
+fun NotificationBell(unreadCount: Int, onClick: () -> Unit, tint: Color = Forest) {
+    IconButton(onClick = onClick) {
+        Box(contentAlignment = Alignment.Center) {
+            Icon(
+                Icons.Outlined.NotificationsNone,
+                contentDescription = if (unreadCount > 0) {
+                    stringResource(R.string.common_notifications_unread, unreadCount)
+                } else {
+                    stringResource(R.string.common_notifications)
+                },
+                tint = tint,
+            )
+            if (unreadCount > 0) {
+                Box(
+                    modifier = Modifier
+                        .align(Alignment.TopEnd)
+                        .size(16.dp)
+                        .background(Clay, CircleShape),
+                    contentAlignment = Alignment.Center,
+                ) {
+                    Text(
+                        text = if (unreadCount > 9) "9+" else unreadCount.toString(),
+                        style = MaterialTheme.typography.labelSmall.copy(
+                            fontSize = 9.sp,
+                            letterSpacing = 0.sp,
+                        ),
+                        color = Color.White,
+                    )
+                }
+            }
+        }
+    }
 }
 
 @Composable
@@ -112,7 +169,7 @@ fun VhTopBar(
             IconButton(onClick = onBack) {
                 Icon(
                     Icons.AutoMirrored.Outlined.ArrowBack,
-                    contentDescription = "Geri",
+                    contentDescription = stringResource(R.string.common_back),
                     tint = Forest,
                 )
             }
@@ -145,7 +202,7 @@ fun VhTopBar(
 @Composable
 fun SectionLabel(text: String, light: Boolean = false, modifier: Modifier = Modifier) {
     Text(
-        text = text.uppercase(trLocale),
+        text = text.uppercase(appLocale),
         style = MaterialTheme.typography.labelMedium,
         color = if (light) Paper.copy(alpha = 0.66f) else Muted,
         letterSpacing = MaterialTheme.typography.labelMedium.letterSpacing,
@@ -214,7 +271,7 @@ fun Avatar(name: String, url: String?, size: Dp = 38.dp) {
             )
         } else {
             Text(
-                text = name.trim().firstOrNull()?.uppercase(trLocale) ?: "?",
+                text = name.trim().firstOrNull()?.uppercase(appLocale) ?: "?",
                 style = MaterialTheme.typography.titleMedium,
                 color = Forest,
             )
@@ -246,9 +303,9 @@ fun AssetRow(asset: Asset, onClick: () -> Unit, modifier: Modifier = Modifier) {
                     )
                 } else {
                     Text(
-                        text = asset.type?.label?.take(1)?.uppercase(trLocale) ?: "V",
+                        text = asset.type?.label?.take(1)?.uppercase(appLocale) ?: "V",
                         style = MaterialTheme.typography.headlineMedium,
-                        color = Sage,
+                        color = SageInk,
                         modifier = Modifier.align(Alignment.Center),
                     )
                 }
@@ -259,7 +316,7 @@ fun AssetRow(asset: Asset, onClick: () -> Unit, modifier: Modifier = Modifier) {
                     .padding(horizontal = 14.dp, vertical = 10.dp),
             ) {
                 Text(
-                    text = asset.type?.label ?: "Varlık",
+                    text = asset.type?.label ?: stringResource(R.string.common_asset),
                     style = MaterialTheme.typography.labelSmall,
                     color = Clay,
                 )
@@ -274,7 +331,11 @@ fun AssetRow(asset: Asset, onClick: () -> Unit, modifier: Modifier = Modifier) {
                 Spacer(Modifier.height(6.dp))
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     Text(
-                        text = "${asset.entryCount} kayıt",
+                        text = pluralStringResource(
+                            R.plurals.common_entry_count,
+                            asset.entryCount,
+                            asset.entryCount,
+                        ),
                         style = MaterialTheme.typography.bodySmall,
                         color = Muted,
                     )
@@ -282,6 +343,14 @@ fun AssetRow(asset: Asset, onClick: () -> Unit, modifier: Modifier = Modifier) {
                     VisibilityTag(asset.visibility)
                 }
             }
+            Icon(
+                Icons.Outlined.ChevronRight,
+                contentDescription = null,
+                tint = Muted,
+                modifier = Modifier
+                    .padding(end = 12.dp)
+                    .size(18.dp),
+            )
         }
     }
 }
@@ -317,7 +386,7 @@ fun MediaThumb(
                         else -> Icons.Outlined.Image
                     },
                     contentDescription = null,
-                    tint = Sage,
+                    tint = SageInk,
                     modifier = Modifier.size(26.dp),
                 )
                 Spacer(Modifier.height(6.dp))
@@ -396,7 +465,7 @@ fun ErrorBox(message: String, onRetry: (() -> Unit)? = null) {
     ) {
         Column(Modifier.padding(16.dp)) {
             Text(
-                "Bir aksilik oldu",
+                stringResource(R.string.common_error_title),
                 style = MaterialTheme.typography.titleSmall,
                 color = Danger,
             )
@@ -405,7 +474,7 @@ fun ErrorBox(message: String, onRetry: (() -> Unit)? = null) {
             if (onRetry != null) {
                 Spacer(Modifier.height(10.dp))
                 Text(
-                    "Yeniden dene",
+                    stringResource(R.string.common_retry),
                     style = MaterialTheme.typography.labelLarge,
                     color = Danger,
                     modifier = Modifier.clickable { onRetry() },
@@ -435,7 +504,7 @@ fun StatTile(value: String, label: String, modifier: Modifier = Modifier, light:
             color = if (light) Forest else Forest,
         )
         Spacer(Modifier.height(2.dp))
-        Text(label.uppercase(trLocale), style = MaterialTheme.typography.labelSmall, color = Muted)
+        Text(label.uppercase(appLocale), style = MaterialTheme.typography.labelSmall, color = Muted)
     }
 }
 
@@ -454,7 +523,7 @@ fun MetaRow(vararg parts: Pair<String, String>) {
     Row(horizontalArrangement = Arrangement.spacedBy(14.dp)) {
         parts.forEach { (label, value) ->
             Column {
-                Text(label.uppercase(trLocale), style = MaterialTheme.typography.labelSmall, color = Muted)
+                Text(label.uppercase(appLocale), style = MaterialTheme.typography.labelSmall, color = Muted)
                 Text(value, style = MaterialTheme.typography.titleSmall, color = Forest, fontWeight = FontWeight.SemiBold)
             }
         }

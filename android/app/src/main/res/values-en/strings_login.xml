@@ -1,0 +1,17 @@
+<resources>
+    <!-- Sign in / sign up -->
+    <string name="login_tagline">the trace of everything that lives and changes</string>
+    <string name="login_headline_login">Return to\nyour memory.</string>
+    <string name="login_headline_register">Start a\nnew memory.</string>
+    <string name="login_body">Bonsai, pet, painting, home or a flower… Keep its care, documents and story in one place.</string>
+    <string name="login_tab_login">Sign in</string>
+    <string name="login_tab_register">Sign up</string>
+    <string name="login_field_display_name">Display name</string>
+    <string name="login_field_email">Email</string>
+    <string name="login_field_username">Username</string>
+    <string name="login_field_identifier">Email or username</string>
+    <string name="login_field_password">Password</string>
+    <string name="login_action_login">Sign in</string>
+    <string name="login_action_register">Create account</string>
+    <string name="login_demo_hint">Demo account: ada@demo.local · Demo1234!</string>
+</resources>

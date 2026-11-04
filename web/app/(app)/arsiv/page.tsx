@@ -1,11 +1,16 @@
+import type { Metadata } from 'next';
 import Link from 'next/link';
 import { ArchiveGallery } from '@/components/ArchiveGallery';
 import { Icon } from '@/components/Icons';
 import { api, requireViewer } from '@/lib/api';
 import { formatNumber } from '@/lib/format';
+import { getI18n, getT } from '@/lib/i18n/server';
 import type { ArchiveResponse, Stats } from '@/lib/types';
 
-export const metadata = { title: 'Arşiv' };
+export async function generateMetadata(): Promise<Metadata> {
+  const t = await getT();
+  return { title: t('Arşiv') };
+}
 
 type SearchParams = Promise<{ kind?: string; q?: string }>;
 
@@ -17,6 +22,7 @@ const kinds = [
 ];
 
 export default async function ArchivePage({ searchParams }: { searchParams: SearchParams }) {
+  const { t, locale } = await getI18n();
   await requireViewer();
   const params = await searchParams;
   const kind = kinds.some((item) => item.id === params.kind) ? params.kind! : 'all';
@@ -43,40 +49,41 @@ export default async function ArchivePage({ searchParams }: { searchParams: Sear
     <main className="page">
       <header className="page-head">
         <div>
-          <span className="eyebrow">Kâğıt, ışık ve iz</span>
-          <h1>Arşiv</h1>
+          <span className="eyebrow">{t('Kâğıt, ışık ve iz')}</span>
+          <h1>{t('Arşiv')}</h1>
           <p>
-            Varlıklarının fotoğrafları, belgeleri ve videoları tek bir yerde. Bir
-            parçaya dokunduğunda büyür, bağlı olduğu hafızaya götürür.
+            {t(
+              'Varlıklarının fotoğrafları, belgeleri ve videoları tek bir yerde. Bir parçaya dokunduğunda büyür, bağlı olduğu hafızaya götürür.',
+            )}
           </p>
         </div>
         <Link href="/varliklar" className="btn btn-ghost">
           <Icon name="grid" size={17} />
-          Varlıklar
+          {t('Varlıklar')}
         </Link>
       </header>
 
-      <section className="archive-summary" aria-label="Arşiv özeti">
+      <section className="archive-summary" aria-label={t('Arşiv özeti')}>
         <div>
-          <span>Toplam parça</span>
-          <strong>{formatNumber(stats.images + stats.documents + stats.videos)}</strong>
+          <span>{t('Toplam parça')}</span>
+          <strong>{formatNumber(stats.images + stats.documents + stats.videos, locale)}</strong>
         </div>
         <div>
-          <span>Fotoğraf</span>
-          <strong>{formatNumber(stats.images)}</strong>
+          <span>{t('Fotoğraf')}</span>
+          <strong>{formatNumber(stats.images, locale)}</strong>
         </div>
         <div>
-          <span>Belge</span>
-          <strong>{formatNumber(stats.documents)}</strong>
+          <span>{t('Belge')}</span>
+          <strong>{formatNumber(stats.documents, locale)}</strong>
         </div>
         <div>
-          <span>Video</span>
-          <strong>{formatNumber(stats.videos)}</strong>
+          <span>{t('Video')}</span>
+          <strong>{formatNumber(stats.videos, locale)}</strong>
         </div>
       </section>
 
       <div className="toolbar archive-toolbar-page">
-        <div className="segmented" aria-label="Arşiv türü">
+        <div className="segmented" aria-label={t('Arşiv türü')}>
           {kinds.map((item) => (
             <Link
               key={item.id}
@@ -84,7 +91,7 @@ export default async function ArchivePage({ searchParams }: { searchParams: Sear
               className={kind === item.id ? 'is-active' : ''}
             >
               <Icon name={item.icon} size={15} />
-              {item.label}
+              {t(item.label)}
             </Link>
           ))}
         </div>
@@ -94,23 +101,29 @@ export default async function ArchivePage({ searchParams }: { searchParams: Sear
           <input
             name="q"
             defaultValue={query}
-            placeholder="Varlık ya da dosya adı ara…"
-            aria-label="Arşivde ara"
+            placeholder={t('Varlık ya da dosya adı ara…')}
+            aria-label={t('Arşivde ara')}
           />
           <button type="submit" className="search-submit">
-            Ara
+            {t('Ara')}
           </button>
         </form>
       </div>
 
       {query ? (
         <p className="archive-filter-note">
-          “{query}” için {archive.counts.total} parça bulundu ·{' '}
-          <Link href={href({ q: '' })}>aramayı temizle</Link>
+          {t('“{query}” için {count} parça bulundu', {
+            query,
+            count: archive.counts.total,
+          })}
+          {' · '}
+          <Link href={href({ q: '' })}>{t('aramayı temizle')}</Link>
         </p>
       ) : (
         <p className="archive-filter-note">
-          {archive.counts.total} parça · her biri bir varlığın hafızasına bağlı
+          {t('{count} parça · her biri bir varlığın hafızasına bağlı', {
+            count: archive.counts.total,
+          })}
         </p>
       )}
 

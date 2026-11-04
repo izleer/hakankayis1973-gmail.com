@@ -1,0 +1,16 @@
+<resources>
+    <!-- Explore -->
+    <string name="explore_subtitle">Get inspired by other people\'s journeys</string>
+    <string name="explore_hero_eyebrow">AN ARCHIVE FOR THE CURIOUS</string>
+    <string name="explore_hero_title">Every asset,\na journey.</string>
+    <string name="explore_hero_body">Bonsai pruning, a dog\'s first year, restoration notes… Explore real journeys.</string>
+    <string name="explore_assets_title">Inspiring assets</string>
+    <string name="explore_people_title">People to meet</string>
+    <string name="explore_feed_title">Feed</string>
+    <string name="explore_empty_title">The feed is calm</string>
+    <string name="explore_empty_body">Entries shared publicly appear here. You can start by making one of your assets public.</string>
+    <string name="explore_footer_note">Explore only shows public assets and posts. Your private archive stays yours.</string>
+    <string name="explore_follow">Follow</string>
+    <string name="explore_following">Following</string>
+    <string name="explore_like">Like</string>
+</resources>

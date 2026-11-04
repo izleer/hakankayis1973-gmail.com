@@ -1,5 +1,98 @@
 <resources>
     <string name="app_name">izleer</string>
-    <string name="login_title">Hafızaya dön</string>
-    <string name="login_subtitle">Sahip olduğun her şeyin hikâyesi tek yerde.</string>
+
+    <!-- Ortak -->
+    <string name="common_error_title">Bir aksilik oldu</string>
+    <string name="common_retry">Yeniden dene</string>
+    <string name="common_back">Geri</string>
+    <string name="common_notifications">Bildirimler</string>
+    <string name="common_notifications_unread">Bildirimler, %1$d okunmamış</string>
+    <string name="common_asset">Varlık</string>
+    <string name="common_like_count">%1$d beğeni</string>
+    <string name="common_comment_count">%1$d yorum</string>
+    <string name="common_share">Paylaşım</string>
+
+    <!-- Görünürlük -->
+    <string name="visibility_public">Herkese açık</string>
+    <string name="visibility_selected">Seçili kişiler</string>
+    <string name="visibility_private">Özel</string>
+
+    <!-- Medya türü -->
+    <string name="kind_document">Belge</string>
+    <string name="kind_video">Video</string>
+    <string name="kind_image">Görsel</string>
+
+    <!-- Kayıt türü -->
+    <string name="entry_type_photo">Fotoğraf</string>
+    <string name="entry_type_maintenance">Bakım</string>
+    <string name="entry_type_acquisition">Edinme</string>
+    <string name="entry_type_measurement">Ölçüm</string>
+    <string name="entry_type_health">Sağlık</string>
+    <string name="entry_type_event">Olay</string>
+    <string name="entry_type_document">Belge</string>
+    <string name="entry_type_note">Not</string>
+
+    <plurals name="common_entry_count">
+        <item quantity="one">%1$d kayıt</item>
+        <item quantity="other">%1$d kayıt</item>
+    </plurals>
+
+    <!-- Gezinme -->
+    <string name="nav_home">Panel</string>
+    <string name="nav_assets">Varlıklar</string>
+    <string name="nav_archive">Arşiv</string>
+    <string name="nav_explore">Keşfet</string>
+    <string name="nav_profile">Profil</string>
+    <string name="splash_loading">hafıza hazırlanıyor…</string>
+
+    <!-- Profil -->
+    <string name="profile_logout">Çıkış</string>
+    <string name="profile_stat_assets">varlık</string>
+    <string name="profile_stat_entries">kayıt</string>
+    <string name="profile_stat_followers">takipçi</string>
+    <string name="profile_stat_following">takip</string>
+    <string name="profile_assets_title">Varlıkların</string>
+    <string name="profile_posts_title">Paylaşımların</string>
+    <string name="profile_empty_title">Burası senin arşivin</string>
+    <string name="profile_empty_body">Henüz bir varlık eklemedin. İlk hikâyeni başlatmak için Varlıklar sekmesini kullan.</string>
+    <string name="profile_data_title">Verilerin senin.</string>
+    <string name="profile_data_body">Arşivini dilediğin an dışa aktarabilir, hesabını silebilirsin. Bu işlemler web sürümündeki profil sayfasından yapılır.</string>
+    <string name="profile_version">izleer · v1.0</string>
+    <string name="profile_logout_title">Çıkış yapılsın mı?</string>
+    <string name="profile_logout_body">Oturumun kapatılacak; arşivin güvende kalacak.</string>
+    <string name="profile_logout_confirm">Çıkış yap</string>
+    <string name="profile_logout_cancel">Vazgeç</string>
+
+    <!-- Dil seçimi -->
+    <string name="language_title">Dil</string>
+    <string name="language_section">Dil ve bölge</string>
+    <string name="language_current">Uygulama dili: %1$s</string>
+    <string name="language_dialog_title">Uygulama dili</string>
+    <string name="language_dialog_body">Uygulama bu dili kullanır. İçeriklerin kendi dilleri değişmez.</string>
+    <string name="language_follow_system">Cihaz dili</string>
+    <string name="language_cancel">Vazgeç</string>
+
+    <!-- Oturum / doğrulama hataları -->
+    <string name="error_fields_required">E-posta/kullanıcı adı ve şifre gerekli.</string>
+    <string name="error_fill_all">Tüm alanları doldurun.</string>
+    <string name="error_password_short">Şifre en az 8 karakter olmalı.</string>
+    <string name="error_asset_required">Varlık türü ve adı gerekli.</string>
+    <string name="error_entry_text_required">Bir başlık ya da açıklama yazın.</string>
+    <string name="error_username_required">Kullanıcı adı girin.</string>
+    <string name="error_unexpected">Beklenmeyen bir hata oluştu.</string>
+    <string name="error_generic_status">İşlem tamamlanamadı (%1$d).</string>
+    <string name="error_offline">Sunucuya ulaşılamadı. API\'nin çalıştığını ve adresin doğru olduğunu kontrol edin.</string>
+    <string name="error_no_data">Sunucudan veri dönmedi.</string>
+    <string name="error_file_unreadable">Dosya okunamadı.</string>
+    <string name="error_file_empty">Dosya boş.</string>
+    <string name="error_file_too_large">Dosya en fazla 10 MB olabilir.</string>
+
+    <!-- İşlem bildirimleri -->
+    <string name="notice_asset_added">“%1$s” hafızaya eklendi.</string>
+    <string name="notice_entry_added">Kayıt zaman çizelgesine eklendi.</string>
+    <string name="notice_entry_deleted">Kayıt silindi.</string>
+    <string name="notice_access_granted">@%1$s artık bu varlığı görebilir.</string>
+    <string name="notice_access_removed">Erişim kaldırıldı.</string>
+    <string name="notice_unfollowed">@%1$s takipten çıkarıldı.</string>
+    <string name="notice_following">@%1$s takip ediliyor.</string>
 </resources>

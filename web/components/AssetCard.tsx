@@ -1,12 +1,31 @@
 import Link from 'next/link';
-import { formatDate, typeIconName } from '@/lib/format';
+import {
+  formatDate,
+  formatLocation,
+  typeIconName,
+  visibilityLabels,
+} from '@/lib/format';
+import { getI18n } from '@/lib/i18n/server';
 import type { Asset } from '@/lib/types';
 import { Icon } from './Icons';
 import { MediaImage } from './MediaImage';
 
-export function AssetCard({ asset }: { asset: Asset }) {
+const visibilityIcons = {
+  private: 'lock',
+  selected: 'users',
+  public: 'eye',
+} as const;
+
+export async function AssetCard({ asset }: { asset: Asset }) {
+  const { t, locale } = await getI18n();
+  const visibility = t(visibilityLabels[asset.visibility]);
+
   return (
-    <Link href={`/varliklar/${asset.id}`} className="asset-card">
+    <Link
+      href={`/varliklar/${asset.id}`}
+      className="asset-card"
+      aria-label={`${asset.title} · ${visibility}`}
+    >
       <div className="asset-card-media">
         <MediaImage
           src={asset.coverUrl}
@@ -17,21 +36,22 @@ export function AssetCard({ asset }: { asset: Asset }) {
           <Icon name={typeIconName(asset.type.icon)} size={14} />
           {asset.type.label}
         </span>
-        {asset.visibility === 'public' ? (
-          <span className="asset-public-dot" title="Herkese açık">
-            <Icon name="eye" size={13} />
-          </span>
-        ) : null}
+        <span className={`asset-visibility is-${asset.visibility}`} title={visibility}>
+          <Icon name={visibilityIcons[asset.visibility]} size={12} />
+          {visibility}
+        </span>
       </div>
       <div className="asset-card-body">
         <div className="asset-card-kicker">
-          <span>{asset.locationName ?? asset.type.label}</span>
-          <span>{asset.entryCount} kayıt</span>
+          <span>{formatLocation(asset.locationName, locale) || asset.type.label}</span>
+          <span>{t('{count} kayıt', { count: asset.entryCount })}</span>
         </div>
         <h3>{asset.title}</h3>
         {asset.description ? <p>{asset.description}</p> : null}
         <div className="asset-card-foot">
-          <span>Son iz · {formatDate(asset.updatedAt)}</span>
+          <span>
+            {t('Son iz')} · {formatDate(asset.updatedAt, locale)}
+          </span>
           <span className="asset-arrow">
             <Icon name="arrow-right" size={17} />
           </span>

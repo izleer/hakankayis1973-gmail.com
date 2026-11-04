@@ -154,20 +154,21 @@ export async function postRoutes(app: FastifyInstance): Promise<void> {
           type: 'community_post',
           entityType: 'post',
           entityId: postId,
-          message: `${viewer.displayName}, ${community.name} topluluğunda yeni bir gönderi paylaştı.`,
+          messageKey: '{actor}, {community} topluluğunda yeni bir gönderi paylaştı.',
+          messageParams: { actor: viewer.displayName, community: community.name },
         });
       }
     }
 
     const row = await loadPostRow(postId, viewer.id);
-    return reply.status(201).send({ data: { post: await hydratePost(row!) } });
+    return reply.status(201).send({ data: { post: await hydratePost(row!, req.locale) } });
   });
 
   app.get('/posts/:id', async (req) => {
     const viewer = await optionalViewer(req);
     const { id } = z.object({ id: uuid }).parse(req.params);
     const row = await getAccessiblePost(viewer, id);
-    return { data: { post: await hydratePost(row) } };
+    return { data: { post: await hydratePost(row, req.locale) } };
   });
 
   app.patch('/posts/:id', async (req) => {
@@ -181,7 +182,7 @@ export async function postRoutes(app: FastifyInstance): Promise<void> {
     await query(`UPDATE posts SET body = $2 WHERE id = $1`, [id, body.body]);
     await audit(viewer.id, 'post.updated', 'post', id, {}, req.ip);
     const updated = await getAccessiblePost(viewer, id);
-    return { data: { post: await hydratePost(updated) } };
+    return { data: { post: await hydratePost(updated, req.locale) } };
   });
 
   app.delete('/posts/:id', async (req, reply) => {
@@ -221,7 +222,8 @@ export async function postRoutes(app: FastifyInstance): Promise<void> {
         type: 'like',
         entityType: 'post',
         entityId: id,
-        message: `${viewer.displayName} gönderini beğendi.`,
+        messageKey: '{actor} gönderini beğendi.',
+        messageParams: { actor: viewer.displayName },
       });
       await audit(viewer.id, 'post.liked', 'post', id, {}, req.ip);
     }
@@ -285,7 +287,8 @@ export async function postRoutes(app: FastifyInstance): Promise<void> {
         type: 'comment',
         entityType: 'post',
         entityId: id,
-        message: `${viewer.displayName} yorumunuza yanıt verdi.`,
+        messageKey: '{actor} yorumunuza yanıt verdi.',
+        messageParams: { actor: viewer.displayName },
       });
     }
 
@@ -301,7 +304,8 @@ export async function postRoutes(app: FastifyInstance): Promise<void> {
       type: 'comment',
       entityType: 'post',
       entityId: id,
-      message: `${viewer.displayName} gönderine yorum yaptı.`,
+      messageKey: '{actor} gönderine yorum yaptı.',
+      messageParams: { actor: viewer.displayName },
     });
     await audit(viewer.id, 'comment.created', 'comment', rows[0]!.id, { postId: id }, req.ip);
 

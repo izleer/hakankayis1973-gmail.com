@@ -2,6 +2,7 @@ import type { Metadata } from 'next';
 import { notFound, redirect } from 'next/navigation';
 import { ProfileScreen } from '@/components/ProfileScreen';
 import { ApiError, api, requireViewer } from '@/lib/api';
+import { getT } from '@/lib/i18n/server';
 import type { CursorPage, FeedPost, ProfileData } from '@/lib/types';
 
 type Params = Promise<{ username: string }>;
@@ -16,6 +17,7 @@ async function loadProfile(username: string): Promise<ProfileData | null> {
 }
 
 export async function generateMetadata({ params }: { params: Params }): Promise<Metadata> {
+  const t = await getT();
   const { username } = await params;
   try {
     const data = await api<ProfileData>(`/v1/users/${encodeURIComponent(username)}`);
@@ -24,7 +26,7 @@ export async function generateMetadata({ params }: { params: Params }): Promise<
       description: data.user.bio ?? `${data.user.displayName} · @${data.user.username}`,
     };
   } catch {
-    return { title: 'Profil' };
+    return { title: t('Profil') };
   }
 }
 

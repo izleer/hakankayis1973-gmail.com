@@ -1,8 +1,15 @@
 import type { FastifyInstance } from 'fastify';
 import { query } from '../db.js';
+import {
+  ensureTaxonomy,
+  localizeAttributesSchema,
+  translateTypeLabel,
+} from '../lib/taxonomy.js';
 
 export async function assetTypeRoutes(app: FastifyInstance): Promise<void> {
-  app.get('/', async () => {
+  app.get('/', async (req) => {
+    const { locale } = req;
+    await ensureTaxonomy(locale);
     const rows = await query<{
       id: string;
       parent_id: string | null;
@@ -20,10 +27,10 @@ export async function assetTypeRoutes(app: FastifyInstance): Promise<void> {
       byId.set(row.id, {
         id: row.id,
         parentId: row.parent_id,
-        label: row.label,
+        label: translateTypeLabel(locale, row.label),
         icon: row.icon,
         sortOrder: row.sort_order,
-        attributesSchema: row.attributes_schema,
+        attributesSchema: localizeAttributesSchema(row.attributes_schema, locale, row.label),
         children: [],
       });
     }

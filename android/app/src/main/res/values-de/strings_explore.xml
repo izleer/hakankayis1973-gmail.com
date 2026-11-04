@@ -1,0 +1,16 @@
+<resources>
+    <!-- Entdecken -->
+    <string name="explore_subtitle">Lass dich von den Prozessen anderer inspirieren</string>
+    <string name="explore_hero_eyebrow">DAS ARCHIV DER NEUGIERIGEN</string>
+    <string name="explore_hero_title">Jedes Objekt,\neine Reise.</string>
+    <string name="explore_hero_body">Bonsai-Schnitt, das erste Jahr eines Hundes, Restaurierungsnotizen… Entdecke echte Prozesse.</string>
+    <string name="explore_assets_title">Inspirierende Objekte</string>
+    <string name="explore_people_title">Menschen zum Kennenlernen</string>
+    <string name="explore_feed_title">Feed</string>
+    <string name="explore_empty_title">Der Feed ist ruhig</string>
+    <string name="explore_empty_body">Öffentlich geteilte Einträge erscheinen hier. Du kannst auch damit beginnen, eines deiner Objekte öffentlich zu machen.</string>
+    <string name="explore_footer_note">Entdecken zeigt nur öffentliche Objekte und Beiträge. Dein privates Archiv gehört dir.</string>
+    <string name="explore_follow">Folgen</string>
+    <string name="explore_following">Gefolgt</string>
+    <string name="explore_like">Gefällt mir</string>
+</resources>

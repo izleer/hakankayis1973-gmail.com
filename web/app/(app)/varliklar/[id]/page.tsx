@@ -2,7 +2,8 @@ import type { Metadata } from 'next';
 import { notFound } from 'next/navigation';
 import { AssetDetail } from '@/components/AssetDetail';
 import { ApiError, api, requireViewer } from '@/lib/api';
-import type { AssetDetailData, AssetType, Measurement } from '@/lib/types';
+import { getT } from '@/lib/i18n/server';
+import type { AssetDetailData, AssetType, Measurement, SocialConnectionsResponse } from '@/lib/types';
 
 type Params = Promise<{ id: string }>;
 
@@ -43,15 +44,17 @@ async function loadAsset(
 }
 
 export async function generateMetadata({ params }: { params: Params }): Promise<Metadata> {
+  const t = await getT();
   const { id } = await params;
   try {
     const data = await api<AssetDetailData>(`/v1/assets/${id}`);
     return {
       title: data.asset.title,
-      description: data.asset.description ?? `${data.asset.type.label} hafızası`,
+      description:
+        data.asset.description ?? t('{type} hafızası', { type: data.asset.type.label }),
     };
   } catch {
-    return { title: 'Varlık' };
+    return { title: t('Varlık') };
   }
 }
 
@@ -61,6 +64,9 @@ export default async function AssetDetailPage({ params }: { params: Params }) {
   const loaded = await loadAsset(id);
   if (!loaded) notFound();
   const attributeLabels = await loadAttributeLabels(loaded.data.asset.type.id);
+  const socialEnabled = await api<SocialConnectionsResponse>('/v1/social/connections')
+    .then((response) => Boolean(response.config?.configured))
+    .catch(() => false);
 
   return (
     <AssetDetail
@@ -68,6 +74,7 @@ export default async function AssetDetailPage({ params }: { params: Params }) {
       measurements={loaded.measurements}
       viewer={viewer}
       attributeLabels={attributeLabels}
+      socialEnabled={socialEnabled}
     />
   );
 }

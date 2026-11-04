@@ -1,0 +1,17 @@
+<resources>
+    <!-- Giriş / kayıt -->
+    <string name="login_tagline">yaşayan ve dönüşen her şeyin izi</string>
+    <string name="login_headline_login">Hafızana\ndön.</string>
+    <string name="login_headline_register">Yeni bir hafıza\nbaşlat.</string>
+    <string name="login_body">Bonsai, evcil hayvan, tablo, ev ya da bir çiçek… Bakımı, belgeleri ve hikâyesi tek yerde kalsın.</string>
+    <string name="login_tab_login">Giriş</string>
+    <string name="login_tab_register">Kayıt ol</string>
+    <string name="login_field_display_name">Görünen ad</string>
+    <string name="login_field_email">E-posta</string>
+    <string name="login_field_username">Kullanıcı adı</string>
+    <string name="login_field_identifier">E-posta veya kullanıcı adı</string>
+    <string name="login_field_password">Şifre</string>
+    <string name="login_action_login">Giriş yap</string>
+    <string name="login_action_register">Hesabı oluştur</string>
+    <string name="login_demo_hint">Demo hesabı: ada@demo.local · Demo1234!</string>
+</resources>

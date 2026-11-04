@@ -1,0 +1,27 @@
+<resources>
+    <!-- Ana ekran -->
+    <string name="home_greeting">Merhaba, %1$s.</string>
+    <string name="home_subtitle">Bugün hafızana ne eklenecek?</string>
+    <string name="home_summary_label">HAFIZA ÖZETİ</string>
+    <string name="home_summary_stats">%1$s\n%2$s</string>
+    <string name="home_summary_empty">Her şeyin bir\nhikâyesi var.</string>
+    <string name="home_stat_media">Medya</string>
+    <string name="home_new_asset">Yeni varlık</string>
+    <string name="home_open_archive">Arşivi gez</string>
+    <string name="home_see_all">Tümü</string>
+    <string name="home_empty_title">İlk izi bırak</string>
+    <string name="home_empty_body">Bir bonsai, bir dost ya da duvardaki tablo… İlk varlığını ekle, hikâyesi burada başlasın.</string>
+    <string name="home_recent_title">Son hareketler</string>
+    <string name="home_entry_fallback">Kayıt</string>
+    <string name="home_quote">“Bir şeyi saklamak,\nonu yeniden bakmak içindir.”</string>
+    <string name="home_quote_attribution">izleer · günlük arşiv</string>
+
+    <plurals name="home_summary_assets">
+        <item quantity="one">%1$d varlık</item>
+        <item quantity="other">%1$d varlık</item>
+    </plurals>
+    <plurals name="home_summary_traces">
+        <item quantity="one">%1$d iz bıraktı.</item>
+        <item quantity="other">%1$d iz bıraktı.</item>
+    </plurals>
+</resources>

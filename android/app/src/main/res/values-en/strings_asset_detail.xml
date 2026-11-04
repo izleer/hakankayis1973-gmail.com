@@ -1,0 +1,49 @@
+<resources>
+    <!-- Tabs -->
+    <string name="asset_detail_tab_story">Story</string>
+    <string name="asset_detail_tab_media">Media</string>
+    <string name="asset_detail_tab_measurements">Measurements</string>
+    <string name="asset_detail_tab_people">People</string>
+
+    <!-- Top actions -->
+    <string name="asset_detail_add_entry">Add entry</string>
+    <string name="asset_detail_share_with_people">Share with people</string>
+
+    <!-- Cover and summary -->
+    <string name="asset_detail_shared_with_you">This asset was shared with you.</string>
+    <string name="asset_detail_meta_entries">entries</string>
+    <string name="asset_detail_meta_acquired">acquired</string>
+    <string name="asset_detail_meta_location">place</string>
+    <string name="asset_detail_cover_type_fallback">ASSET</string>
+
+    <!-- Empty states -->
+    <string name="asset_detail_story_empty_title">No traces yet</string>
+    <string name="asset_detail_story_empty_body">Add your first note, photo or maintenance record and let the timeline begin here.</string>
+    <string name="asset_detail_media_empty_title">Media is quiet</string>
+    <string name="asset_detail_media_empty_body">The photos and documents you add to entries gather here.</string>
+    <plurals name="asset_detail_media_count">
+        <item quantity="one">%1$d file · tap to enlarge</item>
+        <item quantity="other">%1$d files · tap to enlarge</item>
+    </plurals>
+    <string name="asset_detail_measurements_empty_title">No measurements</string>
+    <string name="asset_detail_measurements_empty_body">Height, weight, watering amount… They collect here once you add a measurement entry.</string>
+    <string name="asset_detail_measurement_history">Measurement history</string>
+
+    <!-- Access management -->
+    <string name="asset_detail_access_section">Who can see this?</string>
+    <string name="asset_detail_access_body">The asset itself is %1$s, but the people below can only view this asset. Entry visibility is managed separately.</string>
+    <string name="asset_detail_username_label">Username</string>
+    <string name="asset_detail_add">Add</string>
+    <string name="asset_detail_remove_access">Remove access</string>
+    <string name="asset_detail_no_viewers_title">Not shared with anyone</string>
+    <string name="asset_detail_no_viewers_body">Add a username to share this asset\'s story with someone you choose.</string>
+    <string name="asset_detail_owner_only_title">Only the owner manages this</string>
+    <string name="asset_detail_owner_only_body">Only the owner can edit this asset\'s access list.</string>
+
+    <!-- Delete and lightbox -->
+    <string name="asset_detail_delete">Delete</string>
+    <string name="asset_detail_delete_title">Delete this entry?</string>
+    <string name="asset_detail_delete_body">This entry and its media will be removed from your archive. This cannot be undone.</string>
+    <string name="asset_detail_cancel">Cancel</string>
+    <string name="asset_detail_close">Close</string>
+</resources>

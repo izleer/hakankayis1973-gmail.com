@@ -45,7 +45,8 @@ export type IconName =
   | 'user'
   | 'share'
   | 'facebook'
-  | 'instagram';
+  | 'instagram'
+  | 'globe';
 
 const paths: Record<IconName, ReactNode> = {
   leaf: (
@@ -294,6 +295,13 @@ const paths: Record<IconName, ReactNode> = {
       <rect x="3" y="3" width="18" height="18" rx="5.2" />
       <circle cx="12" cy="12" r="4.1" />
       <circle cx="17.4" cy="6.6" r="1" fill="currentColor" stroke="none" />
+    </>
+  ),
+  globe: (
+    <>
+      <circle cx="12" cy="12" r="9" />
+      <path d="M3 12h18" />
+      <path d="M12 3c2.6 2.6 4 5.6 4 9s-1.4 6.4-4 9c-2.6-2.6-4-5.6-4-9s1.4-6.4 4-9Z" />
     </>
   ),
 };

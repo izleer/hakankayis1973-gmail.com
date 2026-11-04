@@ -19,9 +19,7 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.outlined.ArrowForward
-import androidx.compose.material.icons.outlined.NotificationsNone
 import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
@@ -31,10 +29,13 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.pluralStringResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import app.varlikhafizasi.R
 import app.varlikhafizasi.data.Entry
 import app.varlikhafizasi.data.User
 import app.varlikhafizasi.ui.VhViewModel
@@ -43,6 +44,7 @@ import app.varlikhafizasi.ui.components.EmptyState
 import app.varlikhafizasi.ui.components.ErrorBox
 import app.varlikhafizasi.ui.components.GoldRule
 import app.varlikhafizasi.ui.components.LoadingBox
+import app.varlikhafizasi.ui.components.NotificationBell
 import app.varlikhafizasi.ui.components.SectionLabel
 import app.varlikhafizasi.ui.components.entryTypeLabel
 import app.varlikhafizasi.ui.components.formatDate
@@ -54,6 +56,7 @@ import app.varlikhafizasi.ui.theme.Muted
 import app.varlikhafizasi.ui.theme.Paper
 import app.varlikhafizasi.ui.theme.PaperDeep
 import app.varlikhafizasi.ui.theme.Sage
+import app.varlikhafizasi.ui.theme.SageInk
 import app.varlikhafizasi.ui.theme.Ivory
 
 @Composable
@@ -67,6 +70,8 @@ fun HomeScreen(
     onNewAsset: () -> Unit,
 ) {
     val home by vm.home.collectAsStateWithLifecycle()
+    val notifications by vm.notifications.collectAsStateWithLifecycle()
+    val unreadCount = notifications.data?.unreadCount ?: 0
 
     LaunchedEffect(Unit) {
         if (home.data == null && !home.loading) vm.loadHome()
@@ -94,23 +99,20 @@ fun HomeScreen(
                     )
                     Spacer(Modifier.height(3.dp))
                     Text(
-                        text = "Merhaba, ${viewer.displayName.substringBefore(' ')}.",
+                        text = stringResource(
+                            R.string.home_greeting,
+                            viewer.displayName.substringBefore(' '),
+                        ),
                         style = MaterialTheme.typography.headlineMedium,
                         color = Forest,
                     )
                     Text(
-                        "Bugün hafızana ne eklenecek?",
+                        stringResource(R.string.home_subtitle),
                         style = MaterialTheme.typography.bodySmall,
                         color = Muted,
                     )
                 }
-                IconButton(onClick = onOpenNotifications) {
-                    Icon(
-                        Icons.Outlined.NotificationsNone,
-                        contentDescription = "Bildirimler",
-                        tint = Forest,
-                    )
-                }
+                NotificationBell(unreadCount = unreadCount, onClick = onOpenNotifications)
             }
         }
 
@@ -123,24 +125,30 @@ fun HomeScreen(
                 Column(Modifier.padding(20.dp)) {
                     Row(verticalAlignment = Alignment.CenterVertically) {
                         Text(
-                            "HAFIZA ÖZETİ",
+                            stringResource(R.string.home_summary_label),
                             style = MaterialTheme.typography.labelSmall,
                             color = Gold,
-                        )
-                        Spacer(Modifier.weight(1f))
-                        Box(
-                            Modifier
-                                .size(8.dp)
-                                .background(Gold, CircleShape),
                         )
                     }
                     Spacer(Modifier.height(12.dp))
                     val stats = home.data?.stats
                     Text(
                         text = if (stats != null) {
-                            "${stats.assets} varlığın\n${stats.entries} iz bıraktı."
+                            stringResource(
+                                R.string.home_summary_stats,
+                                pluralStringResource(
+                                    R.plurals.home_summary_assets,
+                                    stats.assets,
+                                    stats.assets,
+                                ),
+                                pluralStringResource(
+                                    R.plurals.home_summary_traces,
+                                    stats.entries,
+                                    stats.entries,
+                                ),
+                            )
                         } else {
-                            "Her şeyin bir\nhikâyesi var."
+                            stringResource(R.string.home_summary_empty)
                         },
                         style = MaterialTheme.typography.headlineLarge,
                         color = Paper,
@@ -151,17 +159,17 @@ fun HomeScreen(
                     Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                         DarkStat(
                             value = stats?.assets?.toString() ?: "—",
-                            label = "Varlık",
+                            label = stringResource(R.string.profile_stat_assets),
                             modifier = Modifier.weight(1f),
                         )
                         DarkStat(
                             value = stats?.entries?.toString() ?: "—",
-                            label = "Kayıt",
+                            label = stringResource(R.string.profile_stat_entries),
                             modifier = Modifier.weight(1f),
                         )
                         DarkStat(
                             value = stats?.media?.toString() ?: "—",
-                            label = "Medya",
+                            label = stringResource(R.string.home_stat_media),
                             modifier = Modifier.weight(1f),
                         )
                     }
@@ -172,7 +180,7 @@ fun HomeScreen(
         item {
             Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                 Surface(
-                    color = Clay,
+                    color = Forest,
                     shape = RoundedCornerShape(50),
                     modifier = Modifier
                         .weight(1f)
@@ -184,7 +192,7 @@ fun HomeScreen(
                         verticalAlignment = Alignment.CenterVertically,
                     ) {
                         Text(
-                            "Yeni varlık",
+                            stringResource(R.string.home_new_asset),
                             style = MaterialTheme.typography.labelLarge,
                             color = Color.White,
                         )
@@ -206,7 +214,7 @@ fun HomeScreen(
                         .clickable { onOpenArchive() },
                 ) {
                     Text(
-                        "Arşivi gez",
+                        stringResource(R.string.home_open_archive),
                         style = MaterialTheme.typography.labelLarge,
                         color = Forest,
                         modifier = Modifier.padding(vertical = 12.dp),
@@ -226,10 +234,10 @@ fun HomeScreen(
         val assets = home.data?.assets.orEmpty()
         item {
             Row(verticalAlignment = Alignment.Bottom) {
-                SectionLabel("Varlıkların")
+                SectionLabel(stringResource(R.string.profile_assets_title))
                 Spacer(Modifier.weight(1f))
                 Text(
-                    "Tümü",
+                    stringResource(R.string.home_see_all),
                     style = MaterialTheme.typography.labelLarge,
                     color = Clay,
                     modifier = Modifier
@@ -248,9 +256,9 @@ fun HomeScreen(
                     modifier = Modifier.fillMaxWidth(),
                 ) {
                     EmptyState(
-                        title = "İlk izi bırak",
-                        body = "Bir bonsai, bir dost ya da duvardaki tablo… İlk varlığını ekle, hikâyesi burada başlasın.",
-                        actionLabel = "Yeni varlık",
+                        title = stringResource(R.string.home_empty_title),
+                        body = stringResource(R.string.home_empty_body),
+                        actionLabel = stringResource(R.string.home_new_asset),
                         onAction = onNewAsset,
                     )
                 }
@@ -265,7 +273,7 @@ fun HomeScreen(
         if (recent.isNotEmpty()) {
             item {
                 Spacer(Modifier.height(8.dp))
-                SectionLabel("Son hareketler")
+                SectionLabel(stringResource(R.string.home_recent_title))
             }
             items(recent.take(5), key = { it.id }) { entry ->
                 RecentEntry(entry = entry, onClick = { onOpenAsset(entry.assetId) })
@@ -281,13 +289,13 @@ fun HomeScreen(
             ) {
                 Column(Modifier.padding(18.dp)) {
                     Text(
-                        "“Bir şeyi saklamak,\nonu yeniden bakmak içindir.”",
+                        stringResource(R.string.home_quote),
                         style = MaterialTheme.typography.titleLarge,
                         color = Forest,
                     )
                     Spacer(Modifier.height(8.dp))
                     Text(
-                        "izleer · günlük arşiv",
+                        stringResource(R.string.home_quote_attribution),
                         style = MaterialTheme.typography.labelSmall,
                         color = Muted,
                     )
@@ -358,7 +366,8 @@ private fun RecentEntry(entry: Entry, onClick: () -> Unit) {
             }
             Spacer(Modifier.height(3.dp))
             Text(
-                text = entry.title ?: entry.asset?.title ?: "Kayıt",
+                text = entry.title ?: entry.asset?.title
+                    ?: stringResource(R.string.home_entry_fallback),
                 style = MaterialTheme.typography.titleMedium,
                 color = Forest,
                 fontWeight = FontWeight.SemiBold,
@@ -375,9 +384,9 @@ private fun RecentEntry(entry: Entry, onClick: () -> Unit) {
                 )
             }
             Text(
-                text = entry.asset?.title ?: "Varlık",
+                text = entry.asset?.title ?: stringResource(R.string.common_asset),
                 style = MaterialTheme.typography.labelSmall,
-                color = Sage,
+                color = SageInk,
                 modifier = Modifier.padding(top = 3.dp),
             )
         }

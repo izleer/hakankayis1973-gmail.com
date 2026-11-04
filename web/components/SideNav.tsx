@@ -2,6 +2,7 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
+import { useT } from '@/lib/i18n/client';
 import { Icon, type IconName } from './Icons';
 
 const items: { href: string; label: string; icon: IconName }[] = [
@@ -11,16 +12,17 @@ const items: { href: string; label: string; icon: IconName }[] = [
   { href: '/arsiv', label: 'Arşiv', icon: 'archive' },
   { href: '/kesfet', label: 'Keşfet', icon: 'compass' },
   { href: '/bildirimler', label: 'Bildirimler', icon: 'bell' },
-  { href: '/ayarlar/sosyal', label: 'Sosyal', icon: 'share' },
+  { href: '/ayarlar/sosyal', label: 'Bağlantılar', icon: 'share' },
 ];
 
 export function SideNav() {
   const pathname = usePathname();
+  const t = useT();
   return (
-    <nav className="side-nav" aria-label="Ana menü">
+    <nav className="side-nav" aria-label={t('Ana menü')}>
       <Link href="/varliklar/yeni" className="side-add">
         <Icon name="plus" size={18} />
-        <span>Yeni varlık</span>
+        <span>{t('Yeni varlık')}</span>
       </Link>
       <div className="side-nav-group">
         {items.map((item) => {
@@ -34,7 +36,7 @@ export function SideNav() {
               aria-current={active ? 'page' : undefined}
             >
               <Icon name={item.icon} size={19} />
-              <span>{item.label}</span>
+              <span>{t(item.label)}</span>
             </Link>
           );
         })}
@@ -48,16 +50,35 @@ const mobileItems: { href: string; label: string; icon: IconName }[] = [
   { href: '/varliklar', label: 'Varlık', icon: 'grid' },
   { href: '/varliklar/yeni', label: 'Ekle', icon: 'plus' },
   { href: '/gruplar', label: 'Gruplar', icon: 'users' },
-  { href: '/kesfet', label: 'Keşfet', icon: 'compass' },
+  { href: '/menu', label: 'Daha fazla', icon: 'more' },
 ];
+
+const menuPaths = ['/menu', '/kesfet', '/arsiv', '/bildirimler', '/profil', '/ayarlar'];
+
+function isMobileActive(href: string, pathname: string) {
+  if (href === '/') return pathname === '/';
+  if (href === '/menu') {
+    return menuPaths.some((path) => pathname === path || pathname.startsWith(`${path}/`));
+  }
+  if (href === '/varliklar') {
+    return (
+      pathname === '/varliklar' ||
+      (pathname.startsWith('/varliklar/') && !pathname.startsWith('/varliklar/yeni'))
+    );
+  }
+  if (href === '/varliklar/yeni') {
+    return pathname === '/varliklar/yeni' || pathname.startsWith('/varliklar/yeni/');
+  }
+  return pathname === href || pathname.startsWith(`${href}/`);
+}
 
 export function MobileNav() {
   const pathname = usePathname();
+  const t = useT();
   return (
-    <nav className="mobile-nav" aria-label="Mobil menü">
+    <nav className="mobile-nav" aria-label={t('Mobil menü')}>
       {mobileItems.map((item) => {
-        const active =
-          item.href === '/' ? pathname === '/' : pathname.startsWith(item.href);
+        const active = isMobileActive(item.href, pathname);
         return (
           <Link
             key={item.href}
@@ -69,7 +90,7 @@ export function MobileNav() {
             <span className="mobile-link-icon">
               <Icon name={item.icon} size={item.href === '/varliklar/yeni' ? 24 : 20} />
             </span>
-            <span>{item.label}</span>
+            <span>{t(item.label)}</span>
           </Link>
         );
       })}

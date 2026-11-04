@@ -2,23 +2,29 @@
 
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useMemo, useRef, useState } from 'react';
 import { uploadMedia, vh } from '@/lib/client';
 import {
   attributeLabel,
   entryTypeDescriptions,
   entryTypeLabels,
+  formatAttributeValue,
   formatBytes,
   formatDate,
   formatDateTime,
+  formatLocation,
+  formatMonthYear,
   formatNumber,
+  formatTime,
   mediaSrc,
+  resolveAttributeLabel,
   typeIconName,
   visibilityLabels,
 } from '@/lib/format';
 import type {
   Asset,
   AssetDetailData,
+  CursorPage,
   Entry,
   EntryType,
   Measurement,
@@ -27,10 +33,12 @@ import type {
   UserMini,
   Visibility,
 } from '@/lib/types';
+import { useI18n, useT } from '@/lib/i18n/client';
 import { EmptyState } from './EmptyState';
 import { Icon, type IconName } from './Icons';
 import { MediaImage } from './MediaImage';
 import { SocialShareModal } from './SocialShareModal';
+import { useModalA11y } from './useModalA11y';
 
 const entryIcons: Record<EntryType, IconName> = {
   note: 'book',
@@ -63,15 +71,21 @@ export function AssetDetail({
   measurements,
   viewer,
   attributeLabels = {},
+  socialEnabled = false,
 }: {
   data: AssetDetailData;
   measurements: Measurement[];
   viewer: User;
   attributeLabels?: Record<string, string>;
+  socialEnabled?: boolean;
 }) {
   const router = useRouter();
+  const t = useT();
+  const { locale } = useI18n();
   const [asset, setAsset] = useState(data.asset);
   const [entries, setEntries] = useState(data.entries);
+  const [cursor, setCursor] = useState<string | null>(data.entriesNextCursor);
+  const [loadingMore, setLoadingMore] = useState(false);
   const [viewers, setViewers] = useState(data.access.viewers);
   const [tab, setTab] = useState<'story' | 'archive' | 'measurements' | 'share'>('story');
   const [composerOpen, setComposerOpen] = useState(false);
@@ -98,11 +112,30 @@ export function AssetDetail({
     window.setTimeout(() => setNotice(null), 3200);
   }
 
+  async function loadMoreEntries() {
+    if (!cursor || loadingMore) return;
+    setLoadingMore(true);
+    try {
+      const page = await vh.get<CursorPage<Entry>>(
+        `assets/${asset.id}/entries?limit=20&cursor=${encodeURIComponent(cursor)}`,
+      );
+      setEntries((current) => {
+        const known = new Set(current.map((entry) => entry.id));
+        return [...current, ...page.items.filter((entry) => !known.has(entry.id))];
+      });
+      setCursor(page.nextCursor);
+    } catch (caught) {
+      flash(caught instanceof Error ? caught.message : t('Daha eski kayıtlar yüklenemedi.'));
+    } finally {
+      setLoadingMore(false);
+    }
+  }
+
   return (
     <main className="page page-detail">
       <Link href="/varliklar" className="back-link">
         <Icon name="arrow-left" size={16} />
-        Varlıklar
+        {t('Varlıklar')}
       </Link>
 
       <header className="detail-banner">
@@ -132,10 +165,10 @@ export function AssetDetail({
                 }
                 size={13}
               />
-              {visibilityLabels[asset.visibility]}
+              {t(visibilityLabels[asset.visibility])}
             </span>
             <span className={`status-pill${asset.status === 'archived' ? ' is-archived' : ''}`}>
-              {asset.status === 'archived' ? 'Arşivde' : 'Takipte'}
+              {asset.status === 'archived' ? t('Arşivlenen') : t('Güncel')}
             </span>
           </div>
           <h1>{asset.title}</h1>
@@ -144,27 +177,28 @@ export function AssetDetail({
           <dl className="detail-meta">
             {asset.acquiredAt ? (
               <div>
-                <dt>Başlangıç</dt>
-                <dd>{formatDate(asset.acquiredAt)}</dd>
+                <dt>{t('Başlangıç')}</dt>
+                <dd>{formatDate(asset.acquiredAt, locale)}</dd>
               </div>
             ) : null}
             {asset.locationName ? (
               <div>
-                <dt>Konum</dt>
+                <dt>{t('Konum')}</dt>
                 <dd>
                   <Icon name="pin" size={14} />
-                  {asset.locationName}
+                  {formatLocation(asset.locationName, locale)}
                 </dd>
               </div>
             ) : null}
             <div>
-              <dt>Hafıza</dt>
-              <dd>{formatNumber(asset.entryCount)} kayıt</dd>
+              <dt>{t('Hafıza')}</dt>
+              <dd>{t('{count} kayıt', { count: asset.entryCount })}</dd>
             </div>
             <div>
-              <dt>Arşiv</dt>
+              <dt>{t('Arşiv')}</dt>
               <dd>
-                {images.length} fotoğraf · {documents.length} belge
+                {t('{count} fotoğraf', { count: images.length })} ·{' '}
+                {t('{count} belge', { count: documents.length })}
               </dd>
             </div>
             {Object.entries(asset.attributes)
@@ -172,8 +206,8 @@ export function AssetDetail({
               .slice(0, 4)
               .map(([key, value]) => (
                 <div key={key}>
-                  <dt>{attributeLabels[key] ?? attributeLabel(key)}</dt>
-                  <dd>{String(value)}</dd>
+                  <dt>{resolveAttributeLabel(key, attributeLabels)}</dt>
+                  <dd>{formatAttributeValue(key, value)}</dd>
                 </div>
               ))}
           </dl>
@@ -190,21 +224,23 @@ export function AssetDetail({
                   }}
                 >
                   <Icon name="plus" size={17} />
-                  Kayıt ekle
+                  {t('Kayıt ekle')}
                 </button>
                 <button type="button" className="btn btn-ghost" onClick={() => setEditOpen(true)}>
                   <Icon name="edit" size={16} />
-                  Düzenle
+                  {t('Düzenle')}
                 </button>
-                <button type="button" className="btn btn-ghost" onClick={() => setSocialOpen(true)}>
-                  <Icon name="share" size={16} />
-                  Sosyal paylaş
-                </button>
+                {socialEnabled ? (
+                  <button type="button" className="btn btn-ghost" onClick={() => setSocialOpen(true)}>
+                    <Icon name="share" size={16} />
+                    {t('Sosyal medya')}
+                  </button>
+                ) : null}
               </>
             ) : (
               <span className="shared-note">
                 <Icon name="users" size={16} />
-                {asset.owner.displayName} tarafından paylaşıldı
+                {t('{name} tarafından paylaşıldı', { name: asset.owner.displayName })}
               </span>
             )}
           </div>
@@ -221,27 +257,27 @@ export function AssetDetail({
         </div>
       </header>
 
-      <nav className="tabs" aria-label="Varlık bölümleri">
+      <nav className="tabs" aria-label={t('Varlık bölümleri')}>
         <button
           type="button"
           className={tab === 'story' ? 'is-active' : ''}
           onClick={() => setTab('story')}
         >
-          Hikâye <span>{entries.length}</span>
+          {t('Hikâye')} <span>{entries.length}</span>
         </button>
         <button
           type="button"
           className={tab === 'archive' ? 'is-active' : ''}
           onClick={() => setTab('archive')}
         >
-          Arşiv <span>{media.length}</span>
+          {t('Medya')} <span>{media.length}</span>
         </button>
         <button
           type="button"
           className={tab === 'measurements' ? 'is-active' : ''}
           onClick={() => setTab('measurements')}
         >
-          Ölçümler <span>{measurements.length}</span>
+          {t('Ölçümler')} <span>{measurements.length}</span>
         </button>
         {isOwner ? (
           <button
@@ -249,7 +285,7 @@ export function AssetDetail({
             className={tab === 'share' ? 'is-active' : ''}
             onClick={() => setTab('share')}
           >
-            Paylaşım <span>{viewers.length}</span>
+            {t('Kişiler')} <span>{viewers.length}</span>
           </button>
         ) : null}
       </nav>
@@ -273,25 +309,41 @@ export function AssetDetail({
                 <Icon name="plus" size={18} />
               </span>
               <span>
-                <strong>Bugün ne oldu?</strong>
-                <small>Bir fotoğraf, bakım notu ya da küçük bir an ekle.</small>
+                <strong>{t('Bugün ne oldu?')}</strong>
+                <small>{t('Bir fotoğraf, bakım notu ya da küçük bir an ekle.')}</small>
               </span>
               <Icon name="arrow-right" size={18} />
             </button>
           ) : null}
 
           {entries.length > 0 ? (
-            <Timeline
-              entries={entries}
-              canEditEntry={(entry) => isOwner || entry.author.id === viewer.id}
-              onEditEntry={setEditingEntry}
-              onOpenImage={(item, alt) => setLightbox({ url: item, alt })}
-            />
+            <>
+              <Timeline
+                entries={entries}
+                canEditEntry={(entry) => isOwner || entry.author.id === viewer.id}
+                onEditEntry={setEditingEntry}
+                onOpenImage={(item, alt) => setLightbox({ url: item, alt })}
+              />
+              {cursor ? (
+                <div className="load-more">
+                  <button
+                    type="button"
+                    className="btn btn-ghost"
+                    onClick={loadMoreEntries}
+                    disabled={loadingMore}
+                  >
+                    {loadingMore ? t('Yükleniyor…') : t('Daha eski kayıtları göster')}
+                  </button>
+                </div>
+              ) : (
+                <p className="archive-end">{t('Hikâyenin başına geldin.')}</p>
+              )}
+            </>
           ) : (
             <EmptyState
               icon="book"
-              title="Hikâye henüz başlamadı"
-              body="İlk kaydı eklediğinde burada bir zaman çizelgesi oluşacak."
+              title={t('Hikâye henüz başlamadı')}
+              body={t('İlk kaydı eklediğinde burada bir zaman çizelgesi oluşacak.')}
             />
           )}
         </section>
@@ -323,7 +375,7 @@ export function AssetDetail({
             setEntries((current) => [entry, ...current]);
             setAsset((current) => ({ ...current, entryCount: current.entryCount + 1 }));
             setComposerOpen(false);
-            flash('Kayıt hafızaya eklendi.');
+            flash(t('Kayıt hafızaya eklendi.'));
           }}
         />
       ) : null}
@@ -335,7 +387,7 @@ export function AssetDetail({
           onSaved={(next) => {
             setAsset(next);
             setEditOpen(false);
-            flash('Varlık bilgileri güncellendi.');
+            flash(t('Varlık bilgileri güncellendi.'));
             router.refresh();
           }}
           onDeleted={() => {
@@ -367,7 +419,7 @@ export function AssetDetail({
                 .sort((a, b) => +new Date(b.occurredAt) - +new Date(a.occurredAt)),
             );
             setEditingEntry(null);
-            flash('Kayıt güncellendi.');
+            flash(t('Kayıt güncellendi.'));
             router.refresh();
           }}
           onDeleted={(entryId) => {
@@ -377,7 +429,7 @@ export function AssetDetail({
               entryCount: Math.max(0, current.entryCount - 1),
             }));
             setEditingEntry(null);
-            flash('Kayıt silindi.');
+            flash(t('Kayıt silindi.'));
             router.refresh();
           }}
         />
@@ -385,7 +437,7 @@ export function AssetDetail({
 
       {lightbox ? (
         <div className="lightbox" onClick={() => setLightbox(null)}>
-          <button type="button" className="lightbox-close" aria-label="Kapat">
+          <button type="button" className="lightbox-close" aria-label={t('Kapat')}>
             <Icon name="close" size={22} />
           </button>
           <img
@@ -410,6 +462,8 @@ function Timeline({
   onEditEntry: (entry: Entry) => void;
   onOpenImage: (url: string, alt: string) => void;
 }) {
+  const t = useT();
+  const { locale } = useI18n();
   let lastYear = '';
   return (
     <div className="timeline">
@@ -422,36 +476,31 @@ function Timeline({
             {showYear ? <div className="year-divider">{year}</div> : null}
             <article className="timeline-entry">
               <div className="timeline-date">
-                <strong>{new Date(entry.occurredAt).getDate()}</strong>
-                <span>
-                  {new Date(entry.occurredAt).toLocaleDateString('tr-TR', {
-                    month: 'short',
-                    timeZone: 'Europe/Istanbul',
-                  })}
-                </span>
+                <time dateTime={entry.occurredAt}>
+                  <strong>{new Date(entry.occurredAt).getDate()}</strong>
+                  <span>{formatMonthYear(entry.occurredAt, locale)}</span>
+                </time>
               </div>
               <div className="entry-card">
                 <header className="entry-head">
                   <span className={`entry-kind type-${entry.type}`}>
                     <Icon name={entryIcons[entry.type]} size={14} />
-                    {entryTypeLabels[entry.type]}
+                    {t(entryTypeLabels[entry.type])}
                   </span>
                   {entry.visibility !== 'public' ? (
                     <span className="entry-privacy">
                       <Icon name={entry.visibility === 'private' ? 'lock' : 'users'} size={12} />
-                      {visibilityLabels[entry.visibility]}
+                      {t(visibilityLabels[entry.visibility])}
                     </span>
                   ) : null}
-                  <span className="entry-time">
-                    {formatDateTime(entry.occurredAt).split(' ').slice(-1)}
-                  </span>
+                  <span className="entry-time">{formatTime(entry.occurredAt, locale)}</span>
                   {canEditEntry(entry) ? (
                     <button
                       type="button"
                       className="icon-btn entry-edit-btn"
                       onClick={() => onEditEntry(entry)}
-                      aria-label="Kaydı düzenle"
-                      title="Kaydı düzenle"
+                      aria-label={t('Kaydı düzenle')}
+                      title={t('Kaydı düzenle')}
                     >
                       <Icon name="edit" size={14} />
                     </button>
@@ -466,7 +515,7 @@ function Timeline({
                       .map(([key, value]) => (
                         <div key={key}>
                           <dt>{attributeLabel(key)}</dt>
-                          <dd>{String(value)}</dd>
+                          <dd>{formatAttributeValue(key, value)}</dd>
                         </div>
                       ))}
                   </dl>
@@ -499,10 +548,10 @@ function Timeline({
                         <Icon name="pin" size={12} /> {entry.locationName}
                       </>
                     ) : (
-                      entryTypeDescriptions[entry.type]
+                      t(entryTypeDescriptions[entry.type])
                     )}
                   </span>
-                  <span>{formatDate(entry.occurredAt)}</span>
+                  <span>{formatDate(entry.occurredAt, locale)}</span>
                 </footer>
               </div>
             </article>
@@ -514,6 +563,8 @@ function Timeline({
 }
 
 function DocumentChip({ media }: { media: Media }) {
+  const t = useT();
+  const { locale } = useI18n();
   return (
     <a
       className="doc-chip"
@@ -526,8 +577,10 @@ function DocumentChip({ media }: { media: Media }) {
         <Icon name="file" size={18} />
       </span>
       <span>
-        <strong>{media.originalName ?? 'Belge'}</strong>
-        <small>{media.mimeType.split('/')[1]?.toUpperCase()} · {formatBytes(media.byteSize)}</small>
+        <strong>{media.originalName ?? t('Belge')}</strong>
+        <small>
+          {media.mimeType.split('/')[1]?.toUpperCase()} · {formatBytes(media.byteSize, locale)}
+        </small>
       </span>
       <Icon name="download" size={15} />
     </a>
@@ -541,6 +594,8 @@ function ArchivePanel({
   media: Media[];
   onOpenImage: (url: string, alt: string) => void;
 }) {
+  const t = useT();
+  const { locale } = useI18n();
   const [filter, setFilter] = useState<'all' | 'image' | 'document'>('all');
   const [query, setQuery] = useState('');
   const filtered = media.filter((item) => {
@@ -554,13 +609,13 @@ function ArchivePanel({
       <div className="archive-toolbar">
         <div className="segmented">
           <button type="button" className={filter === 'all' ? 'is-active' : ''} onClick={() => setFilter('all')}>
-            Tümü
+            {t('Tümü')}
           </button>
           <button type="button" className={filter === 'image' ? 'is-active' : ''} onClick={() => setFilter('image')}>
-            Fotoğraf
+            {t('Fotoğraf')}
           </button>
           <button type="button" className={filter === 'document' ? 'is-active' : ''} onClick={() => setFilter('document')}>
-            Belge
+            {t('Belge')}
           </button>
         </div>
         <label className="inline-search">
@@ -568,8 +623,8 @@ function ArchivePanel({
           <input
             value={query}
             onChange={(event) => setQuery(event.target.value)}
-            placeholder="Arşivde ara…"
-            aria-label="Arşivde ara"
+            placeholder={t('Arşivde ara…')}
+            aria-label={t('Arşivde ara')}
           />
         </label>
       </div>
@@ -577,8 +632,8 @@ function ArchivePanel({
       {filtered.length === 0 ? (
         <EmptyState
           icon="archive"
-          title="Bu filtrede bir parça yok"
-          body="Fotoğraf ya da belge eklediğinde arşiv burada büyüyecek."
+          title={t('Bu filtrede bir parça yok')}
+          body={t('Fotoğraf ya da belge eklediğinde arşiv burada büyüyecek.')}
         />
       ) : (
         <div className="archive-grid">
@@ -592,8 +647,8 @@ function ArchivePanel({
               >
                 <MediaImage src={mediaSrc(item.url)} alt={item.originalName ?? ''} />
                 <span className="archive-tile-info">
-                  <strong>{item.originalName?.replace(/\.[^.]+$/, '') ?? 'Fotoğraf'}</strong>
-                  <small>{formatDate(item.createdAt)}</small>
+                  <strong>{item.originalName?.replace(/\.[^.]+$/, '') ?? t('Fotoğraf')}</strong>
+                  <small>{formatDate(item.createdAt, locale)}</small>
                 </span>
               </button>
             ) : (
@@ -608,8 +663,10 @@ function ArchivePanel({
                   <Icon name="file" size={26} />
                 </span>
                 <span className="archive-tile-info">
-                  <strong>{item.originalName ?? 'Belge'}</strong>
-                  <small>{formatBytes(item.byteSize)} · {formatDate(item.createdAt)}</small>
+                  <strong>{item.originalName ?? t('Belge')}</strong>
+                  <small>
+                    {formatBytes(item.byteSize, locale)} · {formatDate(item.createdAt, locale)}
+                  </small>
                 </span>
                 <Icon name="download" size={16} />
               </a>
@@ -622,6 +679,8 @@ function ArchivePanel({
 }
 
 function MeasurementsPanel({ items }: { items: Measurement[] }) {
+  const t = useT();
+  const { locale } = useI18n();
   const grouped = useMemo(() => {
     const map = new Map<string, Measurement[]>();
     for (const item of items) {
@@ -639,8 +698,8 @@ function MeasurementsPanel({ items }: { items: Measurement[] }) {
     return (
       <EmptyState
         icon="ruler"
-        title="Henüz ölçüm yok"
-        body="Boy, kilo, yaprak sayısı gibi ölçümler eklendiğinde değişim burada grafikleşir."
+        title={t('Henüz ölçüm yok')}
+        body={t('Boy, kilo, yaprak sayısı gibi ölçümler eklendiğinde değişim burada grafikleşir.')}
       />
     );
   }
@@ -668,22 +727,22 @@ function MeasurementsPanel({ items }: { items: Measurement[] }) {
           <article className="metric-card" key={metric}>
             <header>
               <div>
-                <span className="eyebrow">Ölçüm</span>
+                <span className="eyebrow">{t('Ölçüm')}</span>
                 <h3>{metric}</h3>
               </div>
               <div className="metric-latest">
                 <strong>
-                  {formatNumber(latest.value)} <small>{latest.unit}</small>
+                  {formatNumber(latest.value, locale)} <small>{latest.unit}</small>
                 </strong>
                 {list.length > 1 ? (
                   <span className={delta >= 0 ? 'delta-up' : 'delta-down'}>
                     {delta >= 0 ? '+' : ''}
-                    {formatNumber(Number(delta.toFixed(2)))} {latest.unit}
+                    {formatNumber(Number(delta.toFixed(2)), locale)} {latest.unit}
                   </span>
                 ) : null}
               </div>
             </header>
-            <svg viewBox={`0 0 ${width} ${height}`} className="metric-chart" role="img" aria-label={`${metric} değişimi`}>
+            <svg viewBox={`0 0 ${width} ${height}`} className="metric-chart" role="img" aria-label={t('{metric} değişimi', { metric })}>
               <defs>
                 <linearGradient id={`fill-${metric.replace(/\s/g, '-')}`} x1="0" y1="0" x2="0" y2="1">
                   <stop offset="0%" stopColor="#5b6f55" stopOpacity="0.25" />
@@ -700,9 +759,9 @@ function MeasurementsPanel({ items }: { items: Measurement[] }) {
               ))}
             </svg>
             <footer>
-              <span>{formatDate(first.measuredAt)}</span>
-              <span>{list.length} ölçüm</span>
-              <span>{formatDate(latest.measuredAt)}</span>
+              <span>{formatDate(first.measuredAt, locale)}</span>
+              <span>{t('{count} ölçüm', { count: list.length })}</span>
+              <span>{formatDate(latest.measuredAt, locale)}</span>
             </footer>
           </article>
         );
@@ -722,6 +781,8 @@ function SharePanel({
   onChange: (next: { user: UserMini; grantedAt: string }[]) => void;
   onFlash: (message: string) => void;
 }) {
+  const t = useT();
+  const { locale } = useI18n();
   const [username, setUsername] = useState('');
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -734,9 +795,9 @@ function SharePanel({
       const data = await vh.post<{ user: UserMini }>(`assets/${asset.id}/access`, { username });
       onChange([{ user: data.user, grantedAt: new Date().toISOString() }, ...viewers]);
       setUsername('');
-      onFlash('Erişim verildi.');
+      onFlash(t('Erişim verildi.'));
     } catch (caught) {
-      setError(caught instanceof Error ? caught.message : 'Erişim verilemedi.');
+      setError(caught instanceof Error ? caught.message : t('Erişim verilemedi.'));
     } finally {
       setBusy(false);
     }
@@ -747,9 +808,9 @@ function SharePanel({
     try {
       await vh.delete(`assets/${asset.id}/access/${userId}`);
       onChange(viewers.filter((item) => item.user.id !== userId));
-      onFlash('Erişim kaldırıldı.');
+      onFlash(t('Erişim kaldırıldı.'));
     } catch (caught) {
-      setError(caught instanceof Error ? caught.message : 'Erişim kaldırılamadı.');
+      setError(caught instanceof Error ? caught.message : t('Erişim kaldırılamadı.'));
     } finally {
       setBusy(false);
     }
@@ -760,10 +821,11 @@ function SharePanel({
       <div className="info-card">
         <Icon name="users" size={22} />
         <div>
-          <h3>Seçili kişilerle paylaş</h3>
+          <h3>{t('Seçili kişilerle paylaş')}</h3>
           <p>
-            Varlığın görünürlüğü <strong>{visibilityLabels[asset.visibility]}</strong>. Buradan
-            eklediğin kişiler, varlıkla birlikte seçili kayıtlarını da görebilir.
+            {t('Varlığın görünürlüğü')}{' '}
+            <strong>{t(visibilityLabels[asset.visibility])}</strong>.{' '}
+            {t('Buradan eklediğin kişiler, varlıkla birlikte seçili kayıtlarını da görebilir.')}
           </p>
         </div>
       </div>
@@ -773,19 +835,19 @@ function SharePanel({
         <input
           value={username}
           onChange={(event) => setUsername(event.target.value)}
-          placeholder="Kullanıcı adı veya e-posta"
-          aria-label="Paylaşılacak kullanıcı"
+          placeholder={t('Kullanıcı adı veya e-posta')}
+          aria-label={t('Paylaşılacak kullanıcı')}
           required
         />
         <button className="btn btn-primary btn-sm" type="submit" disabled={busy || !username}>
-          Erişim ver
+          {t('Erişim ver')}
         </button>
       </form>
       {error ? <div className="form-error">{error}</div> : null}
 
       <div className="share-list">
         {viewers.length === 0 ? (
-          <p className="muted-note">Henüz kimseyle paylaşmadın.</p>
+          <p className="muted-note">{t('Henüz kimseyle paylaşmadın.')}</p>
         ) : (
           viewers.map((item) => (
             <div className="share-row" key={item.user.id}>
@@ -794,14 +856,16 @@ function SharePanel({
               </span>
               <span>
                 <strong>{item.user.displayName}</strong>
-                <small>@{item.user.username} · {formatDate(item.grantedAt)}</small>
+                <small>
+                  @{item.user.username} · {formatDate(item.grantedAt, locale)}
+                </small>
               </span>
               <button
                 type="button"
                 className="icon-btn"
                 onClick={() => removeUser(item.user.id)}
                 disabled={busy}
-                aria-label="Erişimi kaldır"
+                aria-label={t('Erişimi kaldır')}
               >
                 <Icon name="close" size={17} />
               </button>
@@ -822,6 +886,7 @@ function EntryComposer({
   onClose: () => void;
   onCreated: (entry: Entry) => void;
 }) {
+  const t = useT();
   const [type, setType] = useState<EntryType>('note');
   const [title, setTitle] = useState('');
   const [body, setBody] = useState('');
@@ -834,6 +899,7 @@ function EntryComposer({
   const [progress, setProgress] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const inputRef = useRef<HTMLInputElement>(null);
+  const dialogRef = useModalA11y<HTMLDivElement>(onClose);
 
   const allowedVisibilities = visibilityOrder.filter(
     (item) => visibilityOrder.indexOf(item) <= visibilityOrder.indexOf(asset.visibility),
@@ -842,11 +908,11 @@ function EntryComposer({
   async function submit(event: React.FormEvent) {
     event.preventDefault();
     if (!title && !body) {
-      setError('Bir başlık ya da not yazın.');
+      setError(t('Bir başlık ya da not yazın.'));
       return;
     }
     if (files.length > 8) {
-      setError('Bir kayda en fazla 8 dosya eklenebilir.');
+      setError(t('Bir kayda en fazla 8 dosya eklenebilir.'));
       return;
     }
     setBusy(true);
@@ -854,11 +920,16 @@ function EntryComposer({
     try {
       const mediaIds: string[] = [];
       for (const [index, file] of files.entries()) {
-        setProgress(`Dosyalar yükleniyor · ${index + 1}/${files.length}`);
+        setProgress(
+          t('Dosyalar yükleniyor · {current}/{total}', {
+            current: index + 1,
+            total: files.length,
+          }),
+        );
         const media = await uploadMedia(file);
         mediaIds.push(media.id);
       }
-      setProgress('Kayıt oluşturuluyor…');
+      setProgress(t('Kayıt oluşturuluyor…'));
       const data = await vh.post<{ entry: Entry }>(`assets/${asset.id}/entries`, {
         type,
         title: title || null,
@@ -869,7 +940,7 @@ function EntryComposer({
       });
       onCreated(data.entry);
     } catch (caught) {
-      setError(caught instanceof Error ? caught.message : 'Kayıt eklenemedi.');
+      setError(caught instanceof Error ? caught.message : t('Kayıt eklenemedi.'));
     } finally {
       setBusy(false);
       setProgress(null);
@@ -877,14 +948,27 @@ function EntryComposer({
   }
 
   return (
-    <div className="modal-backdrop" role="dialog" aria-modal="true" aria-label="Yeni kayıt">
-      <div className="modal">
+    <div
+      className="modal-backdrop"
+      role="presentation"
+      onClick={(event) => {
+        if (event.target === event.currentTarget) onClose();
+      }}
+    >
+      <div
+        className="modal"
+        role="dialog"
+        aria-modal="true"
+        aria-label={t('Yeni kayıt')}
+        ref={dialogRef}
+        tabIndex={-1}
+      >
         <header className="modal-head">
           <div>
-            <span className="eyebrow">Yeni iz</span>
-            <h2>Hafızaya kayıt ekle</h2>
+            <span className="eyebrow">{t('Yeni iz')}</span>
+            <h2>{t('Hafızaya kayıt ekle')}</h2>
           </div>
-          <button type="button" className="icon-btn" onClick={onClose} aria-label="Kapat">
+          <button type="button" className="icon-btn" onClick={onClose} aria-label={t('Kapat')}>
             <Icon name="close" size={20} />
           </button>
         </header>
@@ -899,29 +983,31 @@ function EntryComposer({
                 onClick={() => setType(item)}
               >
                 <Icon name={entryIcons[item]} size={18} />
-                <span>{entryTypeLabels[item]}</span>
+                <span>{t(entryTypeLabels[item])}</span>
               </button>
             ))}
           </div>
 
           <label className="field">
-            <span>Başlık</span>
+            <span>{t('Başlık')}</span>
             <input
               className="input"
               value={title}
               onChange={(event) => setTitle(event.target.value)}
-              placeholder={type === 'maintenance' ? 'Örn. Kök ve tel kontrolü' : 'Kısa bir başlık'}
+              placeholder={
+                type === 'maintenance' ? t('Örn. Kök ve tel kontrolü') : t('Kısa bir başlık')
+              }
               maxLength={140}
             />
           </label>
 
           <label className="field">
-            <span>Not</span>
+            <span>{t('Not')}</span>
             <textarea
               className="textarea"
               value={body}
               onChange={(event) => setBody(event.target.value)}
-              placeholder="Bugün ne oldu? Ne değişti? Ne hissettin?"
+              placeholder={t('Bugün ne oldu? Ne değişti? Ne hissettin?')}
               rows={5}
               maxLength={5000}
             />
@@ -929,7 +1015,7 @@ function EntryComposer({
 
           <div className="form-grid">
             <label className="field">
-              <span>Tarih ve saat</span>
+              <span>{t('Tarih ve saat')}</span>
               <input
                 className="input"
                 type="datetime-local"
@@ -939,7 +1025,7 @@ function EntryComposer({
               />
             </label>
             <label className="field">
-              <span>Kimler görebilsin?</span>
+              <span>{t('Kimler görebilsin?')}</span>
               <select
                 className="select"
                 value={visibility}
@@ -947,7 +1033,7 @@ function EntryComposer({
               >
                 {allowedVisibilities.map((item) => (
                   <option key={item} value={item}>
-                    {visibilityLabels[item]}
+                    {t(visibilityLabels[item])}
                   </option>
                 ))}
               </select>
@@ -969,10 +1055,10 @@ function EntryComposer({
               onClick={() => inputRef.current?.click()}
             >
               <Icon name="camera" size={17} />
-              Fotoğraf veya belge ekle
+              {t('Fotoğraf veya belge ekle')}
             </button>
             <span className="upload-hint">
-              En fazla 8 dosya · 10 MB / dosya · JPG, PNG, WEBP, GIF, PDF
+              {t('En fazla 8 dosya · 10 MB / dosya · JPG, PNG, WEBP, GIF, PDF')}
             </span>
             {files.length > 0 ? (
               <div className="file-list">
@@ -983,7 +1069,7 @@ function EntryComposer({
                     <button
                       type="button"
                       onClick={() => setFiles((current) => current.filter((_, i) => i !== index))}
-                      aria-label="Dosyayı kaldır"
+                      aria-label={t('Dosyayı kaldır')}
                     >
                       <Icon name="close" size={12} />
                     </button>
@@ -998,10 +1084,10 @@ function EntryComposer({
 
           <div className="modal-actions">
             <button type="button" className="btn btn-ghost" onClick={onClose} disabled={busy}>
-              Vazgeç
+              {t('Vazgeç')}
             </button>
             <button type="submit" className="btn btn-primary" disabled={busy}>
-              {busy ? 'Kaydediliyor…' : 'Hafızaya ekle'}
+              {busy ? t('Kaydediliyor…') : t('Hafızaya ekle')}
               {!busy ? <Icon name="arrow-right" size={17} /> : null}
             </button>
           </div>
@@ -1024,6 +1110,7 @@ function EntryEditModal({
   onSaved: (entry: Entry) => void;
   onDeleted: (entryId: string) => void;
 }) {
+  const t = useT();
   const [type, setType] = useState<EntryType>(entry.type);
   const [title, setTitle] = useState(entry.title ?? '');
   const [body, setBody] = useState(entry.body ?? '');
@@ -1037,6 +1124,8 @@ function EntryEditModal({
   );
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [confirming, setConfirming] = useState(false);
+  const dialogRef = useModalA11y<HTMLDivElement>(onClose);
 
   const allowedVisibilities = visibilityOrder.filter(
     (item) =>
@@ -1044,18 +1133,10 @@ function EntryEditModal({
       visibilityOrder.indexOf(item) <= visibilityOrder.indexOf(asset.visibility),
   );
 
-  useEffect(() => {
-    function escape(event: KeyboardEvent) {
-      if (event.key === 'Escape') onClose();
-    }
-    window.addEventListener('keydown', escape);
-    return () => window.removeEventListener('keydown', escape);
-  }, [onClose]);
-
   async function save(event: React.FormEvent) {
     event.preventDefault();
     if (!title.trim() && !body.trim()) {
-      setError('Bir başlık ya da not yazın.');
+      setError(t('Bir başlık ya da not yazın.'));
       return;
     }
     setBusy(true);
@@ -1084,34 +1165,46 @@ function EntryEditModal({
       });
       onSaved(data.entry);
     } catch (caught) {
-      setError(caught instanceof Error ? caught.message : 'Kayıt güncellenemedi.');
+      setError(caught instanceof Error ? caught.message : t('Kayıt güncellenemedi.'));
     } finally {
       setBusy(false);
     }
   }
 
   async function remove() {
-    if (!window.confirm('Bu kayıt silinsin mi? Bu işlem geri alınamaz.')) return;
     setBusy(true);
     setError(null);
     try {
       await vh.delete(`entries/${entry.id}`);
       onDeleted(entry.id);
     } catch (caught) {
-      setError(caught instanceof Error ? caught.message : 'Kayıt silinemedi.');
+      setError(caught instanceof Error ? caught.message : t('Kayıt silinemedi.'));
       setBusy(false);
     }
   }
 
   return (
-    <div className="modal-backdrop" role="dialog" aria-modal="true" aria-label="Kaydı düzenle">
-      <div className="modal">
+    <div
+      className="modal-backdrop"
+      role="presentation"
+      onClick={(event) => {
+        if (event.target === event.currentTarget) onClose();
+      }}
+    >
+      <div
+        className="modal"
+        role="dialog"
+        aria-modal="true"
+        aria-label={t('Kaydı düzenle')}
+        ref={dialogRef}
+        tabIndex={-1}
+      >
         <header className="modal-head">
           <div>
-            <span className="eyebrow">Hafıza kaydı</span>
-            <h2>Kaydı düzenle</h2>
+            <span className="eyebrow">{t('Hafıza kaydı')}</span>
+            <h2>{t('Kaydı düzenle')}</h2>
           </div>
-          <button type="button" className="icon-btn" onClick={onClose} aria-label="Kapat">
+          <button type="button" className="icon-btn" onClick={onClose} aria-label={t('Kapat')}>
             <Icon name="close" size={20} />
           </button>
         </header>
@@ -1126,24 +1219,24 @@ function EntryEditModal({
                 onClick={() => setType(item)}
               >
                 <Icon name={entryIcons[item]} size={18} />
-                <span>{entryTypeLabels[item]}</span>
+                <span>{t(entryTypeLabels[item])}</span>
               </button>
             ))}
           </div>
 
           <label className="field">
-            <span>Başlık</span>
+            <span>{t('Başlık')}</span>
             <input
               className="input"
               value={title}
               onChange={(event) => setTitle(event.target.value)}
-              placeholder="Kısa bir başlık"
+              placeholder={t('Kısa bir başlık')}
               maxLength={140}
             />
           </label>
 
           <label className="field">
-            <span>Not</span>
+            <span>{t('Not')}</span>
             <textarea
               className="textarea"
               value={body}
@@ -1155,7 +1248,7 @@ function EntryEditModal({
 
           <div className="form-grid">
             <label className="field">
-              <span>Tarih ve saat</span>
+              <span>{t('Tarih ve saat')}</span>
               <input
                 className="input"
                 type="datetime-local"
@@ -1165,7 +1258,7 @@ function EntryEditModal({
               />
             </label>
             <label className="field">
-              <span>Kimler görebilsin?</span>
+              <span>{t('Kimler görebilsin?')}</span>
               <select
                 className="select"
                 value={visibility}
@@ -1173,7 +1266,7 @@ function EntryEditModal({
               >
                 {allowedVisibilities.map((item) => (
                   <option key={item} value={item}>
-                    {visibilityLabels[item]}
+                    {t(visibilityLabels[item])}
                   </option>
                 ))}
               </select>
@@ -1181,12 +1274,12 @@ function EntryEditModal({
           </div>
 
           <label className="field">
-            <span>Konum</span>
+            <span>{t('Konum')}</span>
             <input
               className="input"
               value={locationName}
               onChange={(event) => setLocationName(event.target.value)}
-              placeholder="İstanbul, Kadıköy"
+              placeholder={t('İstanbul, Kadıköy')}
               maxLength={160}
             />
           </label>
@@ -1211,24 +1304,55 @@ function EntryEditModal({
 
           {entry.media.length > 0 ? (
             <p className="muted-note">
-              Bu kayda bağlı {entry.media.length} dosya korunur; metin ve tarih
-              düzenlemesi dosyaları etkilemez.
+              {t(
+                'Bu kayda bağlı {count} dosya korunur; metin ve tarih düzenlemesi dosyaları etkilemez.',
+                { count: entry.media.length },
+              )}
             </p>
           ) : null}
 
           {error ? <div className="form-error">{error}</div> : null}
 
+          {confirming ? (
+            <div className="confirm-inline" role="alertdialog" aria-label={t('Kayıt silme onayı')}>
+              <p>{t('Bu kayıt kalıcı olarak silinsin mi? Bu işlem geri alınamaz.')}</p>
+              <div className="confirm-inline-actions">
+                <button
+                  type="button"
+                  className="btn btn-ghost btn-sm"
+                  onClick={() => setConfirming(false)}
+                  disabled={busy}
+                >
+                  {t('Vazgeç')}
+                </button>
+                <button
+                  type="button"
+                  className="btn btn-danger-solid btn-sm"
+                  onClick={remove}
+                  disabled={busy}
+                >
+                  {busy ? t('Siliniyor…') : t('Evet, sil')}
+                </button>
+              </div>
+            </div>
+          ) : null}
+
           <div className="modal-actions spread">
-            <button type="button" className="btn btn-danger btn-sm" onClick={remove} disabled={busy}>
+            <button
+              type="button"
+              className="btn btn-danger btn-sm"
+              onClick={() => setConfirming(true)}
+              disabled={busy || confirming}
+            >
               <Icon name="trash" size={16} />
-              Kaydı sil
+              {t('Kaydı sil')}
             </button>
             <div className="modal-actions-right">
               <button type="button" className="btn btn-ghost" onClick={onClose} disabled={busy}>
-                Vazgeç
+                {t('Vazgeç')}
               </button>
               <button type="submit" className="btn btn-primary" disabled={busy}>
-                {busy ? 'Kaydediliyor…' : 'Kaydet'}
+                {busy ? t('Kaydediliyor…') : t('Kaydet')}
               </button>
             </div>
           </div>
@@ -1249,6 +1373,7 @@ function EditAssetModal({
   onSaved: (asset: Asset) => void;
   onDeleted: () => void;
 }) {
+  const t = useT();
   const [title, setTitle] = useState(asset.title);
   const [description, setDescription] = useState(asset.description ?? '');
   const [visibility, setVisibility] = useState<Visibility>(asset.visibility);
@@ -1258,15 +1383,9 @@ function EditAssetModal({
   const [cover, setCover] = useState<File | null>(null);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [confirming, setConfirming] = useState(false);
   const fileRef = useRef<HTMLInputElement>(null);
-
-  useEffect(() => {
-    function escape(event: KeyboardEvent) {
-      if (event.key === 'Escape') onClose();
-    }
-    window.addEventListener('keydown', escape);
-    return () => window.removeEventListener('keydown', escape);
-  }, [onClose]);
+  const dialogRef = useModalA11y<HTMLDivElement>(onClose);
 
   async function save(event: React.FormEvent) {
     event.preventDefault();
@@ -1289,42 +1408,52 @@ function EditAssetModal({
       });
       onSaved(data.asset);
     } catch (caught) {
-      setError(caught instanceof Error ? caught.message : 'Güncellenemedi.');
+      setError(caught instanceof Error ? caught.message : t('Güncellenemedi.'));
     } finally {
       setBusy(false);
     }
   }
 
   async function remove() {
-    if (!window.confirm(`"${asset.title}" ve tüm kayıtları silinsin mi? Bu işlem geri alınamaz.`)) {
-      return;
-    }
     setBusy(true);
     try {
       await vh.delete(`assets/${asset.id}`);
       onDeleted();
     } catch (caught) {
-      setError(caught instanceof Error ? caught.message : 'Varlık silinemedi.');
+      setError(caught instanceof Error ? caught.message : t('Varlık silinemedi.'));
       setBusy(false);
     }
   }
 
   return (
-    <div className="modal-backdrop" role="dialog" aria-modal="true" aria-label="Varlığı düzenle">
-      <div className="modal">
+    <div
+      className="modal-backdrop"
+      role="presentation"
+      onClick={(event) => {
+        if (event.target === event.currentTarget) onClose();
+      }}
+    >
+      <div
+        className="modal"
+        role="dialog"
+        aria-modal="true"
+        aria-label={t('Varlığı düzenle')}
+        ref={dialogRef}
+        tabIndex={-1}
+      >
         <header className="modal-head">
           <div>
-            <span className="eyebrow">Varlık bilgileri</span>
-            <h2>Düzenle</h2>
+            <span className="eyebrow">{t('Varlık bilgileri')}</span>
+            <h2>{t('Düzenle')}</h2>
           </div>
-          <button type="button" className="icon-btn" onClick={onClose} aria-label="Kapat">
+          <button type="button" className="icon-btn" onClick={onClose} aria-label={t('Kapat')}>
             <Icon name="close" size={20} />
           </button>
         </header>
 
         <form className="modal-body" onSubmit={save}>
           <label className="field">
-            <span>Adı</span>
+            <span>{t('Adı')}</span>
             <input
               className="input"
               value={title}
@@ -1334,7 +1463,7 @@ function EditAssetModal({
             />
           </label>
           <label className="field">
-            <span>Açıklama</span>
+            <span>{t('Açıklama')}</span>
             <textarea
               className="textarea"
               value={description}
@@ -1345,7 +1474,7 @@ function EditAssetModal({
           </label>
           <div className="form-grid">
             <label className="field">
-              <span>Görünürlük</span>
+              <span>{t('Görünürlük')}</span>
               <select
                 className="select"
                 value={visibility}
@@ -1353,24 +1482,24 @@ function EditAssetModal({
               >
                 {visibilityOrder.map((item) => (
                   <option key={item} value={item}>
-                    {visibilityLabels[item]}
+                    {t(visibilityLabels[item])}
                   </option>
                 ))}
               </select>
             </label>
             <label className="field">
-              <span>Durum</span>
+              <span>{t('Durum')}</span>
               <select
                 className="select"
                 value={status}
                 onChange={(event) => setStatus(event.target.value as Asset['status'])}
               >
-                <option value="active">Takipte</option>
-                <option value="archived">Arşivde</option>
+                <option value="active">{t('Güncel')}</option>
+                <option value="archived">{t('Arşivlenen')}</option>
               </select>
             </label>
             <label className="field">
-              <span>Başlangıç tarihi</span>
+              <span>{t('Başlangıç tarihi')}</span>
               <input
                 className="input"
                 type="date"
@@ -1379,7 +1508,7 @@ function EditAssetModal({
               />
             </label>
             <label className="field">
-              <span>Konum</span>
+              <span>{t('Konum')}</span>
               <input
                 className="input"
                 value={locationName}
@@ -1403,25 +1532,59 @@ function EditAssetModal({
               />
               <button type="button" className="btn btn-ghost btn-sm" onClick={() => fileRef.current?.click()}>
                 <Icon name="camera" size={16} />
-                {cover ? cover.name : 'Kapak fotoğrafını değiştir'}
+                {cover ? cover.name : t('Kapak fotoğrafını değiştir')}
               </button>
-              <p className="muted-note">Yeni kapak, kaydettiğinde yüklenir.</p>
+              <p className="muted-note">{t('Yeni kapak, kaydettiğinde yüklenir.')}</p>
             </div>
           </div>
 
           {error ? <div className="form-error">{error}</div> : null}
 
+          {confirming ? (
+            <div className="confirm-inline" role="alertdialog" aria-label={t('Varlık silme onayı')}>
+              <p>
+                {t(
+                  '“{title}” ve tüm kayıtları kalıcı olarak silinsin mi? Bu işlem geri alınamaz.',
+                  { title: asset.title },
+                )}
+              </p>
+              <div className="confirm-inline-actions">
+                <button
+                  type="button"
+                  className="btn btn-ghost btn-sm"
+                  onClick={() => setConfirming(false)}
+                  disabled={busy}
+                >
+                  {t('Vazgeç')}
+                </button>
+                <button
+                  type="button"
+                  className="btn btn-danger-solid btn-sm"
+                  onClick={remove}
+                  disabled={busy}
+                >
+                  {busy ? t('Siliniyor…') : t('Evet, sil')}
+                </button>
+              </div>
+            </div>
+          ) : null}
+
           <div className="modal-actions spread">
-            <button type="button" className="btn btn-danger btn-sm" onClick={remove} disabled={busy}>
+            <button
+              type="button"
+              className="btn btn-danger btn-sm"
+              onClick={() => setConfirming(true)}
+              disabled={busy || confirming}
+            >
               <Icon name="trash" size={16} />
-              Varlığı sil
+              {t('Varlığı sil')}
             </button>
             <div className="modal-actions-right">
               <button type="button" className="btn btn-ghost" onClick={onClose} disabled={busy}>
-                Vazgeç
+                {t('Vazgeç')}
               </button>
               <button type="submit" className="btn btn-primary" disabled={busy}>
-                {busy ? 'Kaydediliyor…' : 'Kaydet'}
+                {busy ? t('Kaydediliyor…') : t('Kaydet')}
               </button>
             </div>
           </div>

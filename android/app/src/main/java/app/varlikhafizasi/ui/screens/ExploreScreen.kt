@@ -18,11 +18,9 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Favorite
-import androidx.compose.material.icons.outlined.ChatBubbleOutline
 import androidx.compose.material.icons.outlined.FavoriteBorder
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -35,9 +33,11 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import app.varlikhafizasi.R
 import app.varlikhafizasi.data.Asset
 import app.varlikhafizasi.data.FeedPost
 import app.varlikhafizasi.data.MediaUrl
@@ -60,7 +60,7 @@ import app.varlikhafizasi.ui.theme.Line
 import app.varlikhafizasi.ui.theme.Muted
 import app.varlikhafizasi.ui.theme.Paper
 import app.varlikhafizasi.ui.theme.PaperDeep
-import app.varlikhafizasi.ui.theme.Sage
+import app.varlikhafizasi.ui.theme.SageInk
 import app.varlikhafizasi.ui.theme.SageLight
 import app.varlikhafizasi.ui.theme.Ivory
 import coil.compose.AsyncImage
@@ -82,7 +82,12 @@ fun ExploreScreen(
             .background(Paper),
         contentPadding = PaddingValues(bottom = 28.dp),
     ) {
-        item { VhTopBar(title = "Keşfet", subtitle = "Başkalarının süreçlerinden ilham al") }
+        item {
+            VhTopBar(
+                title = stringResource(R.string.nav_explore),
+                subtitle = stringResource(R.string.explore_subtitle),
+            )
+        }
 
         item {
             Surface(
@@ -94,13 +99,13 @@ fun ExploreScreen(
             ) {
                 Column(Modifier.padding(20.dp)) {
                     Text(
-                        "MERAKLILARIN ARŞİVİ",
+                        stringResource(R.string.explore_hero_eyebrow),
                         style = MaterialTheme.typography.labelSmall,
                         color = Gold,
                     )
                     Spacer(Modifier.height(8.dp))
                     Text(
-                        "Her varlık,\nbir süreç.",
+                        stringResource(R.string.explore_hero_title),
                         style = MaterialTheme.typography.headlineLarge,
                         color = Paper,
                     )
@@ -108,7 +113,7 @@ fun ExploreScreen(
                     GoldRule()
                     Spacer(Modifier.height(10.dp))
                     Text(
-                        "Bonzai budamaları, bir köpeğin ilk yılı, restorasyon notları… Gerçek süreçleri keşfet.",
+                        stringResource(R.string.explore_hero_body),
                         style = MaterialTheme.typography.bodySmall,
                         color = Paper.copy(alpha = 0.7f),
                     )
@@ -129,7 +134,10 @@ fun ExploreScreen(
         if (data != null && data.publicAssets.isNotEmpty()) {
             item {
                 Column(Modifier.padding(top = 18.dp)) {
-                    SectionLabel("İlham veren varlıklar", modifier = Modifier.padding(horizontal = 20.dp))
+                    SectionLabel(
+                        stringResource(R.string.explore_assets_title),
+                        modifier = Modifier.padding(horizontal = 20.dp),
+                    )
                     LazyRow(
                         contentPadding = PaddingValues(horizontal = 20.dp),
                         horizontalArrangement = Arrangement.spacedBy(10.dp),
@@ -145,7 +153,10 @@ fun ExploreScreen(
         if (data != null && data.people.isNotEmpty()) {
             item {
                 Column(Modifier.padding(top = 16.dp)) {
-                    SectionLabel("Tanışılacak kişiler", modifier = Modifier.padding(horizontal = 20.dp))
+                    SectionLabel(
+                        stringResource(R.string.explore_people_title),
+                        modifier = Modifier.padding(horizontal = 20.dp),
+                    )
                     LazyRow(
                         contentPadding = PaddingValues(horizontal = 20.dp),
                         horizontalArrangement = Arrangement.spacedBy(10.dp),
@@ -160,7 +171,7 @@ fun ExploreScreen(
 
         item {
             SectionLabel(
-                "Akış",
+                stringResource(R.string.explore_feed_title),
                 modifier = Modifier.padding(start = 20.dp, end = 20.dp, top = 18.dp),
             )
         }
@@ -174,8 +185,8 @@ fun ExploreScreen(
                         .background(PaperDeep, RoundedCornerShape(16.dp)),
                 ) {
                     EmptyState(
-                        title = "Akış sakin",
-                        body = "Herkese açık paylaşılan kayıtlar burada görünür. Sen de bir varlığını herkese açarak başlayabilirsin.",
+                        title = stringResource(R.string.explore_empty_title),
+                        body = stringResource(R.string.explore_empty_body),
                     )
                 }
             }
@@ -192,7 +203,7 @@ fun ExploreScreen(
         item {
             Spacer(Modifier.height(8.dp))
             Text(
-                "Keşfet yalnızca herkese açık varlıkları ve paylaşımları gösterir. Özel arşivin sana aittir.",
+                stringResource(R.string.explore_footer_note),
                 style = MaterialTheme.typography.bodySmall,
                 color = Muted,
                 modifier = Modifier.padding(horizontal = 20.dp, vertical = 14.dp),
@@ -231,13 +242,13 @@ private fun PublicAssetCard(asset: Asset, onClick: () -> Unit) {
                     Text(
                         asset.type?.label?.take(1) ?: "V",
                         style = MaterialTheme.typography.headlineMedium,
-                        color = Sage,
+                        color = SageInk,
                     )
                 }
             }
             Column(Modifier.padding(10.dp)) {
                 Text(
-                    asset.type?.label ?: "Varlık",
+                    asset.type?.label ?: stringResource(R.string.common_asset),
                     style = MaterialTheme.typography.labelSmall,
                     color = Clay,
                 )
@@ -299,7 +310,11 @@ private fun PersonCard(user: User, onFollow: () -> Unit) {
                 modifier = Modifier.clickable { onFollow() },
             ) {
                 Text(
-                    if (user.isFollowing) "Takipte" else "Takip et",
+                    if (user.isFollowing) {
+                        stringResource(R.string.explore_following)
+                    } else {
+                        stringResource(R.string.explore_follow)
+                    },
                     style = MaterialTheme.typography.labelSmall,
                     color = Forest,
                     modifier = Modifier.padding(horizontal = 10.dp, vertical = 5.dp),
@@ -331,14 +346,6 @@ private fun PostCard(post: FeedPost, onOpenAsset: (String) -> Unit, onLike: () -
                     "@${post.author.username} · ${formatDate(post.createdAt)}",
                     style = MaterialTheme.typography.bodySmall,
                     color = Muted,
-                )
-            }
-            post.asset?.let { asset ->
-                Text(
-                    text = "Varlık",
-                    style = MaterialTheme.typography.labelSmall,
-                    color = Clay,
-                    modifier = Modifier.clickable { onOpenAsset(asset.id) },
                 )
             }
         }
@@ -377,12 +384,12 @@ private fun PostCard(post: FeedPost, onOpenAsset: (String) -> Unit, onLike: () -
                                 modifier = Modifier.size(width = 54.dp, height = 54.dp),
                             )
                         } else {
-                            Text("V", color = Sage, style = MaterialTheme.typography.titleMedium)
+                            Text("V", color = SageInk, style = MaterialTheme.typography.titleMedium)
                         }
                     }
                     Column(Modifier.padding(horizontal = 10.dp, vertical = 6.dp)) {
                         Text(
-                            asset.typeLabel ?: "Varlık",
+                            asset.typeLabel ?: stringResource(R.string.common_asset),
                             style = MaterialTheme.typography.labelSmall,
                             color = Clay,
                         )
@@ -422,7 +429,7 @@ private fun PostCard(post: FeedPost, onOpenAsset: (String) -> Unit, onLike: () -
             ) {
                 Icon(
                     imageVector = if (post.likedByMe) Icons.Filled.Favorite else Icons.Outlined.FavoriteBorder,
-                    contentDescription = "Beğen",
+                    contentDescription = stringResource(R.string.explore_like),
                     tint = if (post.likedByMe) Clay else Muted,
                     modifier = Modifier.size(19.dp),
                 )
@@ -433,25 +440,14 @@ private fun PostCard(post: FeedPost, onOpenAsset: (String) -> Unit, onLike: () -
                     color = Muted,
                 )
             }
-            Spacer(Modifier.width(16.dp))
-            Icon(
-                Icons.Outlined.ChatBubbleOutline,
-                contentDescription = "Yorum",
-                tint = Muted,
-                modifier = Modifier.size(18.dp),
-            )
-            Spacer(Modifier.width(5.dp))
-            Text(
-                "${post.commentCount}",
-                style = MaterialTheme.typography.bodySmall,
-                color = Muted,
-            )
-            Spacer(Modifier.weight(1f))
-            Box(
-                Modifier
-                    .size(6.dp)
-                    .background(Gold, CircleShape),
-            )
+            if (post.commentCount > 0) {
+                Spacer(Modifier.width(16.dp))
+                Text(
+                    stringResource(R.string.common_comment_count, post.commentCount),
+                    style = MaterialTheme.typography.bodySmall,
+                    color = Muted,
+                )
+            }
         }
     }
 }

@@ -32,6 +32,10 @@ INSERT INTO asset_types (id, parent_id, label, icon, sort_order, attributes_sche
   ('diger', NULL, 'Diğer', 'sparkles', 50, '{}')
 ON CONFLICT (id) DO NOTHING;
 
+-- Varlık türü çevirileri (004_i18n.sql içinde tanımlı). Türler bu dosyada
+-- yüklendiği için taze kurulumda çeviriler burada tamamlanır.
+SELECT sync_asset_type_translations();
+
 INSERT INTO users (id, email, username, password_hash, display_name, bio, role, interests, onboarded_at, created_at) VALUES
   ('11111111-1111-4111-8111-111111111111', 'ada@demo.local', 'ada', 'scrypt$16384$8$1$afb1a79ac72ff62783aa4c09496bbeff$71396fa05f11771a90a855dea3e4ac70088ba866a50a8dd35025383a6bdb2605e0745494917c7e1aefe9a77d31cf7eeeb57c3a145f792943e00801d9f531d7db', 'Ada Yıldız', 'Eski eşyaların izini sürer, balkonunda yeşil bir köşe büyütür.', 'user', ARRAY['motosiklet','bitkiler','tasarım'], now(), now() - interval '210 days'),
   ('22222222-2222-4222-8222-222222222222', 'mert@demo.local', 'mert', 'scrypt$16384$8$1$afb1a79ac72ff62783aa4c09496bbeff$71396fa05f11771a90a855dea3e4ac70088ba866a50a8dd35025383a6bdb2605e0745494917c7e1aefe9a77d31cf7eeeb57c3a145f792943e00801d9f531d7db', 'Mert Kaya', 'Klasik motorlar, eski evler ve uzun yol notları.', 'user', ARRAY['klasik araçlar','mimarlık'], now(), now() - interval '190 days'),

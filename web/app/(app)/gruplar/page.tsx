@@ -1,3 +1,4 @@
+import type { Metadata } from 'next';
 import Link from 'next/link';
 import { EmptyState } from '@/components/EmptyState';
 import { GroupCard } from '@/components/GroupCard';
@@ -5,9 +6,13 @@ import { GroupInvites } from '@/components/GroupInvites';
 import { Icon } from '@/components/Icons';
 import { api, requireViewer } from '@/lib/api';
 import { formatNumber } from '@/lib/format';
+import { getI18n, getT } from '@/lib/i18n/server';
 import type { Group, GroupInvitation, Paged } from '@/lib/types';
 
-export const metadata = { title: 'Gruplar' };
+export async function generateMetadata(): Promise<Metadata> {
+  const t = await getT();
+  return { title: t('Gruplar') };
+}
 
 const categories = [
   'Bitkiler',
@@ -23,6 +28,7 @@ const categories = [
 type SearchParams = Promise<{ q?: string; category?: string }>;
 
 export default async function GroupsPage({ searchParams }: { searchParams: SearchParams }) {
+  const { t, locale } = await getI18n();
   const viewer = await requireViewer();
   const params = await searchParams;
   const query = new URLSearchParams({ limit: '48' });
@@ -41,21 +47,22 @@ export default async function GroupsPage({ searchParams }: { searchParams: Searc
     if (!search) return true;
     return `${group.name} ${group.description ?? ''}`.toLocaleLowerCase('tr').includes(search);
   });
+  const mineIds = new Set(mine.items.map((group) => group.id));
+  const discoverFiltered = discover.items.filter((group) => !mineIds.has(group.id));
 
   return (
     <main className="page groups-page">
       <header className="page-head">
         <div>
-          <span className="eyebrow">Birlikte hatırlamak</span>
-          <h1>Gruplar</h1>
+          <span className="eyebrow">{t('Birlikte hatırlamak')}</span>
+          <h1>{t('Gruplar')}</h1>
           <p>
-            Varlıkların kendi hafızanda kalır; seçtiğin parçaları benzer ilgi
-            alanlarındaki insanlarla paylaşırsın.
+            {t('Varlıkların kendi hafızanda kalır; seçtiğin parçaları benzer ilgi alanlarındaki insanlarla paylaşırsın.')}
           </p>
         </div>
         <Link href="/gruplar/yeni" className="btn btn-primary">
           <Icon name="plus" size={18} />
-          Yeni grup
+          {t('Yeni grup')}
         </Link>
       </header>
 
@@ -70,15 +77,18 @@ export default async function GroupsPage({ searchParams }: { searchParams: Searc
           <input
             name="q"
             defaultValue={params.q ?? ''}
-            placeholder="Grup, konu ya da topluluk ara…"
-            aria-label="Grup ara"
+            placeholder={t('Grup, konu ya da topluluk ara…')}
+            aria-label={t('Grup ara')}
           />
           <button type="submit" className="search-submit">
-            Ara
+            {t('Ara')}
           </button>
         </form>
         <span className="muted-note">
-          {formatNumber(discover.total)} topluluk · {formatNumber(mine.total)} üyeliğin
+          {t('{communities} topluluk · {memberships} üyeliğin', {
+            communities: formatNumber(discover.total, locale),
+            memberships: formatNumber(mine.total, locale),
+          })}
         </span>
       </div>
 
@@ -88,7 +98,7 @@ export default async function GroupsPage({ searchParams }: { searchParams: Searc
           className={`chip${!params.category ? ' is-active' : ''}`}
         >
           <Icon name="grid" size={15} />
-          Tüm kategoriler
+          {t('Tüm kategoriler')}
         </Link>
         {categories.map((category) => {
           const href = new URLSearchParams();
@@ -100,7 +110,7 @@ export default async function GroupsPage({ searchParams }: { searchParams: Searc
               href={`/gruplar?${href.toString()}`}
               className={`chip${params.category === category ? ' is-active' : ''}`}
             >
-              {category}
+              {t(category)}
             </Link>
           );
         })}
@@ -109,8 +119,8 @@ export default async function GroupsPage({ searchParams }: { searchParams: Searc
       <section className="groups-section">
         <div className="section-head">
           <div>
-            <span className="eyebrow">Hafızanda</span>
-            <h2>Üyesi olduğun gruplar</h2>
+            <span className="eyebrow">{t('Hafızanda')}</span>
+            <h2>{t('Üyesi olduğun gruplar')}</h2>
           </div>
           <span className="aside-count">{mineFiltered.length}</span>
         </div>
@@ -123,9 +133,9 @@ export default async function GroupsPage({ searchParams }: { searchParams: Searc
         ) : (
           <EmptyState
             icon="users"
-            title="Henüz bir grubun yok"
-            body="İlgi alanına uyan bir topluluk bul ya da kendi grubunu kur."
-            action={{ href: '/gruplar/yeni', label: 'Grup oluştur' }}
+            title={t('Henüz bir grubun yok')}
+            body={t('İlgi alanına uyan bir topluluk bul ya da kendi grubunu kur.')}
+            action={{ href: '/gruplar/yeni', label: t('Grup oluştur') }}
           />
         )}
       </section>
@@ -133,34 +143,35 @@ export default async function GroupsPage({ searchParams }: { searchParams: Searc
       <section className="groups-section">
         <div className="section-head">
           <div>
-            <span className="eyebrow">Keşfet</span>
-            <h2>Yeni topluluklar</h2>
+            <span className="eyebrow">{t('Keşfet')}</span>
+            <h2>{t('Keşfedilecek topluluklar')}</h2>
           </div>
-          <span className="aside-count">{discover.items.length}</span>
+          <span className="aside-count">{discoverFiltered.length}</span>
         </div>
-        {discover.items.length > 0 ? (
+        {discoverFiltered.length > 0 ? (
           <div className="group-grid">
-            {discover.items.map((group) => (
+            {discoverFiltered.map((group) => (
               <GroupCard key={group.id} group={group} />
             ))}
           </div>
         ) : (
           <EmptyState
             icon="compass"
-            title="Bu aramada grup yok"
-            body="Farklı bir kelime dene ya da kendi topluluğunu başlat."
-            action={{ href: '/gruplar/yeni', label: 'Grup oluştur' }}
+            title={t('Bu aramada yeni grup yok')}
+            body={t('Farklı bir kelime dene ya da kendi topluluğunu başlat.')}
+            action={{ href: '/gruplar/yeni', label: t('Grup oluştur') }}
           />
         )}
       </section>
 
       <p className="groups-note">
         <Icon name="lock" size={16} />
-        Bir varlığı gruba eklemek sahipliğini değiştirmez. Paylaşımı istediğin an
-        daraltabilir veya geri çekebilirsin.
+        {t('Bir varlığı gruba eklemek sahipliğini değiştirmez. Paylaşımı istediğin an daraltabilir veya geri çekebilirsin.')}
       </p>
 
-      <span className="visually-hidden">Görüntüleyen: {viewer.displayName}</span>
+      <span className="visually-hidden">
+        {t('Görüntüleyen: {name}', { name: viewer.displayName })}
+      </span>
     </main>
   );
 }

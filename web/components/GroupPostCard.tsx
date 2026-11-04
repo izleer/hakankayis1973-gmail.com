@@ -4,6 +4,7 @@ import Link from 'next/link';
 import { useState } from 'react';
 import { vh } from '@/lib/client';
 import { entryTypeLabels, formatDate, formatDateTime, initials, mediaSrc } from '@/lib/format';
+import { useI18n } from '@/lib/i18n/client';
 import type { FeedPost, PostComment, User } from '@/lib/types';
 import { Icon } from './Icons';
 import { MediaImage } from './MediaImage';
@@ -21,6 +22,7 @@ export function GroupPostCard({
   canModerate: boolean;
   onDeleted: (postId: string) => void;
 }) {
+  const { t, locale } = useI18n();
   const [liked, setLiked] = useState(post.likedByMe);
   const [likeCount, setLikeCount] = useState(post.likeCount);
   const [commentCount, setCommentCount] = useState(post.commentCount);
@@ -54,7 +56,7 @@ export function GroupPostCard({
     } catch {
       setLiked(!next);
       setLikeCount((count) => Math.max(0, count + (next ? -1 : 1)));
-      setError('Beğeni kaydedilemedi.');
+      setError(t('Beğeni kaydedilemedi.'));
     } finally {
       setLikeBusy(false);
     }
@@ -69,7 +71,7 @@ export function GroupPostCard({
         setComments(data.items);
         setCommentsLoaded(true);
       } catch {
-        setError('Yorumlar yüklenemedi.');
+        setError(t('Yorumlar yüklenemedi.'));
       }
     }
   }
@@ -89,35 +91,35 @@ export function GroupPostCard({
       setCommentBody('');
       setCommentsLoaded(true);
     } catch (caught) {
-      setError(caught instanceof Error ? caught.message : 'Yorum eklenemedi.');
+      setError(caught instanceof Error ? caught.message : t('Yorum eklenemedi.'));
     } finally {
       setCommentBusy(false);
     }
   }
 
   async function deleteComment(comment: PostComment) {
-    if (!window.confirm('Bu yorum silinsin mi?')) return;
+    if (!window.confirm(t('Bu yorum silinsin mi?'))) return;
     try {
       await vh.delete(`comments/${comment.id}`);
       setComments((current) => current.filter((item) => item.id !== comment.id));
       setCommentCount((count) => Math.max(0, count - 1));
     } catch {
-      setError('Yorum silinemedi.');
+      setError(t('Yorum silinemedi.'));
     }
   }
 
   async function deletePost() {
-    if (!window.confirm('Bu gönderi gruptan kaldırılsın mı?')) return;
+    if (!window.confirm(t('Bu gönderi gruptan kaldırılsın mı?'))) return;
     try {
       await vh.delete(`posts/${post.id}`);
       onDeleted(post.id);
     } catch {
-      setError('Gönderi silinemedi.');
+      setError(t('Gönderi silinemedi.'));
     }
   }
 
   async function reportPost() {
-    const reason = window.prompt('Bildirim nedeni (örn. saygısız dil, reklam):');
+    const reason = window.prompt(t('Bildirim nedeni (örn. saygısız dil, reklam):'));
     if (!reason || reason.trim().length < 3) return;
     try {
       await vh.post('reports', {
@@ -125,9 +127,9 @@ export function GroupPostCard({
         targetId: post.id,
         reason: reason.trim(),
       });
-      window.alert('Bildiriminiz yöneticilere iletildi.');
+      window.alert(t('Bildiriminiz yöneticilere iletildi.'));
     } catch (caught) {
-      setError(caught instanceof Error ? caught.message : 'Bildirim gönderilemedi.');
+      setError(caught instanceof Error ? caught.message : t('Bildirim gönderilemedi.'));
     }
   }
 
@@ -145,7 +147,7 @@ export function GroupPostCard({
           <span>
             <strong>{post.author.displayName}</strong>
             <small>
-              @{post.author.username} · {formatDate(post.createdAt)}
+              @{post.author.username} · {formatDate(post.createdAt, locale)}
             </small>
           </span>
         </Link>
@@ -179,7 +181,7 @@ export function GroupPostCard({
           rel="noreferrer"
         >
           <Icon name="file" size={16} />
-          {document.originalName ?? 'Belge'}
+          {document.originalName ?? t('Belge')}
         </a>
       ) : null}
 
@@ -188,8 +190,8 @@ export function GroupPostCard({
           <span>
             <Icon name="book" size={14} />
             {post.entry
-              ? `${entryTypeLabels[post.entry.type]} · ${post.entry.title ?? 'İsimsiz kayıt'}`
-              : 'Varlık hafızası'}
+              ? `${t(entryTypeLabels[post.entry.type])} · ${post.entry.title ?? t('İsimsiz kayıt')}`
+              : t('Varlık hafızası')}
           </span>
           {post.asset?.typeLabel ? (
             <span className="feed-source-type">
@@ -210,7 +212,7 @@ export function GroupPostCard({
           aria-pressed={liked}
         >
           <Icon name="heart" size={17} />
-          {likeCount > 0 ? likeCount : 'Beğen'}
+          {likeCount > 0 ? likeCount : t('Beğen')}
         </button>
         <button
           type="button"
@@ -219,21 +221,21 @@ export function GroupPostCard({
           aria-expanded={commentsOpen}
         >
           <Icon name="message" size={17} />
-          {commentCount > 0 ? commentCount : 'Yorum'}
+          {commentCount > 0 ? commentCount : t('Yorum')}
         </button>
         <span className="feed-community">
           <Icon name="users" size={14} />
-          Grup akışı
+          {t('Grup akışı')}
         </span>
         <span className="post-menu">
           {post.author.id !== viewer.id ? (
             <button type="button" className="post-menu-btn" onClick={reportPost}>
-              Bildir
+              {t('Bildir')}
             </button>
           ) : null}
           {canDelete ? (
             <button type="button" className="post-menu-btn is-danger" onClick={deletePost}>
-              Sil
+              {t('Sil')}
             </button>
           ) : null}
         </span>
@@ -245,7 +247,7 @@ export function GroupPostCard({
         <div className="post-comments">
           {comments.length === 0 ? (
             <p className="muted-note">
-              {commentsLoaded ? 'İlk yorumu sen bırak.' : 'Yorumlar yükleniyor…'}
+              {commentsLoaded ? t('İlk yorumu sen bırak.') : t('Yorumlar yükleniyor…')}
             </p>
           ) : (
             <ul className="comment-list">
@@ -261,14 +263,14 @@ export function GroupPostCard({
                   <span className="comment-body">
                     <strong>{comment.author.displayName}</strong>
                     <span>{comment.body}</span>
-                    <small>{formatDateTime(comment.createdAt)}</small>
+                    <small>{formatDateTime(comment.createdAt, locale)}</small>
                   </span>
                   {comment.author.id === viewer.id || canModerate ? (
                     <button
                       type="button"
                       className="icon-btn comment-delete"
                       onClick={() => deleteComment(comment)}
-                      aria-label="Yorumu sil"
+                      aria-label={t('Yorumu sil')}
                     >
                       <Icon name="trash" size={14} />
                     </button>
@@ -282,9 +284,9 @@ export function GroupPostCard({
               className="input"
               value={commentBody}
               onChange={(event) => setCommentBody(event.target.value)}
-              placeholder="Bir yorum bırak…"
+              placeholder={t('Bir yorum bırak…')}
               maxLength={1000}
-              aria-label="Yorum"
+              aria-label={t('Yorum')}
             />
             <button
               type="submit"
@@ -292,7 +294,7 @@ export function GroupPostCard({
               disabled={commentBusy || commentBody.trim().length === 0}
             >
               <Icon name="send" size={15} />
-              Gönder
+              {t('Gönder')}
             </button>
           </form>
         </div>

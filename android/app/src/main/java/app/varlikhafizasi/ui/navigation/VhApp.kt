@@ -35,6 +35,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontFamily
+import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavGraph.Companion.findStartDestination
 import androidx.navigation.NavHostController
@@ -45,6 +47,7 @@ import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import app.varlikhafizasi.R
 import app.varlikhafizasi.data.User
 import app.varlikhafizasi.ui.VhViewModel
 import app.varlikhafizasi.ui.screens.AddEntryScreen
@@ -119,7 +122,7 @@ private fun Splash() {
                 color = Paper,
             )
             Text(
-                "hafıza hazırlanıyor…",
+                stringResource(R.string.splash_loading),
                 style = MaterialTheme.typography.bodySmall,
                 color = Paper.copy(alpha = 0.55f),
             )
@@ -257,14 +260,14 @@ private fun NavHostController.navigateTop(route: String) {
     }
 }
 
-private data class TabItem(val route: String, val label: String, val icon: ImageVector)
+private data class TabItem(val route: String, val label: Int, val icon: ImageVector)
 
 private val tabItems = listOf(
-    TabItem(Routes.HOME, "Panel", Icons.Outlined.Home),
-    TabItem(Routes.ASSETS, "Varlıklar", Icons.AutoMirrored.Outlined.List),
-    TabItem(Routes.ARCHIVE, "Arşiv", Icons.Outlined.PhotoLibrary),
-    TabItem(Routes.EXPLORE, "Keşfet", Icons.Outlined.Explore),
-    TabItem(Routes.PROFILE, "Profil", Icons.Outlined.Person),
+    TabItem(Routes.HOME, R.string.nav_home, Icons.Outlined.Home),
+    TabItem(Routes.ASSETS, R.string.nav_assets, Icons.AutoMirrored.Outlined.List),
+    TabItem(Routes.ARCHIVE, R.string.nav_archive, Icons.Outlined.PhotoLibrary),
+    TabItem(Routes.EXPLORE, R.string.nav_explore, Icons.Outlined.Explore),
+    TabItem(Routes.PROFILE, R.string.nav_profile, Icons.Outlined.Person),
 )
 
 @Composable
@@ -282,21 +285,24 @@ private fun VhBottomBar(current: String?, onNavigate: (String) -> Unit) {
         ) {
             tabItems.forEach { tab ->
                 val selected = current == tab.route
+                val label = stringResource(tab.label)
                 NavigationBarItem(
                     selected = selected,
                     onClick = { onNavigate(tab.route) },
                     icon = {
                         Icon(
                             imageVector = tab.icon,
-                            contentDescription = tab.label,
+                            contentDescription = label,
                             modifier = Modifier.size(21.dp),
                         )
                     },
                     label = {
                         Text(
-                            tab.label,
+                            label,
                             style = MaterialTheme.typography.labelSmall,
                             color = if (selected) Forest else Muted,
+                            maxLines = 1,
+                            overflow = TextOverflow.Ellipsis,
                         )
                     },
                     colors = NavigationBarItemDefaults.colors(

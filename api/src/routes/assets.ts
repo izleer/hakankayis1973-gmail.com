@@ -23,6 +23,7 @@ import {
   parseQuery,
 } from '../lib/http.js';
 import { notify } from '../lib/notify.js';
+import type { Locale } from '../lib/locale.js';
 import { optionalViewer, requireViewer, type Viewer } from '../lib/session.js';
 import { mapAsset, mapEntry, mapUserMini, mediaForEntries } from '../lib/serialize.js';
 
@@ -89,10 +90,10 @@ const accessBody = z.object({
   username: z.string().trim().min(3).max(30),
 });
 
-async function loadAsset(assetId: string) {
+async function loadAsset(assetId: string, locale: Locale) {
   const row = await queryOne<Record<string, any>>(`${assetSelect} WHERE a.id = $1`, [assetId]);
   if (!row) notFound('Varlık bulunamadı.');
-  return mapAsset(row);
+  return mapAsset(row, locale);
 }
 
 async function assertLeafType(typeId: string): Promise<void> {
@@ -207,7 +208,7 @@ export async function assetRoutes(app: FastifyInstance): Promise<void> {
 
     return {
       data: {
-        items: await Promise.all(rows.map((row) => mapAsset(row))),
+        items: await Promise.all(rows.map((row) => mapAsset(row, req.locale))),
         page: filters.page,
         pageSize: filters.limit,
         total: Number(totalRow?.count ?? 0),
@@ -260,7 +261,7 @@ export async function assetRoutes(app: FastifyInstance): Promise<void> {
 
     return {
       data: {
-        items: await Promise.all(rows.map((row) => mapAsset(row))),
+        items: await Promise.all(rows.map((row) => mapAsset(row, req.locale))),
         page: filters.page,
         pageSize: filters.limit,
         total: Number(totalRow?.count ?? 0),
@@ -315,7 +316,7 @@ export async function assetRoutes(app: FastifyInstance): Promise<void> {
     });
 
     await audit(viewer.id, 'asset.created', 'asset', created.id, { typeId: body.typeId }, req.ip);
-    const asset = await loadAsset(created.id);
+    const asset = await loadAsset(created.id, req.locale);
     return reply.status(201).send({ data: { asset } });
   });
 
@@ -323,7 +324,7 @@ export async function assetRoutes(app: FastifyInstance): Promise<void> {
     const viewer = await optionalViewer(req);
     const { id } = z.object({ id: uuid }).parse(req.params);
     const assetRow = await requireViewableAsset(viewer, id);
-    const owner = await loadAsset(id);
+    const owner = await loadAsset(id, req.locale);
     const isOwner = viewer?.id === assetRow.owner_id;
     const staff = isStaff(viewer);
 
@@ -346,11 +347,18 @@ export async function assetRoutes(app: FastifyInstance): Promise<void> {
          )
        ORDER BY je.occurred_at DESC, je.id DESC
        LIMIT $5`,
-      [id, isOwner, staff, viewer?.id ?? '00000000-0000-0000-0000-000000000000', entryLimit],
+      [id, isOwner, staff, viewer?.id ?? '00000000-0000-0000-0000-000000000000', entryLimit + 1],
     );
-    const media = await mediaForEntries(entryRows.map((row) => row.id));
+    const hasMoreEntries = entryRows.length > entryLimit;
+    const entryPage = hasMoreEntries ? entryRows.slice(0, entryLimit) : entryRows;
+    const lastEntry = entryPage[entryPage.length - 1];
+    const entriesNextCursor =
+      hasMoreEntries && lastEntry
+        ? encodeCursor({ at: new Date(lastEntry.occurred_at).toISOString(), id: lastEntry.id })
+        : null;
+    const media = await mediaForEntries(entryPage.map((row) => row.id));
     const entries = await Promise.all(
-      entryRows.map((row) => mapEntry(row, media.get(row.id) ?? [])),
+      entryPage.map((row) => mapEntry(row, media.get(row.id) ?? [])),
     );
 
     const ownerships = isOwner || staff
@@ -386,7 +394,7 @@ export async function assetRoutes(app: FastifyInstance): Promise<void> {
       data: {
         asset: owner,
         entries,
-        entriesNextCursor: null,
+        entriesNextCursor,
         ownerships: ownerships.map((row) => ({
           id: row.id,
           owner: mapUserMini(row),
@@ -536,7 +544,7 @@ export async function assetRoutes(app: FastifyInstance): Promise<void> {
     }
 
     await audit(viewer.id, 'asset.updated', 'asset', id, { fields: Object.keys(body) }, req.ip);
-    const asset = await loadAsset(id);
+    const asset = await loadAsset(id, req.locale);
     return { data: { asset } };
   });
 
@@ -613,7 +621,11 @@ export async function assetRoutes(app: FastifyInstance): Promise<void> {
       type: 'system',
       entityType: 'asset',
       entityId: id,
-      message: `${viewer.displayName} sizinle bir varlık paylaştı: ${asset.visibility === 'selected' ? 'seçili erişim' : 'varlık'}.`,
+      messageKey:
+        asset.visibility === 'selected'
+          ? '{actor} sizinle seçili erişimle bir varlık paylaştı.'
+          : '{actor} sizinle bir varlık paylaştı.',
+      messageParams: { actor: viewer.displayName },
     });
     await audit(viewer.id, 'asset.access_granted', 'asset', id, { userId: target.id }, req.ip);
     return reply.status(201).send({ data: { user: mapUserMini(target) } });

@@ -1,0 +1,38 @@
+<resources>
+    <!-- Varlık listesi -->
+    <string name="assets_search_placeholder">Ad veya açıklamada ara</string>
+    <string name="assets_search_clear">Temizle</string>
+    <string name="assets_empty_title">Hafıza henüz boş</string>
+    <string name="assets_empty_body">İlk varlığını ekle; fotoğrafları, belgeleri ve bakım notlarıyla birlikte yaşasın.</string>
+    <string name="assets_no_match_title">Eşleşen varlık yok</string>
+    <string name="assets_no_match_body">Farklı bir kelimeyle aramayı deneyin.</string>
+    <string name="assets_footer">Her varlık, kendi hikâyesinin kapısıdır.</string>
+
+    <plurals name="assets_count">
+        <item quantity="one">%1$d varlık hafızanda</item>
+        <item quantity="other">%1$d varlık hafızanda</item>
+    </plurals>
+
+    <!-- Yeni varlık -->
+    <string name="assets_new_title">Yeni varlık</string>
+    <string name="assets_new_kicker">HAFIZAYA YENİ BİR İZ</string>
+    <string name="assets_new_headline">Adını koy,\nilkini paylaş.</string>
+    <string name="assets_new_body">Bir canlı, bir eser, bir mekân… İlk fotoğrafını ekle ve hikâyesini başlat.</string>
+    <string name="assets_type_label">Varlık türü</string>
+    <string name="assets_type_placeholder">Bir tür seçin</string>
+    <string name="assets_type_parent_format">%1$s · %2$s</string>
+    <string name="assets_name_label">Varlığın adı</string>
+    <string name="assets_name_placeholder">Örn. Bonzai · Ada\'nın çamı</string>
+    <string name="assets_description_label">Kısa açıklama (isteğe bağlı)</string>
+    <string name="assets_visibility_label">Kimler görebilir?</string>
+    <string name="assets_visibility_selected_short">Seçili</string>
+    <string name="assets_visibility_public_hint">Keşfet akışında görünür. Sonradan değiştirebilirsin.</string>
+    <string name="assets_visibility_selected_hint">Yalnızca paylaştığın kişiler görebilir.</string>
+    <string name="assets_visibility_private_hint">Yalnızca sen görürsün. Varsayılan budur.</string>
+    <string name="assets_cover_label">Kapak fotoğrafı</string>
+    <string name="assets_cover_preview">Kapak önizleme</string>
+    <string name="assets_cover_change">Değiştir</string>
+    <string name="assets_cover_pick">Galeriden bir fotoğraf seç</string>
+    <string name="assets_error_type_required">Önce bir varlık türü seçin.</string>
+    <string name="assets_submit">Hafızaya ekle</string>
+</resources>

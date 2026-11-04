@@ -3,6 +3,7 @@
 import Link from 'next/link';
 import { useEffect, useMemo, useState } from 'react';
 import { vh } from '@/lib/client';
+import { useI18n } from '@/lib/i18n/client';
 import { formatDate, mediaSrc } from '@/lib/format';
 import type {
   Asset,
@@ -14,16 +15,35 @@ import type {
 } from '@/lib/types';
 import { Icon } from './Icons';
 import { MediaImage } from './MediaImage';
+import { useModalA11y } from './useModalA11y';
 
 const formatLabels: Record<SocialShareFormat, string> = {
   post: 'Gönderi',
-  story: 'Hikâye',
+  story: 'Hikâye paylaşımı',
   reel: 'Reels',
 };
 
 const providerLabels: Record<SocialProvider, string> = {
   facebook: 'Facebook',
   instagram: 'Instagram',
+};
+
+const shareOutcome: Record<SocialShareFormat, string> = {
+  post: '{provider} gönderi olarak paylaşıldı.',
+  story: '{provider} hikâye olarak paylaşıldı.',
+  reel: '{provider} Reels olarak paylaşıldı.',
+};
+
+const shareActions: Record<SocialShareFormat, string> = {
+  post: 'Gönderi olarak paylaş',
+  story: 'Hikâye olarak paylaş',
+  reel: 'Reels olarak paylaş',
+};
+
+const sharePublished: Record<SocialShareFormat, string> = {
+  post: '{provider} gönderi yayınlandı',
+  story: '{provider} hikâye yayınlandı',
+  reel: '{provider} Reels yayınlandı',
 };
 
 function defaultCaption(asset: Asset): string {
@@ -45,6 +65,7 @@ export function SocialShareModal({
   onClose: () => void;
   onShared?: (message: string) => void;
 }) {
+  const { t, locale } = useI18n();
   const [data, setData] = useState<SocialConnectionsResponse | null>(null);
   const [loadError, setLoadError] = useState<string | null>(null);
   const [provider, setProvider] = useState<SocialProvider>('facebook');
@@ -55,6 +76,7 @@ export function SocialShareModal({
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [result, setResult] = useState<SocialShare | null>(null);
+  const dialogRef = useModalA11y<HTMLDivElement>(onClose);
 
   useEffect(() => {
     let cancelled = false;
@@ -64,7 +86,7 @@ export function SocialShareModal({
       })
       .catch((caught) => {
         if (!cancelled) {
-          setLoadError(caught instanceof Error ? caught.message : 'Bağlantılar yüklenemedi.');
+          setLoadError(caught instanceof Error ? caught.message : t('Bağlantılar yüklenemedi.'));
         }
       });
     return () => {
@@ -115,24 +137,44 @@ export function SocialShareModal({
       });
       setResult(payload.share);
       onShared?.(
-        `${providerLabels[activeProvider]} ${formatLabels[payload.share.format].toLocaleLowerCase('tr-TR')} olarak paylaşıldı.`,
+        t(shareOutcome[payload.share.format], {
+          provider: providerLabels[activeProvider],
+        }),
       );
     } catch (caught) {
-      setError(caught instanceof Error ? caught.message : 'Paylaşım tamamlanamadı.');
+      setError(caught instanceof Error ? caught.message : t('Paylaşım tamamlanamadı.'));
     } finally {
       setBusy(false);
     }
   }
 
   return (
-    <div className="modal-backdrop" role="dialog" aria-modal="true" aria-label="Sosyal medyada paylaş">
-      <div className="modal social-share-modal">
+    <div
+      className="modal-backdrop"
+      role="presentation"
+      onClick={(event) => {
+        if (event.target === event.currentTarget) onClose();
+      }}
+    >
+      <div
+        className="modal social-share-modal"
+        role="dialog"
+        aria-modal="true"
+        aria-label={t('Sosyal medyada paylaş')}
+        ref={dialogRef}
+        tabIndex={-1}
+      >
         <header className="modal-head">
           <div>
-            <span className="eyebrow">SOSYAL PAYLAŞIM</span>
+            <span className="eyebrow">{t('SOSYAL PAYLAŞIM')}</span>
             <h2>{asset.title}</h2>
           </div>
-          <button type="button" className="icon-btn" onClick={onClose} aria-label="Kapat">
+          <button
+            type="button"
+            className="icon-btn"
+            onClick={onClose}
+            aria-label={t('Kapat')}
+          >
             <Icon name="close" size={20} />
           </button>
         </header>
@@ -142,13 +184,13 @@ export function SocialShareModal({
             <p className="form-error">{loadError}</p>
             <div className="modal-actions">
               <button type="button" className="btn btn-ghost" onClick={onClose}>
-                Kapat
+                {t('Kapat')}
               </button>
             </div>
           </div>
         ) : !data ? (
           <div className="modal-body">
-            <p className="muted-note">Sosyal hesaplar yükleniyor…</p>
+            <p className="muted-note">{t('Sosyal hesaplar yükleniyor…')}</p>
           </div>
         ) : result ? (
           <div className="modal-body social-result">
@@ -156,17 +198,18 @@ export function SocialShareModal({
               <Icon name="check" size={26} />
             </span>
             <h3>
-              {providerLabels[result.provider]} {formatLabels[result.format].toLocaleLowerCase('tr-TR')}{' '}
-              yayınlandı
+              {t(sharePublished[result.format], {
+                provider: providerLabels[result.provider],
+              })}
             </h3>
             <p>
               {result.format === 'story'
-                ? 'Hikâye 24 saat boyunca görünür kalacak.'
-                : 'Paylaşımın hesabında yayında.'}
+                ? t('Hikâye 24 saat boyunca görünür kalacak.')
+                : t('Paylaşımın hesabında yayında.')}
             </p>
             <div className="modal-actions">
               <button type="button" className="btn btn-ghost" onClick={onClose}>
-                Kapat
+                {t('Kapat')}
               </button>
               {result.permalink ? (
                 <a
@@ -176,7 +219,7 @@ export function SocialShareModal({
                   rel="noreferrer"
                 >
                   <Icon name="arrow-right" size={16} />
-                  Paylaşımı aç
+                  {t('Paylaşımı aç')}
                 </a>
               ) : null}
             </div>
@@ -186,18 +229,19 @@ export function SocialShareModal({
             <span className="social-result-icon">
               <Icon name="lock" size={24} />
             </span>
-            <h3>Meta bağlantısı henüz kurulmadı</h3>
+            <h3>{t('Meta bağlantısı henüz kurulmadı')}</h3>
             <p>
-              Facebook ve Instagram paylaşımı için uygulama anahtarlarını ekleyip
-              bir sayfa bağlaman gerekiyor.
+              {t(
+                'Facebook ve Instagram paylaşımı için uygulama anahtarlarını ekleyip bir sayfa bağlaman gerekiyor.',
+              )}
             </p>
             <div className="modal-actions">
               <button type="button" className="btn btn-ghost" onClick={onClose}>
-                Vazgeç
+                {t('Vazgeç')}
               </button>
               <Link href="/ayarlar/sosyal" className="btn btn-primary">
                 <Icon name="share" size={16} />
-                Kuruluma git
+                {t('Kuruluma git')}
               </Link>
             </div>
           </div>
@@ -206,25 +250,26 @@ export function SocialShareModal({
             <span className="social-result-icon">
               <Icon name="facebook" size={24} />
             </span>
-            <h3>Henüz bağlı hesap yok</h3>
+            <h3>{t('Henüz bağlı hesap yok')}</h3>
             <p>
-              Facebook Sayfanı ve varsa ona bağlı Instagram Business hesabını
-              bağlayarak paylaşmaya başlayabilirsin.
+              {t(
+                'Facebook Sayfanı ve varsa ona bağlı Instagram Business hesabını bağlayarak paylaşmaya başlayabilirsin.',
+              )}
             </p>
             <div className="modal-actions">
               <button type="button" className="btn btn-ghost" onClick={onClose}>
-                Vazgeç
+                {t('Vazgeç')}
               </button>
               <Link href="/ayarlar/sosyal" className="btn btn-primary">
                 <Icon name="facebook" size={16} />
-                Hesap bağla
+                {t('Hesap bağla')}
               </Link>
             </div>
           </div>
         ) : (
           <form className="modal-body" onSubmit={submit}>
             <div className="social-share-block">
-              <span className="field-label">Hesap</span>
+              <span className="field-label">{t('Hesap')}</span>
               <div className="social-provider-tabs">
                 {(['facebook', 'instagram'] as const).map((item) => (
                   <button
@@ -247,7 +292,7 @@ export function SocialShareModal({
                   className="select"
                   value={connection?.id ?? ''}
                   onChange={(event) => setConnectionId(event.target.value)}
-                  aria-label="Sosyal hesap"
+                  aria-label={t('Sosyal hesap')}
                 >
                   {providerConnections.map((item) => (
                     <option key={item.id} value={item.id}>
@@ -263,13 +308,13 @@ export function SocialShareModal({
                   <Icon name={activeProvider} size={15} />
                   {connection.accountName}
                   {connection.accountUsername ? ` · @${connection.accountUsername}` : ''}
-                  <small>{connection.pageName} sayfası</small>
+                  <small>{t('{page} sayfası', { page: connection.pageName })}</small>
                 </p>
               ) : null}
             </div>
 
             <div className="social-share-block">
-              <span className="field-label">Paylaşım biçimi</span>
+              <span className="field-label">{t('Paylaşım biçimi')}</span>
               <div className="social-format-tabs">
                 {(['post', 'story', 'reel'] as const).map((item) => (
                   <button
@@ -287,7 +332,7 @@ export function SocialShareModal({
                       name={item === 'post' ? 'image' : item === 'story' ? 'sparkles' : 'camera'}
                       size={16}
                     />
-                    {formatLabels[item]}
+                    {t(formatLabels[item])}
                   </button>
                 ))}
               </div>
@@ -299,21 +344,22 @@ export function SocialShareModal({
                   <MediaImage src={storyCover} alt="" fallbackIcon="image" />
                 </span>
                 <div>
-                  <strong>Kapak fotoğrafıyla hikâye</strong>
+                  <strong>{t('Kapak fotoğrafıyla hikâye')}</strong>
                   <small>
-                    Hikâye, varlığın kapak fotoğrafı kullanılarak paylaşılır.
-                    {asset.coverUrl ? '' : ' Kapak yoksa en yeni görsel kullanılır.'}
+                    {t('Hikâye, varlığın kapak fotoğrafı kullanılarak paylaşılır.')}
+                    {asset.coverUrl ? null : ` ${t('Kapak yoksa en yeni görsel kullanılır.')}`}
                   </small>
                 </div>
               </div>
             ) : format === 'reel' ? (
               <div className="social-share-block">
-                <span className="field-label">Video</span>
+                <span className="field-label">{t('Video')}</span>
                 {videos.length === 0 ? (
                   <p className="form-note is-warning">
                     <Icon name="lock" size={15} />
-                    Bu varlıkta Reels için video yok. Varlık detayından bir video
-                    ekleyebilirsin.
+                    {t(
+                      'Bu varlıkta Reels için video yok. Varlık detayından bir video ekleyebilirsin.',
+                    )}
                   </p>
                 ) : (
                   <div className="social-media-grid">
@@ -325,7 +371,7 @@ export function SocialShareModal({
                       <span className="social-media-video">
                         <Icon name="camera" size={18} />
                       </span>
-                      <small>En yeni video</small>
+                      <small>{t('En yeni video')}</small>
                     </button>
                     {videos.map((video) => (
                       <button
@@ -337,7 +383,7 @@ export function SocialShareModal({
                         <span className="social-media-video">
                           <Icon name="camera" size={18} />
                         </span>
-                        <small>{formatDate(video.createdAt)}</small>
+                        <small>{formatDate(video.createdAt, locale)}</small>
                       </button>
                     ))}
                   </div>
@@ -345,7 +391,7 @@ export function SocialShareModal({
               </div>
             ) : (
               <div className="social-share-block">
-                <span className="field-label">Görsel</span>
+                <span className="field-label">{t('Görsel')}</span>
                 <div className="social-media-grid">
                   {asset.coverUrl ? (
                     <button
@@ -354,7 +400,7 @@ export function SocialShareModal({
                       onClick={() => setMediaId(undefined)}
                     >
                       <MediaImage src={asset.coverUrl} alt="" />
-                      <small>Kapak</small>
+                      <small>{t('Kapak')}</small>
                     </button>
                   ) : null}
                   {images.map((image) => (
@@ -365,14 +411,14 @@ export function SocialShareModal({
                       onClick={() => setMediaId(image.id)}
                     >
                       <MediaImage src={mediaSrc(image.url)} alt="" />
-                      <small>{formatDate(image.createdAt)}</small>
+                      <small>{formatDate(image.createdAt, locale)}</small>
                     </button>
                   ))}
                 </div>
                 {!asset.coverUrl && images.length === 0 ? (
                   <p className="form-note is-warning">
                     <Icon name="lock" size={15} />
-                    Paylaşmak için varlığa bir görsel ekleyin.
+                    {t('Paylaşmak için varlığa bir görsel ekleyin.')}
                   </p>
                 ) : null}
               </div>
@@ -380,14 +426,14 @@ export function SocialShareModal({
 
             {format !== 'story' ? (
               <label className="field">
-                <span>Açıklama</span>
+                <span>{t('Açıklama')}</span>
                 <textarea
                   className="textarea"
                   value={caption}
                   onChange={(event) => setCaption(event.target.value)}
                   rows={3}
                   maxLength={2200}
-                  placeholder="Paylaşıma eşlik edecek not…"
+                  placeholder={t('Paylaşıma eşlik edecek not…')}
                 />
                 <small>{caption.length}/2200</small>
               </label>
@@ -396,15 +442,17 @@ export function SocialShareModal({
             {instagramBlocked ? (
               <p className="form-note is-warning">
                 <Icon name="lock" size={15} />
-                Instagram paylaşımı için medya adresinin herkese açık HTTPS olması
-                gerekiyor. Ayarlar sayfasındaki kurulum adımlarına bak.
+                {t(
+                  'Instagram paylaşımı için medya adresinin herkese açık HTTPS olması gerekiyor. Ayarlar sayfasındaki kurulum adımlarına bak.',
+                )}
               </p>
             ) : null}
 
             {activeProvider === 'instagram' && format === 'post' && mediaId ? (
               <p className="muted-note">
-                Instagram gönderileri fotoğraf olarak yayınlanır; videolar için Reels
-                biçimini seç.
+                {t(
+                  'Instagram gönderileri fotoğraf olarak yayınlanır; videolar için Reels biçimini seç.',
+                )}
               </p>
             ) : null}
 
@@ -412,7 +460,7 @@ export function SocialShareModal({
 
             <div className="modal-actions">
               <button type="button" className="btn btn-ghost" onClick={onClose} disabled={busy}>
-                Vazgeç
+                {t('Vazgeç')}
               </button>
               <button
                 type="submit"
@@ -427,8 +475,8 @@ export function SocialShareModal({
               >
                 <Icon name={activeProvider} size={16} />
                 {busy
-                  ? 'Paylaşılıyor…'
-                  : `${formatLabels[format]} olarak paylaş`}
+                  ? t('Paylaşılıyor…')
+                  : t(shareActions[format])}
               </button>
             </div>
           </form>

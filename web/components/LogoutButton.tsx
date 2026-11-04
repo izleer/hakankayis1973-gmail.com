@@ -1,9 +1,11 @@
 'use client';
 
 import { useState } from 'react';
+import { useT } from '@/lib/i18n/client';
 import { Icon } from './Icons';
 
 export function LogoutButton() {
+  const t = useT();
   const [busy, setBusy] = useState(false);
   return (
     <button
@@ -20,7 +22,7 @@ export function LogoutButton() {
       }}
     >
       <Icon name="logout" size={17} />
-      <span>{busy ? 'Çıkılıyor…' : 'Çıkış'}</span>
+      <span>{busy ? t('Çıkılıyor…') : t('Çıkış')}</span>
     </button>
   );
 }

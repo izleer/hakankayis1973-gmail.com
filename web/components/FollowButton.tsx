@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import { vh } from '@/lib/client';
+import { useT } from '@/lib/i18n/client';
 import { Icon } from './Icons';
 
 export function FollowButton({
@@ -13,6 +14,7 @@ export function FollowButton({
   initial: boolean;
   compact?: boolean;
 }) {
+  const t = useT();
   const [following, setFollowing] = useState(initial);
   const [busy, setBusy] = useState(false);
 
@@ -40,7 +42,7 @@ export function FollowButton({
       disabled={busy}
     >
       <Icon name={following ? 'check' : 'plus'} size={compact ? 14 : 16} />
-      {following ? 'Takip ediliyor' : 'Takip et'}
+      {following ? t('Takip ediliyor') : t('Takip et')}
     </button>
   );
 }

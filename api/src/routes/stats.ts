@@ -2,6 +2,7 @@ import type { FastifyInstance } from 'fastify';
 import { query, queryOne } from '../db.js';
 import { requireViewer } from '../lib/session.js';
 import { mapEntry, mediaForEntries } from '../lib/serialize.js';
+import { translateTypeLabel } from '../lib/taxonomy.js';
 
 export async function statsRoutes(app: FastifyInstance): Promise<void> {
   app.get('/', async (req) => {
@@ -61,7 +62,7 @@ export async function statsRoutes(app: FastifyInstance): Promise<void> {
           id: row.asset_id,
           title: row.asset_title,
           typeId: row.asset_type_id,
-          typeLabel: row.asset_type_label,
+          typeLabel: translateTypeLabel(req.locale, row.asset_type_label),
         },
       })),
     );

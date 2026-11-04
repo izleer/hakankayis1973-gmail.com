@@ -1,0 +1,98 @@
+<resources>
+    <string name="app_name">izleer</string>
+
+    <!-- Allgemein -->
+    <string name="common_error_title">Etwas ist schiefgelaufen</string>
+    <string name="common_retry">Erneut versuchen</string>
+    <string name="common_back">Zurück</string>
+    <string name="common_notifications">Benachrichtigungen</string>
+    <string name="common_notifications_unread">Benachrichtigungen, %1$d ungelesen</string>
+    <string name="common_asset">Vermögenswert</string>
+    <string name="common_like_count">%1$d Likes</string>
+    <string name="common_comment_count">%1$d Kommentare</string>
+    <string name="common_share">Beitrag</string>
+
+    <!-- Sichtbarkeit -->
+    <string name="visibility_public">Öffentlich</string>
+    <string name="visibility_selected">Ausgewählte Personen</string>
+    <string name="visibility_private">Privat</string>
+
+    <!-- Medientyp -->
+    <string name="kind_document">Dokument</string>
+    <string name="kind_video">Video</string>
+    <string name="kind_image">Bild</string>
+
+    <!-- Eintragstyp -->
+    <string name="entry_type_photo">Foto</string>
+    <string name="entry_type_maintenance">Wartung</string>
+    <string name="entry_type_acquisition">Erwerb</string>
+    <string name="entry_type_measurement">Messung</string>
+    <string name="entry_type_health">Gesundheit</string>
+    <string name="entry_type_event">Ereignis</string>
+    <string name="entry_type_document">Dokument</string>
+    <string name="entry_type_note">Notiz</string>
+
+    <plurals name="common_entry_count">
+        <item quantity="one">%1$d Eintrag</item>
+        <item quantity="other">%1$d Einträge</item>
+    </plurals>
+
+    <!-- Navigation -->
+    <string name="nav_home">Übersicht</string>
+    <string name="nav_assets">Objekte</string>
+    <string name="nav_archive">Archiv</string>
+    <string name="nav_explore">Entdecken</string>
+    <string name="nav_profile">Profil</string>
+    <string name="splash_loading">Gedächtnis wird vorbereitet…</string>
+
+    <!-- Profil -->
+    <string name="profile_logout">Abmelden</string>
+    <string name="profile_stat_assets">Objekte</string>
+    <string name="profile_stat_entries">Einträge</string>
+    <string name="profile_stat_followers">Follower</string>
+    <string name="profile_stat_following">Gefolgt</string>
+    <string name="profile_assets_title">Deine Objekte</string>
+    <string name="profile_posts_title">Deine Beiträge</string>
+    <string name="profile_empty_title">Das ist dein Archiv</string>
+    <string name="profile_empty_body">Du hast noch kein Objekt hinzugefügt. Beginne deine erste Geschichte über den Tab „Objekte“.</string>
+    <string name="profile_data_title">Deine Daten gehören dir.</string>
+    <string name="profile_data_body">Du kannst dein Archiv jederzeit exportieren oder dein Konto löschen. Diese Aktionen findest du auf der Profilseite der Webversion.</string>
+    <string name="profile_version">izleer · v1.0</string>
+    <string name="profile_logout_title">Abmelden?</string>
+    <string name="profile_logout_body">Deine Sitzung wird beendet; dein Archiv bleibt sicher.</string>
+    <string name="profile_logout_confirm">Abmelden</string>
+    <string name="profile_logout_cancel">Abbrechen</string>
+
+    <!-- Sprache -->
+    <string name="language_title">Sprache</string>
+    <string name="language_section">Sprache und Region</string>
+    <string name="language_current">App-Sprache: %1$s</string>
+    <string name="language_dialog_title">App-Sprache</string>
+    <string name="language_dialog_body">Die App verwendet diese Sprache. Deine Inhalte behalten ihre eigene Sprache.</string>
+    <string name="language_follow_system">Gerätesprache</string>
+    <string name="language_cancel">Abbrechen</string>
+
+    <!-- Anmeldefehler -->
+    <string name="error_fields_required">E-Mail/Benutzername und Passwort sind erforderlich.</string>
+    <string name="error_fill_all">Fülle alle Felder aus.</string>
+    <string name="error_password_short">Das Passwort muss mindestens 8 Zeichen haben.</string>
+    <string name="error_asset_required">Objekttyp und Name sind erforderlich.</string>
+    <string name="error_entry_text_required">Schreibe einen Titel oder eine Beschreibung.</string>
+    <string name="error_username_required">Gib einen Benutzernamen ein.</string>
+    <string name="error_unexpected">Ein unerwarteter Fehler ist aufgetreten.</string>
+    <string name="error_generic_status">Vorgang fehlgeschlagen (%1$d).</string>
+    <string name="error_offline">Der Server ist nicht erreichbar. Prüfe, ob die API läuft und die Adresse korrekt ist.</string>
+    <string name="error_no_data">Der Server hat keine Daten zurückgegeben.</string>
+    <string name="error_file_unreadable">Die Datei konnte nicht gelesen werden.</string>
+    <string name="error_file_empty">Die Datei ist leer.</string>
+    <string name="error_file_too_large">Die Datei darf höchstens 10 MB groß sein.</string>
+
+    <!-- Hinweise -->
+    <string name="notice_asset_added">„%1$s“ wurde dem Gedächtnis hinzugefügt.</string>
+    <string name="notice_entry_added">Der Eintrag wurde zur Zeitleiste hinzugefügt.</string>
+    <string name="notice_entry_deleted">Der Eintrag wurde gelöscht.</string>
+    <string name="notice_access_granted">@%1$s kann dieses Objekt jetzt sehen.</string>
+    <string name="notice_access_removed">Zugriff entfernt.</string>
+    <string name="notice_unfollowed">@%1$s wird nicht mehr gefolgt.</string>
+    <string name="notice_following">Du folgst jetzt @%1$s.</string>
+</resources>

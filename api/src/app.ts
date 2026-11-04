@@ -7,6 +7,9 @@ import { ZodError } from 'zod';
 import { env } from './env.js';
 import { query } from './db.js';
 import { ApiError } from './lib/errors.js';
+import { translate } from './lib/i18n/index.js';
+import { negotiateLocale, type Locale } from './lib/locale.js';
+import { ensureTaxonomy } from './lib/taxonomy.js';
 import { storageRoot } from './lib/storage.js';
 import { authRoutes } from './routes/auth.js';
 import { assetTypeRoutes } from './routes/asset-types.js';
@@ -24,6 +27,12 @@ import { searchRoutes } from './routes/search.js';
 import { statsRoutes } from './routes/stats.js';
 import { socialRoutes } from './routes/social.js';
 
+declare module 'fastify' {
+  interface FastifyRequest {
+    locale: Locale;
+  }
+}
+
 export async function buildApp(): Promise<FastifyInstance> {
   const app = Fastify({
     logger: { level: env.NODE_ENV === 'test' ? 'silent' : 'info' },
@@ -34,8 +43,18 @@ export async function buildApp(): Promise<FastifyInstance> {
   await app.register(cors, {
     origin: env.corsOrigins,
     credentials: true,
-    allowedHeaders: ['Authorization', 'Content-Type'],
+    allowedHeaders: ['Authorization', 'Content-Type', 'Accept-Language'],
     methods: ['GET', 'POST', 'PATCH', 'DELETE', 'OPTIONS'],
+  });
+
+  app.decorateRequest('locale', 'tr');
+  app.addHook('onRequest', async (req) => {
+    req.locale = negotiateLocale(req.headers['accept-language']);
+    try {
+      await ensureTaxonomy(req.locale);
+    } catch (error) {
+      req.log.warn({ err: error }, 'Varlık türü çevirileri yüklenemedi');
+    }
   });
 
   await app.register(rateLimit, {
@@ -46,16 +65,21 @@ export async function buildApp(): Promise<FastifyInstance> {
   });
 
   app.setErrorHandler((error, req, reply) => {
+    const locale = req.locale;
     if (error instanceof ApiError) {
       return reply.status(error.status).send({
-        error: { code: error.code, message: error.message, details: error.details },
+        error: {
+          code: error.code,
+          message: translate(locale, error.message),
+          details: error.details,
+        },
       });
     }
     if (error instanceof ZodError) {
       return reply.status(422).send({
         error: {
           code: 'VALIDATION_ERROR',
-          message: 'Gönderilen bilgiler geçerli değil.',
+          message: translate(locale, 'Gönderilen bilgiler geçerli değil.'),
           details: { fields: error.flatten().fieldErrors },
         },
       });
@@ -64,17 +88,23 @@ export async function buildApp(): Promise<FastifyInstance> {
     const pgCode = (error as { code?: string }).code;
     if (pgCode === '23505') {
       return reply.status(409).send({
-        error: { code: 'CONFLICT', message: 'Bu kayıt zaten mevcut.' },
+        error: { code: 'CONFLICT', message: translate(locale, 'Bu kayıt zaten mevcut.') },
       });
     }
     if (pgCode === '23514' || pgCode === '23503') {
       return reply.status(422).send({
-        error: { code: 'INVALID_DATA', message: 'Gönderilen bilgiler veri kurallarıyla uyuşmuyor.' },
+        error: {
+          code: 'INVALID_DATA',
+          message: translate(locale, 'Gönderilen bilgiler veri kurallarıyla uyuşmuyor.'),
+        },
       });
     }
     if ((error as { statusCode?: number }).statusCode === 429) {
       return reply.status(429).send({
-        error: { code: 'RATE_LIMITED', message: 'Çok fazla istek gönderdiniz. Lütfen bekleyin.' },
+        error: {
+          code: 'RATE_LIMITED',
+          message: translate(locale, 'Çok fazla istek gönderdiniz. Lütfen bekleyin.'),
+        },
       });
     }
 
@@ -83,14 +113,23 @@ export async function buildApp(): Promise<FastifyInstance> {
     return reply.status(500).send({
       error: {
         code: 'INTERNAL_ERROR',
-        message: env.NODE_ENV === 'production' ? 'Beklenmeyen bir hata oluştu.' : message,
+        message:
+          env.NODE_ENV === 'production'
+            ? translate(locale, 'Beklenmeyen bir hata oluştu.')
+            : message,
       },
     });
   });
 
   app.setNotFoundHandler((req, reply) => {
     reply.status(404).send({
-      error: { code: 'NOT_FOUND', message: `${req.method} ${req.url} bulunamadı.` },
+      error: {
+        code: 'NOT_FOUND',
+        message: translate(req.locale, '{method} {url} bulunamadı.', {
+          method: req.method,
+          url: req.url,
+        }),
+      },
     });
   });
 

@@ -1,0 +1,17 @@
+<resources>
+    <!-- Anmelden / Registrieren -->
+    <string name="login_tagline">die Spur von allem, was lebt und sich wandelt</string>
+    <string name="login_headline_login">Zurück zu\ndeinem Gedächtnis.</string>
+    <string name="login_headline_register">Starte ein\nneues Gedächtnis.</string>
+    <string name="login_body">Bonsai, Haustier, Gemälde, Zuhause oder eine Blume… Pflege, Dokumente und Geschichte an einem Ort.</string>
+    <string name="login_tab_login">Anmelden</string>
+    <string name="login_tab_register">Registrieren</string>
+    <string name="login_field_display_name">Anzeigename</string>
+    <string name="login_field_email">E-Mail</string>
+    <string name="login_field_username">Benutzername</string>
+    <string name="login_field_identifier">E-Mail oder Benutzername</string>
+    <string name="login_field_password">Passwort</string>
+    <string name="login_action_login">Anmelden</string>
+    <string name="login_action_register">Konto erstellen</string>
+    <string name="login_demo_hint">Demo-Konto: ada@demo.local · Demo1234!</string>
+</resources>

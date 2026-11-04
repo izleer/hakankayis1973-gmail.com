@@ -405,6 +405,7 @@ data class CreateEntryRequest(
     val title: String? = null,
     val body: String? = null,
     val visibility: String,
+    val occurredAt: String? = null,
     val mediaIds: List<String> = emptyList(),
     val measurements: List<MeasurementInput> = emptyList(),
 )

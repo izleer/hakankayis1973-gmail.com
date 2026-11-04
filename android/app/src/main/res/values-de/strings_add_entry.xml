@@ -1,0 +1,37 @@
+<resources>
+    <!-- Bildschirm „Eintrag hinzufügen“ -->
+    <string name="add_entry_title">Eintrag hinzufügen</string>
+    <string name="add_entry_eyebrow">ZUR ZEITLEISTE</string>
+    <string name="add_entry_headline">Was ist heute passiert?</string>
+    <string name="add_entry_intro">Eine Wartung, ein Moment, eine Messung… Was auch immer es ist – es bleibt mit seinem Datum erhalten.</string>
+
+    <string name="add_entry_section_type">Eintragstyp</string>
+    <string name="add_entry_field_title">Titel (optional)</string>
+    <string name="add_entry_field_notes">Notizen</string>
+    <string name="add_entry_notes_placeholder">Was hast du gemacht, was hat sich verändert, wie hast du dich gefühlt?</string>
+
+    <string name="add_entry_section_when">Wann?</string>
+    <string name="add_entry_change_datetime">Datum und Uhrzeit ändern</string>
+
+    <string name="add_entry_section_measurement">Messung</string>
+    <string name="add_entry_metric">Messgröße</string>
+    <string name="add_entry_metric_placeholder">Höhe</string>
+    <string name="add_entry_value">Wert</string>
+    <string name="add_entry_unit">Einheit</string>
+    <string name="add_entry_unit_placeholder">cm</string>
+    <string name="add_entry_measurement_hint">Wenn du das ausfüllst, wird es dem Messverlauf hinzugefügt.</string>
+
+    <string name="add_entry_section_visibility">Wer darf es sehen?</string>
+    <string name="add_entry_visibility_hint">Ein Eintrag kann nicht sichtbarer sein als sein Objekt.</string>
+
+    <string name="add_entry_section_files">Foto / Dokument</string>
+    <string name="add_entry_add_file">Datei hinzufügen (%1$s, %2$d MB)</string>
+    <string name="add_entry_remove_file">Entfernen</string>
+    <plurals name="add_entry_media_limit_count">
+        <item quantity="one">maximal %1$d Datei</item>
+        <item quantity="other">maximal %1$d Dateien</item>
+    </plurals>
+
+    <string name="add_entry_footer_hint">Der Eintrag wird mit dem gewählten Datum und der Uhrzeit in die Zeitleiste übernommen; du kannst ihn später bearbeiten.</string>
+    <string name="add_entry_save">Zur Geschichte hinzufügen</string>
+</resources>

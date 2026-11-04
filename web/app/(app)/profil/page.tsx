@@ -1,9 +1,13 @@
 import type { Metadata } from 'next';
 import { ProfileScreen } from '@/components/ProfileScreen';
 import { api, requireViewer } from '@/lib/api';
+import { getT } from '@/lib/i18n/server';
 import type { CursorPage, FeedPost, ProfileData } from '@/lib/types';
 
-export const metadata: Metadata = { title: 'Profil' };
+export async function generateMetadata(): Promise<Metadata> {
+  const t = await getT();
+  return { title: t('Profil') };
+}
 
 export default async function OwnProfilePage() {
   const viewer = await requireViewer();

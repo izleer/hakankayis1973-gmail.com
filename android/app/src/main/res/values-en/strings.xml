@@ -1,0 +1,98 @@
+<resources>
+    <string name="app_name">izleer</string>
+
+    <!-- Common -->
+    <string name="common_error_title">Something went wrong</string>
+    <string name="common_retry">Try again</string>
+    <string name="common_back">Back</string>
+    <string name="common_notifications">Notifications</string>
+    <string name="common_notifications_unread">Notifications, %1$d unread</string>
+    <string name="common_asset">Asset</string>
+    <string name="common_like_count">%1$d likes</string>
+    <string name="common_comment_count">%1$d comments</string>
+    <string name="common_share">Post</string>
+
+    <!-- Visibility -->
+    <string name="visibility_public">Public</string>
+    <string name="visibility_selected">Selected people</string>
+    <string name="visibility_private">Private</string>
+
+    <!-- Media kind -->
+    <string name="kind_document">Document</string>
+    <string name="kind_video">Video</string>
+    <string name="kind_image">Image</string>
+
+    <!-- Entry type -->
+    <string name="entry_type_photo">Photo</string>
+    <string name="entry_type_maintenance">Maintenance</string>
+    <string name="entry_type_acquisition">Acquisition</string>
+    <string name="entry_type_measurement">Measurement</string>
+    <string name="entry_type_health">Health</string>
+    <string name="entry_type_event">Event</string>
+    <string name="entry_type_document">Document</string>
+    <string name="entry_type_note">Note</string>
+
+    <plurals name="common_entry_count">
+        <item quantity="one">%1$d entry</item>
+        <item quantity="other">%1$d entries</item>
+    </plurals>
+
+    <!-- Navigation -->
+    <string name="nav_home">Home</string>
+    <string name="nav_assets">Assets</string>
+    <string name="nav_archive">Archive</string>
+    <string name="nav_explore">Explore</string>
+    <string name="nav_profile">Profile</string>
+    <string name="splash_loading">preparing your memory…</string>
+
+    <!-- Profile -->
+    <string name="profile_logout">Log out</string>
+    <string name="profile_stat_assets">assets</string>
+    <string name="profile_stat_entries">entries</string>
+    <string name="profile_stat_followers">followers</string>
+    <string name="profile_stat_following">following</string>
+    <string name="profile_assets_title">Your assets</string>
+    <string name="profile_posts_title">Your posts</string>
+    <string name="profile_empty_title">This is your archive</string>
+    <string name="profile_empty_body">You haven\'t added an asset yet. Use the Assets tab to start your first story.</string>
+    <string name="profile_data_title">Your data is yours.</string>
+    <string name="profile_data_body">You can export your archive or delete your account at any time. These actions are available on the profile page of the web version.</string>
+    <string name="profile_version">izleer · v1.0</string>
+    <string name="profile_logout_title">Log out?</string>
+    <string name="profile_logout_body">Your session will end; your archive stays safe.</string>
+    <string name="profile_logout_confirm">Log out</string>
+    <string name="profile_logout_cancel">Cancel</string>
+
+    <!-- Language -->
+    <string name="language_title">Language</string>
+    <string name="language_section">Language and region</string>
+    <string name="language_current">App language: %1$s</string>
+    <string name="language_dialog_title">App language</string>
+    <string name="language_dialog_body">The app uses this language. Your content keeps its own language.</string>
+    <string name="language_follow_system">Device language</string>
+    <string name="language_cancel">Cancel</string>
+
+    <!-- Auth errors -->
+    <string name="error_fields_required">Email/username and password are required.</string>
+    <string name="error_fill_all">Fill in all fields.</string>
+    <string name="error_password_short">Password must be at least 8 characters.</string>
+    <string name="error_asset_required">Asset type and name are required.</string>
+    <string name="error_entry_text_required">Write a title or a description.</string>
+    <string name="error_username_required">Enter a username.</string>
+    <string name="error_unexpected">An unexpected error occurred.</string>
+    <string name="error_generic_status">Operation failed (%1$d).</string>
+    <string name="error_offline">Could not reach the server. Check that the API is running and the address is correct.</string>
+    <string name="error_no_data">The server returned no data.</string>
+    <string name="error_file_unreadable">Could not read the file.</string>
+    <string name="error_file_empty">The file is empty.</string>
+    <string name="error_file_too_large">The file can be at most 10 MB.</string>
+
+    <!-- Notices -->
+    <string name="notice_asset_added">“%1$s” was added to your memory.</string>
+    <string name="notice_entry_added">The entry was added to the timeline.</string>
+    <string name="notice_entry_deleted">The entry was deleted.</string>
+    <string name="notice_access_granted">@%1$s can now see this asset.</string>
+    <string name="notice_access_removed">Access removed.</string>
+    <string name="notice_unfollowed">Unfollowed @%1$s.</string>
+    <string name="notice_following">Now following @%1$s.</string>
+</resources>

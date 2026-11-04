@@ -10,11 +10,13 @@ import {
   entryTypeDescriptions,
   entryTypeLabels,
   formatDate,
-  formatDateTime,
   formatNumber,
+  formatTime,
   mediaSrc,
   typeIconName,
 } from '@/lib/format';
+import { localeTags } from '@/lib/i18n/config';
+import { getI18n, getT } from '@/lib/i18n/server';
 import type {
   AssetType,
   EntryType,
@@ -85,6 +87,7 @@ async function loadSharedAsset(
 }
 
 export async function generateMetadata({ params }: { params: Params }): Promise<Metadata> {
+  const t = await getT();
   const { slug, assetId } = await params;
   try {
     const data = await api<GroupAssetDetail>(
@@ -92,15 +95,17 @@ export async function generateMetadata({ params }: { params: Params }): Promise<
     );
     return {
       title: `${data.asset.title} · ${data.community.name}`,
-      description: data.asset.description ?? `${data.asset.type.label} hafızası`,
+      description:
+        data.asset.description ?? t('{type} hafızası', { type: data.asset.type.label }),
     };
   } catch {
-    return { title: 'Paylaşılan varlık' };
+    return { title: t('Paylaşılan varlık') };
   }
 }
 
 export default async function SharedAssetPage({ params }: { params: Params }) {
   await requireViewer();
+  const { t, locale } = await getI18n();
   const { slug, assetId } = await params;
   const data = await loadSharedAsset(slug, assetId);
   if (!data) notFound();
@@ -130,7 +135,7 @@ export default async function SharedAssetPage({ params }: { params: Params }) {
         <div className="group-shared-info">
           <div className="detail-kicker">
             <span className="group-category">{asset.type.label}</span>
-            <span className="status-pill">{scopeLabels[share.scope]}</span>
+            <span className="status-pill">{t(scopeLabels[share.scope])}</span>
             <span className="visibility-pill is-selected">
               <Icon name="users" size={13} />
               {community.name}
@@ -142,13 +147,13 @@ export default async function SharedAssetPage({ params }: { params: Params }) {
           <dl className="detail-meta">
             {asset.acquiredAt ? (
               <div>
-                <dt>Başlangıç</dt>
-                <dd>{formatDate(asset.acquiredAt)}</dd>
+                <dt>{t('Başlangıç')}</dt>
+                <dd>{formatDate(asset.acquiredAt, locale)}</dd>
               </div>
             ) : null}
             {asset.locationName ? (
               <div>
-                <dt>Konum</dt>
+                <dt>{t('Konum')}</dt>
                 <dd>
                   <Icon name="pin" size={14} />
                   {asset.locationName}
@@ -156,19 +161,19 @@ export default async function SharedAssetPage({ params }: { params: Params }) {
               </div>
             ) : null}
             <div>
-              <dt>Görünen kayıt</dt>
-              <dd>{formatNumber(entries.length)}</dd>
+              <dt>{t('Görünen kayıt')}</dt>
+              <dd>{formatNumber(entries.length, locale)}</dd>
             </div>
             <div>
-              <dt>Fotoğraf</dt>
-              <dd>{formatNumber(images.length)}</dd>
+              <dt>{t('Fotoğraf')}</dt>
+              <dd>{formatNumber(images.length, locale)}</dd>
             </div>
             {Object.entries(asset.attributes)
               .filter(([, value]) => value !== null && value !== '')
               .slice(0, 4)
               .map(([key, value]) => (
                 <div key={key}>
-                  <dt>{attributeLabels[key] ?? attributeLabel(key)}</dt>
+                  <dt>{t(attributeLabels[key] ?? attributeLabel(key))}</dt>
                   <dd>{String(value)}</dd>
                 </div>
               ))}
@@ -183,14 +188,17 @@ export default async function SharedAssetPage({ params }: { params: Params }) {
               )}
             </span>
             {asset.owner.displayName} · @{asset.owner.username}
-            <span className="muted-note"> · {formatDate(share.sharedAt)} tarihinde paylaştı</span>
+            <span className="muted-note">
+              {' · '}
+              {t('{date} tarihinde paylaştı', { date: formatDate(share.sharedAt, locale) })}
+            </span>
           </p>
         </div>
       </header>
 
       <p className="group-scope-note">
         <Icon name="lock" size={16} />
-        {scopeNotes[share.scope]}
+        {t(scopeNotes[share.scope])}
       </p>
 
       <section className="story">
@@ -199,17 +207,16 @@ export default async function SharedAssetPage({ params }: { params: Params }) {
             <span className="group-locked-icon">
               <Icon name="lock" size={24} />
             </span>
-            <h2>Kayıtlar paylaşılmadı</h2>
+            <h2>{t('Kayıtlar paylaşılmadı')}</h2>
             <p>
-              Sahibi bu varlığı gruba yalnızca özet olarak ekledi. Hikâyesini okumak
-              için varlığın sahibinden kapsamı genişletmesini isteyebilirsin.
+              {t('Sahibi bu varlığı gruba yalnızca özet olarak ekledi. Hikâyesini okumak için varlığın sahibinden kapsamı genişletmesini isteyebilirsin.')}
             </p>
           </div>
         ) : entries.length === 0 ? (
           <EmptyState
             icon="book"
-            title="Paylaşılan kayıt yok"
-            body="Bu kapsamda görünür bir kayıt bulunmuyor."
+            title={t('Paylaşılan kayıt yok')}
+            body={t('Bu kapsamda görünür bir kayıt bulunmuyor.')}
           />
         ) : (
           <div className="timeline">
@@ -224,21 +231,19 @@ export default async function SharedAssetPage({ params }: { params: Params }) {
                     <div className="timeline-date">
                       <strong>{new Date(entry.occurredAt).getDate()}</strong>
                       <span>
-                        {new Date(entry.occurredAt).toLocaleDateString('tr-TR', {
+                        {new Intl.DateTimeFormat(localeTags[locale], {
                           month: 'short',
                           timeZone: 'Europe/Istanbul',
-                        })}
+                        }).format(new Date(entry.occurredAt))}
                       </span>
                     </div>
                     <div className="entry-card">
                       <header className="entry-head">
                         <span className={`entry-kind type-${entry.type}`}>
                           <Icon name={entryIcons[entry.type]} size={14} />
-                          {entryTypeLabels[entry.type]}
+                          {t(entryTypeLabels[entry.type])}
                         </span>
-                        <span className="entry-time">
-                          {formatDateTime(entry.occurredAt).split(' ').slice(-1)}
-                        </span>
+                        <span className="entry-time">{formatTime(entry.occurredAt, locale)}</span>
                       </header>
                       {entry.title ? <h3>{entry.title}</h3> : null}
                       {entry.body ? <p>{entry.body}</p> : null}
@@ -248,7 +253,7 @@ export default async function SharedAssetPage({ params }: { params: Params }) {
                             .slice(0, 6)
                             .map(([key, value]) => (
                               <div key={key}>
-                                <dt>{attributeLabels[key] ?? attributeLabel(key)}</dt>
+                                <dt>{t(attributeLabels[key] ?? attributeLabel(key))}</dt>
                                 <dd>{String(value)}</dd>
                               </div>
                             ))}
@@ -283,7 +288,7 @@ export default async function SharedAssetPage({ params }: { params: Params }) {
                                   <Icon name="file" size={15} />
                                 </span>
                                 <span>
-                                  <strong>{item.originalName ?? 'Belge'}</strong>
+                                  <strong>{item.originalName ?? t('Belge')}</strong>
                                   <small>{item.mimeType}</small>
                                 </span>
                               </a>
@@ -297,10 +302,10 @@ export default async function SharedAssetPage({ params }: { params: Params }) {
                               <Icon name="pin" size={12} /> {entry.locationName}
                             </>
                           ) : (
-                            entryTypeDescriptions[entry.type]
+                            t(entryTypeDescriptions[entry.type])
                           )}
                         </span>
-                        <span>{formatDate(entry.occurredAt)}</span>
+                        <span>{formatDate(entry.occurredAt, locale)}</span>
                       </footer>
                     </div>
                   </article>

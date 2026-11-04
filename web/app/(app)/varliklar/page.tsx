@@ -1,17 +1,23 @@
+import type { Metadata } from 'next';
 import Link from 'next/link';
 import { AssetGrid } from '@/components/AssetCard';
 import { EmptyState } from '@/components/EmptyState';
 import { Icon } from '@/components/Icons';
 import { api, requireViewer } from '@/lib/api';
 import { formatNumber, typeIconName } from '@/lib/format';
+import { getI18n, getT } from '@/lib/i18n/server';
 import type { Asset, AssetType, Paged } from '@/lib/types';
 
-export const metadata = { title: 'Varlıklar' };
+export async function generateMetadata(): Promise<Metadata> {
+  const t = await getT();
+  return { title: t('Varlıklar') };
+}
 
 type SearchParams = Promise<{ q?: string; type?: string; status?: string }>;
 
 export default async function AssetsPage({ searchParams }: { searchParams: SearchParams }) {
   await requireViewer();
+  const { t, locale } = await getI18n();
   const params = await searchParams;
   const query = new URLSearchParams({ limit: '48', sort: 'updated' });
   if (params.q) query.set('q', params.q);
@@ -37,20 +43,31 @@ export default async function AssetsPage({ searchParams }: { searchParams: Searc
     return `/varliklar${search.toString() ? `?${search.toString()}` : ''}`;
   }
 
+  const clearHref = (() => {
+    const search = new URLSearchParams();
+    if (activeType) search.set('type', activeType);
+    if (activeStatus) search.set('status', activeStatus);
+    return `/varliklar${search.toString() ? `?${search.toString()}` : ''}`;
+  })();
+
+  const isFiltered = Boolean(params.q || activeType || activeStatus);
+
   return (
     <main className="page">
       <header className="page-head">
         <div>
-          <span className="eyebrow">Hafıza defteri</span>
-          <h1>Varlıkların</h1>
+          <span className="eyebrow">{t('Hafıza defteri')}</span>
+          <h1>{t('Varlıkların')}</h1>
           <p>
-            {formatNumber(assets.total)} parça; her biri kendi zamanını, bakımını ve
-            hikâyesini taşıyor.
+            {t(
+              '{count} parça; her biri kendi zamanını, bakımını ve hikâyesini taşıyor.',
+              { count: assets.total },
+            )}
           </p>
         </div>
         <Link href="/varliklar/yeni" className="btn btn-primary">
           <Icon name="plus" size={18} />
-          Yeni varlık
+          {t('Yeni varlık')}
         </Link>
       </header>
 
@@ -62,33 +79,52 @@ export default async function AssetsPage({ searchParams }: { searchParams: Searc
           <input
             name="q"
             defaultValue={params.q ?? ''}
-            placeholder="Varlık, tür ya da not ara…"
-            aria-label="Varlık ara"
+            placeholder={t('Varlık, tür ya da not ara…')}
+            aria-label={t('Varlık ara')}
           />
+          {params.q ? (
+            <Link
+              href={clearHref}
+              className="search-clear"
+              aria-label={t('Aramayı temizle')}
+              title={t('Aramayı temizle')}
+            >
+              <Icon name="close" size={15} />
+            </Link>
+          ) : null}
           <button type="submit" className="search-submit">
-            Ara
+            {t('Ara')}
           </button>
         </form>
-        <div className="segmented" aria-label="Durum">
+        <div className="segmented" aria-label={t('Durum')}>
           <Link href={href({ status: '' })} className={!activeStatus ? 'is-active' : ''}>
-            Tümü
+            {t('Tümü')}
           </Link>
           <Link href={href({ status: 'active' })} className={activeStatus === 'active' ? 'is-active' : ''}>
-            Takipte
+            {t('Güncel')}
           </Link>
           <Link
             href={href({ status: 'archived' })}
             className={activeStatus === 'archived' ? 'is-active' : ''}
           >
-            Arşivde
+            {t('Arşivlenen')}
           </Link>
         </div>
       </div>
 
+      {isFiltered ? (
+        <p className="result-line" role="status">
+          <strong>{formatNumber(assets.total, locale)}</strong>{' '}
+          {t('sonuç', { count: assets.total })}
+          {params.q ? <> · “{params.q}”</> : null}
+          <Link href="/varliklar">{t('Filtreleri temizle')}</Link>
+        </p>
+      ) : null}
+
       <div className="filter-row">
         <Link href={href({ type: '' })} className={`chip${!activeType ? ' is-active' : ''}`}>
           <Icon name="grid" size={15} />
-          Tüm türler
+          {t('Tüm türler')}
         </Link>
         {rootTypes.map((type) => (
           <Link
@@ -106,13 +142,13 @@ export default async function AssetsPage({ searchParams }: { searchParams: Searc
         <AssetGrid assets={assets.items} />
       ) : (
         <EmptyState
-          title={params.q ? 'Bu aramada bir iz yok' : 'Bu filtrede varlık yok'}
+          title={params.q ? t('Bu aramada bir iz yok') : t('Bu filtrede varlık yok')}
           body={
             params.q
-              ? 'Farklı bir kelime dene ya da filtreleri temizle.'
-              : 'Yeni bir varlık ekleyerek hafızanı genişletebilirsin.'
+              ? t('Farklı bir kelime dene ya da filtreleri temizle.')
+              : t('Yeni bir varlık ekleyerek hafızanı genişletebilirsin.')
           }
-          action={{ href: '/varliklar/yeni', label: 'Yeni varlık ekle' }}
+          action={{ href: '/varliklar/yeni', label: t('Yeni varlık ekle') }}
         />
       )}
     </main>

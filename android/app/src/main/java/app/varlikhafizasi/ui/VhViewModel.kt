@@ -1,10 +1,14 @@
 package app.varlikhafizasi.ui
 
+import android.content.Context
 import android.net.Uri
+import androidx.annotation.StringRes
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import androidx.lifecycle.viewmodel.initializer
 import androidx.lifecycle.viewmodel.viewModelFactory
+import app.varlikhafizasi.R
+import app.varlikhafizasi.data.AppLanguage
 import app.varlikhafizasi.data.ArchivePage
 import app.varlikhafizasi.data.Asset
 import app.varlikhafizasi.data.AssetDetail
@@ -58,7 +62,13 @@ data class ProfileData(
     val posts: List<FeedPost>,
 )
 
-class VhViewModel(private val repository: VhRepository) : ViewModel() {
+class VhViewModel(
+    private val repository: VhRepository,
+    private val appContext: Context,
+) : ViewModel() {
+
+    private fun str(@StringRes id: Int, vararg args: Any): String =
+        AppLanguage.string(appContext, id, *args)
 
     private val _session = MutableStateFlow(SessionUi())
     val session: StateFlow<SessionUi> = _session.asStateFlow()
@@ -126,7 +136,7 @@ class VhViewModel(private val repository: VhRepository) : ViewModel() {
 
     fun login(identifier: String, password: String) {
         if (identifier.isBlank() || password.isBlank()) {
-            _authError.value = "E-posta/kullanıcı adı ve şifre gerekli."
+            _authError.value = str(R.string.error_fields_required)
             return
         }
         viewModelScope.launch {
@@ -146,11 +156,11 @@ class VhViewModel(private val repository: VhRepository) : ViewModel() {
 
     fun register(email: String, username: String, displayName: String, password: String) {
         if (listOf(email, username, displayName, password).any { it.isBlank() }) {
-            _authError.value = "Tüm alanları doldurun."
+            _authError.value = str(R.string.error_fill_all)
             return
         }
         if (password.length < 8) {
-            _authError.value = "Şifre en az 8 karakter olmalı."
+            _authError.value = str(R.string.error_password_short)
             return
         }
         viewModelScope.launch {
@@ -306,7 +316,7 @@ class VhViewModel(private val repository: VhRepository) : ViewModel() {
         onCreated: (String) -> Unit,
     ) {
         if (typeId.isBlank() || title.isBlank()) {
-            _formError.value = "Varlık türü ve adı gerekli."
+            _formError.value = str(R.string.error_asset_required)
             return
         }
         viewModelScope.launch {
@@ -317,7 +327,7 @@ class VhViewModel(private val repository: VhRepository) : ViewModel() {
                 loadHome()
                 loadAssets()
                 loadArchive()
-                _notice.value = "“${asset.title}” hafızaya eklendi."
+                _notice.value = str(R.string.notice_asset_added, asset.title)
                 onCreated(asset.id)
             } catch (error: Throwable) {
                 _formError.value = messageOf(error)
@@ -333,23 +343,24 @@ class VhViewModel(private val repository: VhRepository) : ViewModel() {
         title: String?,
         body: String?,
         visibility: String,
+        occurredAt: String? = null,
         mediaUris: List<Uri>,
         measurement: MeasurementInput?,
         onSaved: () -> Unit,
     ) {
         if (title.isNullOrBlank() && body.isNullOrBlank()) {
-            _formError.value = "Bir başlık ya da açıklama yazın."
+            _formError.value = str(R.string.error_entry_text_required)
             return
         }
         viewModelScope.launch {
             _formBusy.value = true
             _formError.value = null
             try {
-                repository.addEntry(assetId, type, title, body, visibility, mediaUris, measurement)
+                repository.addEntry(assetId, type, title, body, visibility, occurredAt, mediaUris, measurement)
                 loadDetail(assetId)
                 loadHome()
                 loadArchive()
-                _notice.value = "Kayıt zaman çizelgesine eklendi."
+                _notice.value = str(R.string.notice_entry_added)
                 onSaved()
             } catch (error: Throwable) {
                 _formError.value = messageOf(error)
@@ -366,7 +377,7 @@ class VhViewModel(private val repository: VhRepository) : ViewModel() {
                 loadDetail(assetId)
                 loadHome()
                 loadArchive()
-                _notice.value = "Kayıt silindi."
+                _notice.value = str(R.string.notice_entry_deleted)
             } catch (error: Throwable) {
                 _notice.value = messageOf(error)
             }
@@ -421,7 +432,7 @@ class VhViewModel(private val repository: VhRepository) : ViewModel() {
 
     fun addAccess(assetId: String, username: String) {
         if (username.isBlank()) {
-            _formError.value = "Kullanıcı adı girin."
+            _formError.value = str(R.string.error_username_required)
             return
         }
         viewModelScope.launch {
@@ -430,7 +441,7 @@ class VhViewModel(private val repository: VhRepository) : ViewModel() {
             try {
                 val user: UserMini = repository.addAccess(assetId, username)
                 loadDetail(assetId)
-                _notice.value = "@${user.username} artık bu varlığı görebilir."
+                _notice.value = str(R.string.notice_access_granted, user.username)
             } catch (error: Throwable) {
                 _formError.value = messageOf(error)
             } finally {
@@ -444,7 +455,7 @@ class VhViewModel(private val repository: VhRepository) : ViewModel() {
             try {
                 repository.removeAccess(assetId, userId)
                 loadDetail(assetId)
-                _notice.value = "Erişim kaldırıldı."
+                _notice.value = str(R.string.notice_access_removed)
             } catch (error: Throwable) {
                 _notice.value = messageOf(error)
             }
@@ -457,7 +468,11 @@ class VhViewModel(private val repository: VhRepository) : ViewModel() {
                 if (user.isFollowing) repository.unfollow(user.username) else repository.follow(user.username)
                 loadExplore()
                 _notice.value =
-                    if (user.isFollowing) "@${user.username} takipten çıkarıldı." else "@${user.username} takip ediliyor."
+                    if (user.isFollowing) {
+                        str(R.string.notice_unfollowed, user.username)
+                    } else {
+                        str(R.string.notice_following, user.username)
+                    }
             } catch (error: Throwable) {
                 _notice.value = messageOf(error)
             }
@@ -481,12 +496,12 @@ class VhViewModel(private val repository: VhRepository) : ViewModel() {
             _session.value = SessionUi(checking = false, user = null)
             viewModelScope.launch { repository.logout() }
         }
-        return error.message ?: "Beklenmeyen bir hata oluştu."
+        return error.message ?: str(R.string.error_unexpected)
     }
 
     companion object {
-        fun factory(repository: VhRepository) = viewModelFactory {
-            initializer { VhViewModel(repository) }
+        fun factory(repository: VhRepository, context: Context) = viewModelFactory {
+            initializer { VhViewModel(repository, context.applicationContext) }
         }
     }
 }

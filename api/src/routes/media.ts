@@ -14,6 +14,8 @@ import {
 } from '../lib/http.js';
 import { requireViewer } from '../lib/session.js';
 import { mapMedia } from '../lib/serialize.js';
+import { translate } from '../lib/i18n/index.js';
+import { translateTypeLabel } from '../lib/taxonomy.js';
 import {
   ALLOWED_MIME_TYPES,
   MIME_EXTENSIONS,
@@ -104,7 +106,9 @@ export async function mediaRoutes(app: FastifyInstance): Promise<void> {
       throw new ApiError(
         413,
         'UPLOAD_TOO_LARGE',
-        `Dosya en fazla ${env.MAX_UPLOAD_MB} MB olabilir.`,
+        translate(req.locale, 'Dosya en fazla {limit} MB olabilir.', {
+          limit: env.MAX_UPLOAD_MB,
+        }),
       );
     }
 
@@ -146,7 +150,13 @@ export async function mediaRoutes(app: FastifyInstance): Promise<void> {
       );
     }
     if (body.byteSize > env.maxUploadBytes) {
-      throw new ApiError(413, 'UPLOAD_TOO_LARGE', `Dosya en fazla ${env.MAX_UPLOAD_MB} MB olabilir.`);
+      throw new ApiError(
+        413,
+        'UPLOAD_TOO_LARGE',
+        translate(req.locale, 'Dosya en fazla {limit} MB olabilir.', {
+          limit: env.MAX_UPLOAD_MB,
+        }),
+      );
     }
 
     const key = newStorageKey(body.mimeType);
@@ -273,7 +283,7 @@ export async function mediaRoutes(app: FastifyInstance): Promise<void> {
               id: row.asset_id,
               title: row.asset_title,
               typeId: row.asset_type_id,
-              typeLabel: row.asset_type_label,
+              typeLabel: translateTypeLabel(req.locale, row.asset_type_label),
             },
             entry: row.entry_id
               ? {

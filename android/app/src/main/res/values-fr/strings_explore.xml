@@ -1,0 +1,16 @@
+<resources>
+    <!-- Explorer -->
+    <string name="explore_subtitle">Inspirez-vous des parcours des autres</string>
+    <string name="explore_hero_eyebrow">L\'ARCHIVE DES CURIEUX</string>
+    <string name="explore_hero_title">Chaque bien,\nun parcours.</string>
+    <string name="explore_hero_body">La taille d\'un bonsaï, la première année d\'un chien, des notes de restauration… Explorez de vrais parcours.</string>
+    <string name="explore_assets_title">Biens inspirants</string>
+    <string name="explore_people_title">Des personnes à rencontrer</string>
+    <string name="explore_feed_title">Fil</string>
+    <string name="explore_empty_title">Le fil est calme</string>
+    <string name="explore_empty_body">Les entrées partagées publiquement apparaissent ici. Vous pouvez aussi commencer en rendant l\'un de vos biens public.</string>
+    <string name="explore_footer_note">Explorer n\'affiche que les biens et publications publics. Votre archive privée vous appartient.</string>
+    <string name="explore_follow">Suivre</string>
+    <string name="explore_following">Abonné</string>
+    <string name="explore_like">J\'aime</string>
+</resources>

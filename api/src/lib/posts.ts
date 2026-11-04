@@ -2,6 +2,7 @@ import { query } from '../db.js';
 import { isStaff, postIsVisibleTo } from './access.js';
 import { forbidden, notFound } from './errors.js';
 import { getGroupAsset, groupScopeAllowsEntry } from './groups.js';
+import type { Locale } from './locale.js';
 import { mapPost, mediaForPosts } from './serialize.js';
 import type { Viewer } from './session.js';
 
@@ -28,9 +29,12 @@ export const postSelect = `
   LEFT JOIN communities c ON c.id = p.community_id AND c.deleted_at IS NULL
 `;
 
-export async function hydratePosts(rows: Record<string, any>[]): Promise<Record<string, unknown>[]> {
+export async function hydratePosts(
+  rows: Record<string, any>[],
+  locale: Locale = 'tr',
+): Promise<Record<string, unknown>[]> {
   const media = await mediaForPosts(rows.map((row) => row.id));
-  return Promise.all(rows.map((row) => mapPost(row, media.get(row.id) ?? [])));
+  return Promise.all(rows.map((row) => mapPost(row, media.get(row.id) ?? [], locale)));
 }
 
 export async function loadPostRow(
@@ -51,8 +55,7 @@ export async function loadPostRow(
 export async function getAccessiblePost(
   viewer: Viewer | null,
   postId: string,
-): Promise<Record<string, any>> {
-  const row = await loadPostRow(postId, viewer?.id ?? null);
+): Promise<Record<string, any>> {  const row = await loadPostRow(postId, viewer?.id ?? null);
   if (!row) notFound('Gönderi bulunamadı.');
   if (
     !(await postIsVisibleTo(viewer, {
@@ -96,7 +99,10 @@ export async function getAccessiblePost(
   return row;
 }
 
-export async function hydratePost(row: Record<string, any>): Promise<Record<string, unknown>> {
+export async function hydratePost(
+  row: Record<string, any>,
+  locale: Locale = 'tr',
+): Promise<Record<string, unknown>> {
   const media = await mediaForPosts([row.id]);
-  return mapPost(row, media.get(row.id) ?? []);
+  return mapPost(row, media.get(row.id) ?? [], locale);
 }

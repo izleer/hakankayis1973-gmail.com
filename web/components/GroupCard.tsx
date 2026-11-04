@@ -1,4 +1,5 @@
 import Link from 'next/link';
+import { getT } from '@/lib/i18n/server';
 import { Icon } from './Icons';
 import { MediaImage } from './MediaImage';
 import type { Group } from '@/lib/types';
@@ -10,39 +11,41 @@ const roleLabels: Record<string, string> = {
   member: 'Üye',
 };
 
-export function GroupCard({ group }: { group: Group }) {
+export async function GroupCard({ group }: { group: Group }) {
+  const t = await getT();
+
   return (
     <Link href={`/gruplar/${group.slug}`} className="group-card">
       <span className="group-cover">
         <MediaImage src={group.coverUrl} alt={group.name} fallbackIcon="users" />
         <span className={`visibility-pill is-${group.visibility === 'private' ? 'private' : 'public'}`}>
           <Icon name={group.visibility === 'private' ? 'lock' : 'eye'} size={12} />
-          {group.visibility === 'private' ? 'Özel' : 'Herkese açık'}
+          {group.visibility === 'private' ? t('Özel') : t('Herkese açık')}
         </span>
         {group.role ? (
-          <span className="group-role-badge">{roleLabels[group.role] ?? group.role}</span>
+          <span className="group-role-badge">{t(roleLabels[group.role] ?? group.role)}</span>
         ) : group.membershipStatus === 'pending' ? (
-          <span className="group-role-badge is-pending">Onay bekliyor</span>
+          <span className="group-role-badge is-pending">{t('Onay bekliyor')}</span>
         ) : null}
       </span>
       <span className="group-card-body">
-        {group.category ? <span className="eyebrow">{group.category}</span> : null}
+        {group.category ? <span className="eyebrow">{t(group.category)}</span> : null}
         <strong>{group.name}</strong>
         <small className="group-card-description">
-          {group.description ?? 'Bu grubun henüz bir açıklaması yok.'}
+          {group.description ?? t('Bu grubun henüz bir açıklaması yok.')}
         </small>
         <span className="group-card-meta">
           <span>
             <Icon name="users" size={13} />
-            {group.memberCount} üye
+            {t('{count} üye', { count: group.memberCount })}
           </span>
           <span>
             <Icon name="book" size={13} />
-            {group.postCount} gönderi
+            {t('{count} gönderi', { count: group.postCount })}
           </span>
           <span>
             <Icon name="leaf" size={13} />
-            {group.assetCount} varlık
+            {t('{count} varlık', { count: group.assetCount })}
           </span>
         </span>
       </span>

@@ -357,7 +357,8 @@ export async function communityRoutes(app: FastifyInstance): Promise<void> {
       type: 'community_approved',
       entityType: 'community',
       entityId: invitation.community_id,
-      message: `${viewer.displayName}, ${invitation.community_name} grubuna katıldı.`,
+      messageKey: '{actor}, {community} grubuna katıldı.',
+      messageParams: { actor: viewer.displayName, community: invitation.community_name },
     });
     await audit(viewer.id, 'community.invitation_accepted', 'community', invitation.community_id, {}, req.ip);
     return {
@@ -526,7 +527,8 @@ export async function communityRoutes(app: FastifyInstance): Promise<void> {
         type: 'community_request',
         entityType: 'community',
         entityId: community.id,
-        message: `${viewer.displayName}, ${community.name} grubuna katılma isteği gönderdi.`,
+        messageKey: '{actor}, {community} grubuna katılma isteği gönderdi.',
+        messageParams: { actor: viewer.displayName, community: community.name },
       });
       await audit(viewer.id, 'community.join_requested', 'community', community.id, {}, req.ip);
       return reply.status(201).send({ data: { joined: false, pending: true } });
@@ -538,7 +540,8 @@ export async function communityRoutes(app: FastifyInstance): Promise<void> {
       type: 'community_join',
       entityType: 'community',
       entityId: community.id,
-      message: `${viewer.displayName}, ${community.name} topluluğuna katıldı.`,
+      messageKey: '{actor}, {community} topluluğuna katıldı.',
+      messageParams: { actor: viewer.displayName, community: community.name },
     });
     await audit(viewer.id, 'community.joined', 'community', community.id, {}, req.ip);
     return reply.status(201).send({ data: { joined: true, pending: false } });
@@ -650,7 +653,8 @@ export async function communityRoutes(app: FastifyInstance): Promise<void> {
       type: 'system',
       entityType: 'community',
       entityId: community.id,
-      message: `${community.name} grubundaki rolünüz güncellendi.`,
+      messageKey: '{community} grubundaki rolünüz güncellendi.',
+      messageParams: { community: community.name },
     });
     return { data: { role: body.role } };
   });
@@ -732,7 +736,8 @@ export async function communityRoutes(app: FastifyInstance): Promise<void> {
       type: 'community_approved',
       entityType: 'community',
       entityId: community.id,
-      message: `${community.name} grubuna katılım isteğiniz onaylandı.`,
+      messageKey: '{community} grubuna katılım isteğiniz onaylandı.',
+      messageParams: { community: community.name },
     });
     await audit(viewer.id, 'community.join_approved', 'community', community.id, { userId }, req.ip);
     return { data: { approved: true } };
@@ -796,7 +801,8 @@ export async function communityRoutes(app: FastifyInstance): Promise<void> {
       type: 'community_invite',
       entityType: 'community_invitation',
       entityId: invitation.id,
-      message: `${viewer.displayName}, sizi ${community.name} grubuna davet etti.`,
+      messageKey: '{actor}, sizi {community} grubuna davet etti.',
+      messageParams: { actor: viewer.displayName, community: community.name },
     });
     await audit(viewer.id, 'community.invited', 'community', community.id, { inviteeId: invitee.id }, req.ip);
     return reply.status(201).send({
@@ -829,7 +835,7 @@ export async function communityRoutes(app: FastifyInstance): Promise<void> {
       data: {
         items: await Promise.all(
           rows.map(async (row) =>
-            mapSharedAsset(row, await mapAsset(row)),
+            mapSharedAsset(row, await mapAsset(row, req.locale)),
           ),
         ),
       },
@@ -955,7 +961,7 @@ export async function communityRoutes(app: FastifyInstance): Promise<void> {
 
     return {
       data: {
-        asset: await mapAsset(row),
+        asset: await mapAsset(row, req.locale),
         share: {
           scope: scopeValue,
           sharedAt: iso(row.shared_at),

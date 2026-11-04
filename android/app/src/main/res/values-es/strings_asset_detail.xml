@@ -1,0 +1,49 @@
+<resources>
+    <!-- Pestañas -->
+    <string name="asset_detail_tab_story">Historia</string>
+    <string name="asset_detail_tab_media">Medios</string>
+    <string name="asset_detail_tab_measurements">Mediciones</string>
+    <string name="asset_detail_tab_people">Personas</string>
+
+    <!-- Acciones superiores -->
+    <string name="asset_detail_add_entry">Añadir entrada</string>
+    <string name="asset_detail_share_with_people">Compartir con personas</string>
+
+    <!-- Portada y resumen -->
+    <string name="asset_detail_shared_with_you">Este bien se ha compartido contigo.</string>
+    <string name="asset_detail_meta_entries">entradas</string>
+    <string name="asset_detail_meta_acquired">adquisición</string>
+    <string name="asset_detail_meta_location">lugar</string>
+    <string name="asset_detail_cover_type_fallback">BIEN</string>
+
+    <!-- Estados vacíos -->
+    <string name="asset_detail_story_empty_title">Todavía no hay rastro</string>
+    <string name="asset_detail_story_empty_body">Añade tu primera nota, foto o registro de mantenimiento; la cronología empieza aquí.</string>
+    <string name="asset_detail_media_empty_title">Los medios están en silencio</string>
+    <string name="asset_detail_media_empty_body">Las fotos y documentos que añades a las entradas se reúnen aquí.</string>
+    <plurals name="asset_detail_media_count">
+        <item quantity="one">%1$d archivo · toca para ampliar</item>
+        <item quantity="other">%1$d archivos · toca para ampliar</item>
+    </plurals>
+    <string name="asset_detail_measurements_empty_title">Sin mediciones</string>
+    <string name="asset_detail_measurements_empty_body">Altura, peso, cantidad de riego… Se reúnen aquí cuando añades una entrada de tipo medición.</string>
+    <string name="asset_detail_measurement_history">Historial de mediciones</string>
+
+    <!-- Gestión de accesos -->
+    <string name="asset_detail_access_section">¿Quién puede verlo?</string>
+    <string name="asset_detail_access_body">El bien es %1$s, pero las personas de abajo solo pueden consultar este bien. La visibilidad de las entradas se gestiona aparte.</string>
+    <string name="asset_detail_username_label">Nombre de usuario</string>
+    <string name="asset_detail_add">Añadir</string>
+    <string name="asset_detail_remove_access">Quitar acceso</string>
+    <string name="asset_detail_no_viewers_title">No se ha compartido con nadie</string>
+    <string name="asset_detail_no_viewers_body">Añade un nombre de usuario para compartir la historia de este bien con la persona que elijas.</string>
+    <string name="asset_detail_owner_only_title">Solo lo gestiona la persona propietaria</string>
+    <string name="asset_detail_owner_only_body">Solo la persona propietaria puede editar la lista de acceso de este bien.</string>
+
+    <!-- Eliminación y visor de imágenes -->
+    <string name="asset_detail_delete">Eliminar</string>
+    <string name="asset_detail_delete_title">¿Eliminar la entrada?</string>
+    <string name="asset_detail_delete_body">Esta entrada y sus medios se quitarán de tu archivo. No se puede deshacer.</string>
+    <string name="asset_detail_cancel">Cancelar</string>
+    <string name="asset_detail_close">Cerrar</string>
+</resources>

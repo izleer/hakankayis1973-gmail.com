@@ -1,0 +1,38 @@
+<resources>
+    <!-- Liste des biens -->
+    <string name="assets_search_placeholder">Rechercher par nom ou description</string>
+    <string name="assets_search_clear">Effacer</string>
+    <string name="assets_empty_title">Votre mémoire est encore vide</string>
+    <string name="assets_empty_body">Ajoutez votre premier bien ; faites-le vivre avec des photos, des documents et des notes d\'entretien.</string>
+    <string name="assets_no_match_title">Aucun bien correspondant</string>
+    <string name="assets_no_match_body">Essayez avec un autre mot.</string>
+    <string name="assets_footer">Chaque bien est une porte vers sa propre histoire.</string>
+
+    <plurals name="assets_count">
+        <item quantity="one">%1$d bien dans votre mémoire</item>
+        <item quantity="other">%1$d biens dans votre mémoire</item>
+    </plurals>
+
+    <!-- Nouveau bien -->
+    <string name="assets_new_title">Nouveau bien</string>
+    <string name="assets_new_kicker">UNE NOUVELLE TRACE DANS VOTRE MÉMOIRE</string>
+    <string name="assets_new_headline">Nommez-le,\npartagez le premier.</string>
+    <string name="assets_new_body">Un être vivant, une œuvre, un lieu… Ajoutez sa première photo et commencez son histoire.</string>
+    <string name="assets_type_label">Type de bien</string>
+    <string name="assets_type_placeholder">Choisissez un type</string>
+    <string name="assets_type_parent_format">%1$s · %2$s</string>
+    <string name="assets_name_label">Nom du bien</string>
+    <string name="assets_name_placeholder">Ex. Bonzai · le pin d\'Ada</string>
+    <string name="assets_description_label">Brève description (facultatif)</string>
+    <string name="assets_visibility_label">Qui peut le voir ?</string>
+    <string name="assets_visibility_selected_short">Sélection</string>
+    <string name="assets_visibility_public_hint">Visible dans le fil Explorer. Vous pouvez le modifier plus tard.</string>
+    <string name="assets_visibility_selected_hint">Seules les personnes avec qui vous le partagez peuvent le voir.</string>
+    <string name="assets_visibility_private_hint">Vous seul pouvez le voir. C\'est la valeur par défaut.</string>
+    <string name="assets_cover_label">Photo de couverture</string>
+    <string name="assets_cover_preview">Aperçu de la couverture</string>
+    <string name="assets_cover_change">Modifier</string>
+    <string name="assets_cover_pick">Choisissez une photo dans votre galerie</string>
+    <string name="assets_error_type_required">Choisissez d\'abord un type de bien.</string>
+    <string name="assets_submit">Ajouter à la mémoire</string>
+</resources>

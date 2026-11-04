@@ -1,5 +1,8 @@
 package app.varlikhafizasi.ui.screens
 
+import android.app.Activity
+import android.content.Context
+import android.content.ContextWrapper
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -13,18 +16,18 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.outlined.Logout
-import androidx.compose.material.icons.outlined.NotificationsNone
+import androidx.compose.material.icons.outlined.Language
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.RadioButton
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
@@ -38,9 +41,14 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import app.varlikhafizasi.R
+import app.varlikhafizasi.data.AppLanguage
 import app.varlikhafizasi.data.FeedPost
 import app.varlikhafizasi.data.User
 import app.varlikhafizasi.ui.VhViewModel
@@ -50,18 +58,19 @@ import app.varlikhafizasi.ui.components.EmptyState
 import app.varlikhafizasi.ui.components.ErrorBox
 import app.varlikhafizasi.ui.components.GoldRule
 import app.varlikhafizasi.ui.components.LoadingBox
+import app.varlikhafizasi.ui.components.NotificationBell
 import app.varlikhafizasi.ui.components.SectionLabel
 import app.varlikhafizasi.ui.components.VhTopBar
 import app.varlikhafizasi.ui.components.formatDate
 import app.varlikhafizasi.ui.theme.Clay
 import app.varlikhafizasi.ui.theme.Danger
 import app.varlikhafizasi.ui.theme.Forest
-import app.varlikhafizasi.ui.theme.Gold
 import app.varlikhafizasi.ui.theme.Line
 import app.varlikhafizasi.ui.theme.Muted
 import app.varlikhafizasi.ui.theme.Paper
 import app.varlikhafizasi.ui.theme.PaperDeep
 import app.varlikhafizasi.ui.theme.Sage
+import app.varlikhafizasi.ui.theme.SageInk
 import app.varlikhafizasi.ui.theme.Ivory
 
 @Composable
@@ -72,7 +81,14 @@ fun ProfileScreen(
     onOpenNotifications: () -> Unit,
 ) {
     val state by vm.profile.collectAsStateWithLifecycle()
+    val notifications by vm.notifications.collectAsStateWithLifecycle()
+    val unreadCount = notifications.data?.unreadCount ?: 0
     var confirmLogout by rememberSaveable { mutableStateOf(false) }
+    var showLanguage by rememberSaveable { mutableStateOf(false) }
+    val context = LocalContext.current
+    val currentLanguage = AppLanguage.currentTag(context)
+    val currentLanguageName =
+        AppLanguage.nativeNames[currentLanguage] ?: AppLanguage.nativeNames["tr"].orEmpty()
 
     LaunchedEffect(viewer.id) { vm.loadProfile() }
 
@@ -87,13 +103,15 @@ fun ProfileScreen(
             .background(Paper),
     ) {
         VhTopBar(
-            title = "Profil",
+            title = stringResource(R.string.nav_profile),
             actions = {
-                IconButton(onClick = onOpenNotifications) {
-                    Icon(Icons.Outlined.NotificationsNone, contentDescription = "Bildirimler", tint = Forest)
-                }
+                NotificationBell(unreadCount = unreadCount, onClick = onOpenNotifications)
                 IconButton(onClick = { confirmLogout = true }) {
-                    Icon(Icons.AutoMirrored.Outlined.Logout, contentDescription = "Çıkış", tint = Forest)
+                    Icon(
+                        Icons.AutoMirrored.Outlined.Logout,
+                        contentDescription = stringResource(R.string.profile_logout),
+                        tint = Forest,
+                    )
                 }
             },
         )
@@ -124,11 +142,6 @@ fun ProfileScreen(
                                     color = Sage,
                                 )
                             }
-                            Box(
-                                Modifier
-                                    .size(8.dp)
-                                    .background(Gold, RoundedCornerShape(4.dp)),
-                            )
                         }
                         if (!user.bio.isNullOrBlank()) {
                             Spacer(Modifier.height(12.dp))
@@ -142,10 +155,26 @@ fun ProfileScreen(
                         GoldRule()
                         Spacer(Modifier.height(14.dp))
                         Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                            ProfileStat("${stats?.assets ?: 0}", "varlık", Modifier.weight(1f))
-                            ProfileStat("${stats?.entries ?: 0}", "kayıt", Modifier.weight(1f))
-                            ProfileStat("${stats?.followers ?: 0}", "takipçi", Modifier.weight(1f))
-                            ProfileStat("${stats?.following ?: 0}", "takip", Modifier.weight(1f))
+                            ProfileStat(
+                                "${stats?.assets ?: 0}",
+                                stringResource(R.string.profile_stat_assets),
+                                Modifier.weight(1f),
+                            )
+                            ProfileStat(
+                                "${stats?.entries ?: 0}",
+                                stringResource(R.string.profile_stat_entries),
+                                Modifier.weight(1f),
+                            )
+                            ProfileStat(
+                                "${stats?.followers ?: 0}",
+                                stringResource(R.string.profile_stat_followers),
+                                Modifier.weight(1f),
+                            )
+                            ProfileStat(
+                                "${stats?.following ?: 0}",
+                                stringResource(R.string.profile_stat_following),
+                                Modifier.weight(1f),
+                            )
                         }
                         if (!user.email.isNullOrBlank() || !user.interests.isNullOrEmpty()) {
                             Spacer(Modifier.height(12.dp))
@@ -179,7 +208,7 @@ fun ProfileScreen(
 
             item {
                 Spacer(Modifier.height(16.dp))
-                SectionLabel("Varlıkların")
+                SectionLabel(stringResource(R.string.profile_assets_title))
             }
             val assets = payload?.assets.orEmpty()
             if (payload != null && assets.isEmpty()) {
@@ -191,8 +220,8 @@ fun ProfileScreen(
                         modifier = Modifier.fillMaxWidth(),
                     ) {
                         EmptyState(
-                            title = "Burası senin arşivin",
-                            body = "Henüz bir varlık eklemedin. İlk hikâyeni başlatmak için Varlıklar sekmesini kullan.",
+                            title = stringResource(R.string.profile_empty_title),
+                            body = stringResource(R.string.profile_empty_body),
                         )
                     }
                 }
@@ -209,10 +238,48 @@ fun ProfileScreen(
             if (posts.isNotEmpty()) {
                 item {
                     Spacer(Modifier.height(14.dp))
-                    SectionLabel("Paylaşımların")
+                    SectionLabel(stringResource(R.string.profile_posts_title))
                 }
                 items(posts, key = { it.id }) { post ->
                     ProfilePost(post)
+                }
+            }
+
+            item {
+                Spacer(Modifier.height(16.dp))
+                SectionLabel(stringResource(R.string.language_section))
+                Surface(
+                    color = Ivory,
+                    shape = RoundedCornerShape(14.dp),
+                    border = BorderStroke(1.dp, Line),
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .clickable { showLanguage = true },
+                ) {
+                    Row(
+                        modifier = Modifier.padding(horizontal = 14.dp, vertical = 12.dp),
+                        verticalAlignment = Alignment.CenterVertically,
+                    ) {
+                        Icon(
+                            Icons.Outlined.Language,
+                            contentDescription = null,
+                            tint = SageInk,
+                            modifier = Modifier.width(22.dp),
+                        )
+                        Spacer(Modifier.width(10.dp))
+                        Column(Modifier.weight(1f)) {
+                            Text(
+                                stringResource(R.string.language_title),
+                                style = MaterialTheme.typography.titleSmall,
+                                color = Forest,
+                            )
+                            Text(
+                                stringResource(R.string.language_current, currentLanguageName),
+                                style = MaterialTheme.typography.bodySmall,
+                                color = Muted,
+                            )
+                        }
+                    }
                 }
             }
 
@@ -225,12 +292,12 @@ fun ProfileScreen(
                 ) {
                     Column(Modifier.padding(14.dp)) {
                         Text(
-                            "Verilerin senin.",
+                            stringResource(R.string.profile_data_title),
                             style = MaterialTheme.typography.titleSmall,
                             color = Forest,
                         )
                         Text(
-                            "Arşivini dilediğin an dışa aktarabilir, hesabını silebilirsin. Bu işlemler web sürümündeki profil sayfasından yapılır.",
+                            stringResource(R.string.profile_data_body),
                             style = MaterialTheme.typography.bodySmall,
                             color = Muted,
                         )
@@ -238,7 +305,7 @@ fun ProfileScreen(
                 }
                 Spacer(Modifier.height(22.dp))
                 Text(
-                    "izleer · v1.0",
+                    stringResource(R.string.profile_version),
                     style = MaterialTheme.typography.labelSmall,
                     color = Muted,
                 )
@@ -250,19 +317,75 @@ fun ProfileScreen(
     if (confirmLogout) {
         AlertDialog(
             onDismissRequest = { confirmLogout = false },
-            title = { Text("Çıkış yapılsın mı?") },
-            text = { Text("Oturumun kapatılacak; arşivin güvende kalacak.") },
+            title = { Text(stringResource(R.string.profile_logout_title)) },
+            text = { Text(stringResource(R.string.profile_logout_body)) },
             confirmButton = {
                 TextButton(onClick = {
                     confirmLogout = false
                     vm.logout()
-                }) { Text("Çıkış yap", color = Danger) }
+                }) { Text(stringResource(R.string.profile_logout_confirm), color = Danger) }
             },
             dismissButton = {
-                TextButton(onClick = { confirmLogout = false }) { Text("Vazgeç", color = Forest) }
+                TextButton(onClick = { confirmLogout = false }) {
+                    Text(stringResource(R.string.profile_logout_cancel), color = Forest)
+                }
             },
         )
     }
+
+    if (showLanguage) {
+        AlertDialog(
+            onDismissRequest = { showLanguage = false },
+            title = { Text(stringResource(R.string.language_dialog_title)) },
+            text = {
+                Column {
+                    Text(
+                        stringResource(R.string.language_dialog_body),
+                        style = MaterialTheme.typography.bodySmall,
+                        color = Muted,
+                    )
+                    Spacer(Modifier.height(6.dp))
+                    AppLanguage.supportedTags.forEach { tag ->
+                        Row(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .clickable {
+                                    showLanguage = false
+                                    if (tag != currentLanguage) {
+                                        AppLanguage.set(context, tag)
+                                        context.findActivity()?.recreate()
+                                    }
+                                }
+                                .padding(vertical = 8.dp),
+                            verticalAlignment = Alignment.CenterVertically,
+                        ) {
+                            RadioButton(selected = tag == currentLanguage, onClick = null)
+                            Spacer(Modifier.width(8.dp))
+                            Text(
+                                AppLanguage.nativeNames[tag].orEmpty(),
+                                style = MaterialTheme.typography.bodyMedium,
+                                color = Forest,
+                            )
+                        }
+                    }
+                }
+            },
+            confirmButton = {
+                TextButton(onClick = { showLanguage = false }) {
+                    Text(stringResource(R.string.language_cancel), color = Forest)
+                }
+            },
+        )
+    }
+}
+
+private fun Context.findActivity(): Activity? {
+    var current: Context = this
+    while (current is ContextWrapper) {
+        if (current is Activity) return current
+        current = current.baseContext
+    }
+    return null
 }
 
 @Composable
@@ -270,13 +393,15 @@ private fun ProfileStat(value: String, label: String, modifier: Modifier = Modif
     Column(
         modifier = modifier
             .background(Paper.copy(alpha = 0.07f), RoundedCornerShape(9.dp))
-            .padding(horizontal = 8.dp, vertical = 8.dp),
+            .padding(horizontal = 6.dp, vertical = 8.dp),
     ) {
         Text(value, style = MaterialTheme.typography.titleLarge, color = Paper)
         Text(
             label.uppercase(),
-            style = MaterialTheme.typography.labelSmall,
+            style = MaterialTheme.typography.labelSmall.copy(fontSize = 10.sp, letterSpacing = 0.3.sp),
             color = Sage,
+            maxLines = 1,
+            overflow = TextOverflow.Ellipsis,
         )
     }
 }
@@ -291,7 +416,7 @@ private fun ProfilePost(post: FeedPost) {
             .padding(12.dp),
     ) {
         Text(
-            post.body.ifBlank { post.asset?.title ?: "Paylaşım" },
+            post.body.ifBlank { post.asset?.title ?: stringResource(R.string.common_share) },
             style = MaterialTheme.typography.bodyMedium,
             color = Forest,
             maxLines = 3,
@@ -299,13 +424,13 @@ private fun ProfilePost(post: FeedPost) {
         )
         Row(Modifier.padding(top = 6.dp)) {
             Text(
-                "Beğeni ${post.likeCount}",
+                stringResource(R.string.common_like_count, post.likeCount),
                 style = MaterialTheme.typography.labelSmall,
                 color = Clay,
             )
             Spacer(Modifier.width(10.dp))
             Text(
-                "Yorum ${post.commentCount}",
+                stringResource(R.string.common_comment_count, post.commentCount),
                 style = MaterialTheme.typography.labelSmall,
                 color = Muted,
             )

@@ -1,0 +1,31 @@
+<resources>
+    <!-- Arşiv -->
+    <string name="archive_filter_all">Tümü</string>
+    <string name="archive_subtitle">%1$d görsel · %2$d belge · %3$d video</string>
+    <string name="archive_search_placeholder">Arşivde ara</string>
+    <string name="archive_clear_search">Temizle</string>
+    <string name="archive_empty_title">Arşiv henüz sessiz</string>
+    <string name="archive_empty_body">Varlıklarına eklediğin fotoğraf, belge ve videolar burada birikir.</string>
+    <string name="archive_no_match_title">Eşleşen dosya yok</string>
+    <string name="archive_no_match_body">Farklı bir kelimeyle aramayı dene.</string>
+    <string name="archive_footer">Fotoğrafa dokun, büyüt. Belge ve videolar cihazın görüntüleyicisiyle açılır.</string>
+    <string name="archive_close">Kapat</string>
+
+    <plurals name="archive_file_count">
+        <item quantity="one">%1$d dosya</item>
+        <item quantity="other">%1$d dosya</item>
+    </plurals>
+
+    <!-- Bildirimler -->
+    <string name="archive_all_read">Her şey okundu</string>
+    <string name="archive_mark_all_read">Tümünü okundu işaretle</string>
+    <string name="archive_notifications_empty_title">Bildirim yok</string>
+    <string name="archive_notifications_empty_body">Biri seni takip ettiğinde, bir varlığını paylaştığında ya da bir kaydını beğendiğinde burada görünür.</string>
+    <string name="archive_notifications_footer">Bildirimler yalnızca senin için üretilir; kimseyle paylaşılmaz.</string>
+    <string name="archive_notification_fallback">Yeni bir bildirim</string>
+
+    <plurals name="archive_unread_count">
+        <item quantity="one">%1$d okunmamış</item>
+        <item quantity="other">%1$d okunmamış</item>
+    </plurals>
+</resources>

@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import { useMemo, useRef, useState } from 'react';
 import { uploadMedia, vh } from '@/lib/client';
 import { typeIconName, visibilityHints, visibilityLabels } from '@/lib/format';
+import { useT } from '@/lib/i18n/client';
 import type { Asset, AssetType, AttributeField, Visibility } from '@/lib/types';
 import { Icon } from './Icons';
 import { MediaImage } from './MediaImage';
@@ -27,6 +28,7 @@ function flattenTypes(types: AssetType[]): Leaf[] {
 
 export function NewAssetForm({ types }: { types: AssetType[] }) {
   const router = useRouter();
+  const t = useT();
   const fileRef = useRef<HTMLInputElement>(null);
   const [typeId, setTypeId] = useState('');
   const [title, setTitle] = useState('');
@@ -56,7 +58,7 @@ export function NewAssetForm({ types }: { types: AssetType[] }) {
   async function submit(event: React.FormEvent) {
     event.preventDefault();
     if (!typeId) {
-      setError('Bir varlık türü seçin.');
+      setError(t('Bir varlık türü seçin.'));
       return;
     }
     setBusy(true);
@@ -92,7 +94,7 @@ export function NewAssetForm({ types }: { types: AssetType[] }) {
       router.push(`/varliklar/${data.asset.id}`);
       router.refresh();
     } catch (caught) {
-      setError(caught instanceof Error ? caught.message : 'Varlık eklenemedi.');
+      setError(caught instanceof Error ? caught.message : t('Varlık eklenemedi.'));
     } finally {
       setBusy(false);
     }
@@ -104,8 +106,8 @@ export function NewAssetForm({ types }: { types: AssetType[] }) {
         <div className="form-section-head">
           <span className="step">01</span>
           <div>
-            <h2>Ne kaydediyorsun?</h2>
-            <p>Canlı, büyüyen ya da süreci olan bir şey seç.</p>
+            <h2>{t('Ne kaydediyorsun?')}</h2>
+            <p>{t('Canlı, büyüyen ya da süreci olan bir şey seç.')}</p>
           </div>
         </div>
         <div className="type-groups">
@@ -148,35 +150,35 @@ export function NewAssetForm({ types }: { types: AssetType[] }) {
         <div className="form-section-head">
           <span className="step">02</span>
           <div>
-            <h2>Temel bilgiler</h2>
-            <p>Bu varlığı yıllar sonra hatırlamanı sağlayacak kısa bilgiler.</p>
+            <h2>{t('Temel bilgiler')}</h2>
+            <p>{t('Bu varlığı yıllar sonra hatırlamanı sağlayacak kısa bilgiler.')}</p>
           </div>
         </div>
         <div className="form-grid">
           <label className="field wide">
-            <span>Adı</span>
+            <span>{t('Adı')}</span>
             <input
               className="input"
               value={title}
               onChange={(event) => setTitle(event.target.value)}
-              placeholder="Örn. On iki yaşındaki Ficus"
+              placeholder={t('Örn. On iki yaşındaki Ficus')}
               maxLength={120}
               required
             />
           </label>
           <label className="field wide">
-            <span>Açıklama</span>
+            <span>{t('Açıklama')}</span>
             <textarea
               className="textarea"
               value={description}
               onChange={(event) => setDescription(event.target.value)}
-              placeholder="Bu varlığın hikâyesi, sana ne ifade ettiği…"
+              placeholder={t('Bu varlığın hikâyesi, sana ne ifade ettiği…')}
               rows={3}
               maxLength={2000}
             />
           </label>
           <label className="field">
-            <span>Hayatına girdiği tarih</span>
+            <span>{t('Hayatına girdiği tarih')}</span>
             <input
               className="input"
               type="date"
@@ -185,7 +187,7 @@ export function NewAssetForm({ types }: { types: AssetType[] }) {
             />
           </label>
           <label className="field">
-            <span>Konum</span>
+            <span>{t('Konum')}</span>
             <input
               className="input"
               value={locationName}
@@ -215,8 +217,8 @@ export function NewAssetForm({ types }: { types: AssetType[] }) {
         <div className="form-section-head">
           <span className="step">03</span>
           <div>
-            <h2>Kimler görebilsin?</h2>
-            <p>Varsayılan olarak özeldir. İstediğin zaman değiştirebilirsin.</p>
+            <h2>{t('Kimler görebilsin?')}</h2>
+            <p>{t('Varsayılan olarak özeldir. İstediğin zaman değiştirebilirsin.')}</p>
           </div>
         </div>
         <div className="visibility-options">
@@ -232,8 +234,8 @@ export function NewAssetForm({ types }: { types: AssetType[] }) {
                 size={18}
               />
               <span>
-                <strong>{visibilityLabels[option]}</strong>
-                <small>{visibilityHints[option]}</small>
+                <strong>{t(visibilityLabels[option])}</strong>
+                <small>{t(visibilityHints[option])}</small>
               </span>
               {visibility === option ? (
                 <span className="type-check">
@@ -249,14 +251,14 @@ export function NewAssetForm({ types }: { types: AssetType[] }) {
         <div className="form-section-head">
           <span className="step">04</span>
           <div>
-            <h2>Bir kapak fotoğrafı</h2>
-            <p>Hafızanın ilk izi. JPG, PNG, WEBP veya GIF; en fazla 10 MB.</p>
+            <h2>{t('Bir kapak fotoğrafı')}</h2>
+            <p>{t('Hafızanın ilk izi. JPG, PNG, WEBP veya GIF; en fazla 10 MB.')}</p>
           </div>
         </div>
         <div className="cover-upload">
           <div className={`cover-preview${preview ? ' has-image' : ''}`}>
             {preview ? (
-              <img src={preview} alt="Kapak önizleme" />
+              <img src={preview} alt={t('Kapak önizleme')} />
             ) : (
               <MediaImage
                 src={null}
@@ -275,14 +277,14 @@ export function NewAssetForm({ types }: { types: AssetType[] }) {
             />
             <button type="button" className="btn btn-ghost" onClick={() => fileRef.current?.click()}>
               <Icon name="upload" size={17} />
-              {cover ? 'Başka bir fotoğraf seç' : 'Fotoğraf seç'}
+              {cover ? t('Başka bir fotoğraf seç') : t('Fotoğraf seç')}
             </button>
             {cover ? (
               <button type="button" className="text-link muted" onClick={() => chooseCover(null)}>
-                Kaldır
+                {t('Kaldır')}
               </button>
             ) : null}
-            <small>Kapak sonradan da eklenebilir.</small>
+            <small>{t('Kapak sonradan da eklenebilir.')}</small>
           </div>
         </div>
       </section>
@@ -291,43 +293,45 @@ export function NewAssetForm({ types }: { types: AssetType[] }) {
         <div className="form-section-head">
           <span className="step">05</span>
           <div>
-            <h2>İlk not <em>(isteğe bağlı)</em></h2>
-            <p>Bugünü kaydetmek için küçük bir başlangıç.</p>
+            <h2>
+              {t('İlk not')} <em>{t('(isteğe bağlı)')}</em>
+            </h2>
+            <p>{t('Bugünü kaydetmek için küçük bir başlangıç.')}</p>
           </div>
         </div>
         <div className="form-grid">
           <label className="field">
-            <span>Kayıt türü</span>
+            <span>{t('Kayıt türü')}</span>
             <select
               className="select"
               value={entryType}
               onChange={(event) => setEntryType(event.target.value)}
             >
-              <option value="note">Not</option>
-              <option value="acquisition">Edinme</option>
-              <option value="photo">Fotoğraf</option>
-              <option value="maintenance">Bakım</option>
-              <option value="event">Dönüm noktası</option>
-              <option value="health">Sağlık</option>
+              <option value="note">{t('Not')}</option>
+              <option value="acquisition">{t('Edinme')}</option>
+              <option value="photo">{t('Fotoğraf')}</option>
+              <option value="maintenance">{t('Bakım')}</option>
+              <option value="event">{t('Dönüm noktası')}</option>
+              <option value="health">{t('Sağlık')}</option>
             </select>
           </label>
           <label className="field">
-            <span>Başlık</span>
+            <span>{t('Başlık')}</span>
             <input
               className="input"
               value={entryTitle}
               onChange={(event) => setEntryTitle(event.target.value)}
-              placeholder="Örn. İlk gün"
+              placeholder={t('Örn. İlk gün')}
               maxLength={140}
             />
           </label>
           <label className="field wide">
-            <span>Not</span>
+            <span>{t('Not')}</span>
             <textarea
               className="textarea"
               value={entryBody}
               onChange={(event) => setEntryBody(event.target.value)}
-              placeholder="Bu varlıkla ilgili saklamak istediğin ilk şey…"
+              placeholder={t('Bu varlıkla ilgili saklamak istediğin ilk şey…')}
               rows={3}
               maxLength={5000}
             />
@@ -344,10 +348,10 @@ export function NewAssetForm({ types }: { types: AssetType[] }) {
 
       <div className="editor-actions">
         <Link href="/varliklar" className="btn btn-ghost">
-          Vazgeç
+          {t('Vazgeç')}
         </Link>
         <button type="submit" className="btn btn-primary" disabled={busy}>
-          {busy ? 'Kaydediliyor…' : 'Hafızaya ekle'}
+          {busy ? t('Kaydediliyor…') : t('Hafızaya ekle')}
           {!busy ? <Icon name="arrow-right" size={18} /> : null}
         </button>
       </div>

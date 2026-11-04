@@ -5,6 +5,7 @@ import android.net.Uri
 import android.provider.OpenableColumns
 import android.util.Base64
 import app.varlikhafizasi.BuildConfig
+import app.varlikhafizasi.R
 import com.jakewharton.retrofit2.converter.kotlinx.serialization.asConverterFactory
 import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.json.Json
@@ -39,6 +40,7 @@ class VhRepository(
             val request = chain.request().newBuilder().apply {
                 if (!token.isNullOrBlank()) header("Authorization", "Bearer $token")
                 header("Accept", "application/json")
+                header("Accept-Language", AppLanguage.acceptLanguage(context))
             }.build()
             chain.proceed(request)
         }
@@ -164,10 +166,10 @@ class VhRepository(
         val resolver = context.contentResolver
         val mimeType = resolver.getType(uri) ?: "image/jpeg"
         val bytes = resolver.openInputStream(uri)?.use { it.readBytes() }
-            ?: throw VhException("Dosya okunamadı.")
-        if (bytes.isEmpty()) throw VhException("Dosya boş.")
+            ?: throw VhException(AppLanguage.string(context, R.string.error_file_unreadable))
+        if (bytes.isEmpty()) throw VhException(AppLanguage.string(context, R.string.error_file_empty))
         if (bytes.size > MAX_UPLOAD_BYTES) {
-            throw VhException("Dosya en fazla 10 MB olabilir.")
+            throw VhException(AppLanguage.string(context, R.string.error_file_too_large))
         }
         val encoded = Base64.encodeToString(bytes, Base64.NO_WRAP)
         return call {
@@ -209,6 +211,7 @@ class VhRepository(
         title: String?,
         body: String?,
         visibility: String,
+        occurredAt: String?,
         mediaUris: List<Uri>,
         measurement: MeasurementInput?,
     ): Entry {
@@ -221,6 +224,7 @@ class VhRepository(
                     title = title?.trim()?.takeIf { it.isNotEmpty() },
                     body = body?.trim()?.takeIf { it.isNotEmpty() },
                     visibility = visibility,
+                    occurredAt = occurredAt,
                     mediaIds = mediaIds,
                     measurements = listOfNotNull(measurement),
                 ),
@@ -279,7 +283,7 @@ class VhRepository(
 
     private suspend fun <T> call(block: suspend () -> Envelope<T>): T =
         try {
-            block().data ?: throw VhException("Sunucudan veri dönmedi.")
+            block().data ?: throw VhException(AppLanguage.string(context, R.string.error_no_data))
         } catch (error: HttpException) {
             throw error.asVh()
         } catch (error: IOException) {
@@ -291,13 +295,12 @@ class VhRepository(
         val parsed = raw?.let {
             runCatching { json.decodeFromString<ApiErrorEnvelope>(it) }.getOrNull()
         }
-        val message = parsed?.error?.message ?: "İşlem tamamlanamadı (${code()})."
+        val message = parsed?.error?.message
+            ?: AppLanguage.string(context, R.string.error_generic_status, code())
         return VhException(message, code())
     }
 
-    private fun offline() = VhException(
-        "Sunucuya ulaşılamadı. API'nin çalıştığını ve adresin doğru olduğunu kontrol edin.",
-    )
+    private fun offline() = VhException(AppLanguage.string(context, R.string.error_offline))
 
     private fun displayName(uri: Uri): String? {
         val cursor = context.contentResolver.query(

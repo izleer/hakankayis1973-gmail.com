@@ -3,6 +3,7 @@
 import { useRouter } from 'next/navigation';
 import { useState } from 'react';
 import { vh } from '@/lib/client';
+import { useI18n } from '@/lib/i18n/client';
 import type { SocialConnectionsResponse } from '@/lib/types';
 import { formatDate } from '@/lib/format';
 import { Icon } from './Icons';
@@ -23,6 +24,7 @@ export function SocialSettings({
   initial: SocialConnectionsResponse | null;
   result: { social: string | null; reason: string | null; accounts: number | null };
 }) {
+  const { t, locale } = useI18n();
   const router = useRouter();
   const [items, setItems] = useState(initial?.items ?? []);
   const [busyId, setBusyId] = useState<string | null>(null);
@@ -32,8 +34,8 @@ export function SocialSettings({
   if (!initial) {
     return (
       <section className="aside-card social-unavailable">
-        <h2>Sosyal servis yüklenemedi</h2>
-        <p>API şu anda yanıt vermiyor. Sayfayı yenileyerek tekrar deneyin.</p>
+        <h2>{t('Sosyal servis yüklenemedi')}</h2>
+        <p>{t('API şu anda yanıt vermiyor. Sayfayı yenileyerek tekrar deneyin.')}</p>
       </section>
     );
   }
@@ -43,7 +45,7 @@ export function SocialSettings({
 
   async function disconnect(id: string) {
     if (busyId) return;
-    if (!window.confirm('Bu sosyal bağlantı kaldırılsın mı?')) return;
+    if (!window.confirm(t('Bu sosyal bağlantı kaldırılsın mı?'))) return;
     setBusyId(id);
     setError(null);
     try {
@@ -51,7 +53,7 @@ export function SocialSettings({
       setItems((current) => current.filter((item) => item.id !== id));
       router.refresh();
     } catch (caught) {
-      setError(caught instanceof Error ? caught.message : 'Bağlantı kaldırılamadı.');
+      setError(caught instanceof Error ? caught.message : t('Bağlantı kaldırılamadı.'));
     } finally {
       setBusyId(null);
     }
@@ -72,11 +74,17 @@ export function SocialSettings({
           <Icon name={result.social === 'connected' ? 'check' : 'bell'} size={17} />
           <span>
             {result.social === 'connected'
-              ? `${result.accounts ?? 1} sosyal hesap bağlandı. Artık varlık detayından paylaşabilirsin.`
-              : reasonMessages[result.reason ?? ''] ??
-                'Sosyal bağlantı tamamlanamadı.'}
+              ? t('{count} sosyal hesap bağlandı. Artık varlık detayından paylaşabilirsin.', {
+                  count: result.accounts ?? 1,
+                })
+              : t(reasonMessages[result.reason ?? ''] ?? 'Sosyal bağlantı tamamlanamadı.')}
           </span>
-          <button type="button" className="icon-btn" onClick={dismissNotice} aria-label="Kapat">
+          <button
+            type="button"
+            className="icon-btn"
+            onClick={dismissNotice}
+            aria-label={t('Kapat')}
+          >
             <Icon name="close" size={15} />
           </button>
         </div>
@@ -88,23 +96,24 @@ export function SocialSettings({
             <Icon name="share" size={20} />
           </span>
           <div>
-            <span className="eyebrow">META ENTEGRASYONU</span>
+            <span className="eyebrow">{t('META ENTEGRASYONU')}</span>
             <h2>
               {config.configured
-                ? 'Paylaşım altyapısı hazır'
-                : 'Kurulum birkaç adım uzakta'}
+                ? t('Paylaşım altyapısı hazır')
+                : t('Kurulum birkaç adım uzakta')}
             </h2>
           </div>
           <span className={`status-pill ${config.configured ? 'is-active' : 'is-pending'}`}>
-            {config.configured ? 'Yapılandırıldı' : 'Kurulum gerekli'}
+            {config.configured ? t('Yapılandırıldı') : t('Kurulum gerekli')}
           </span>
         </div>
 
         {!config.configured ? (
           <>
             <p className="social-lede">
-              Gerçek Facebook ve Instagram paylaşımı için Meta uygulama bilgileri
-              gerekiyor. Eksik değişkenler:
+              {t(
+                'Gerçek Facebook ve Instagram paylaşımı için Meta uygulama bilgileri gerekiyor. Eksik değişkenler:',
+              )}
             </p>
             <p className="social-missing">
               {config.missing.map((name) => (
@@ -113,35 +122,43 @@ export function SocialSettings({
             </p>
             <ol className="social-steps">
               <li>
-                <strong>Meta uygulaması oluştur.</strong> Meta for Developers’ta yeni
-                bir uygulama açıp Facebook Login ve Instagram Graph API ürünlerini ekle.
+                <strong>{t('Meta uygulaması oluştur.')}</strong>{' '}
+                {t(
+                  'Meta for Developers’ta yeni bir uygulama açıp Facebook Login ve Instagram Graph API ürünlerini ekle.',
+                )}
               </li>
               <li>
-                <strong>Dönüş adresini tanımla.</strong> Facebook Login &gt; Ayarlar
-                bölümüne şu adresi ekle:
+                <strong>{t('Dönüş adresini tanımla.')}</strong>{' '}
+                {t('Facebook Login > Ayarlar bölümüne şu adresi ekle:')}
                 <code>{config.redirectUri}</code>
               </li>
               <li>
-                <strong>API ortamını doldur.</strong> <code>api/.env</code> içine
-                <code>META_APP_ID</code>, <code>META_APP_SECRET</code> ve en az 16
-                karakterlik <code>SOCIAL_TOKEN_KEY</code> ekle; API’yi yeniden başlat.
+                <strong>{t('API ortamını doldur.')}</strong> <code>api/.env</code>{' '}
+                {t('dosyasına şu değerleri ekle:')} <code>META_APP_ID</code>,{' '}
+                <code>META_APP_SECRET</code> {t('ve en az 16 karakterlik')}{' '}
+                <code>SOCIAL_TOKEN_KEY</code>
+                {t('; API’yi yeniden başlat.')}
               </li>
               <li>
-                <strong>Sayfa ve Instagram hesabını hazırla.</strong> Facebook
-                Sayfanın olması, Instagram paylaşımı için de sayfaya bağlı bir
-                Instagram Business hesabı gerekiyor.
+                <strong>{t('Sayfa ve Instagram hesabını hazırla.')}</strong>{' '}
+                {t(
+                  'Facebook Sayfanın olması, Instagram paylaşımı için de sayfaya bağlı bir Instagram Business hesabı gerekiyor.',
+                )}
               </li>
               <li>
-                <strong>Instagram medyasını yayınla.</strong> Yerel depolamada
-                <code>MEDIA_PUBLIC_BASE_URL</code> ile herkese açık HTTPS adresi
-                tanımla veya S3 depolamaya geç. Facebook paylaşımı bundan etkilenmez.
+                <strong>{t('Instagram medyasını yayınla.')}</strong>{' '}
+                {t('Yerel depolamada')} <code>MEDIA_PUBLIC_BASE_URL</code>{' '}
+                {t(
+                  'ile herkese açık HTTPS adresi tanımla veya S3 depolamaya geç. Facebook paylaşımı bundan etkilenmez.',
+                )}
               </li>
             </ol>
           </>
         ) : (
           <p className="social-lede">
-            Facebook Sayfanı bağlayarak başla. Sayfaya bağlı Instagram Business
-            hesabı varsa otomatik olarak eklenir. Grafik API sürümü:{' '}
+            {t(
+              'Facebook Sayfanı bağlayarak başla. Sayfaya bağlı Instagram Business hesabı varsa otomatik olarak eklenir. Grafik API sürümü:',
+            )}{' '}
             <strong>{config.graphVersion}</strong>.
           </p>
         )}
@@ -149,8 +166,9 @@ export function SocialSettings({
         {config.configured && !config.mediaPublicReady ? (
           <p className="form-note is-warning">
             <Icon name="lock" size={15} />
-            Instagram paylaşımı için medya adresi henüz herkese açık değil.
-            Facebook gönderi, hikâye ve Reels paylaşımı kullanılabilir.
+            {t(
+              'Instagram paylaşımı için medya adresi henüz herkese açık değil. Facebook gönderi, hikâye ve Reels paylaşımı kullanılabilir.',
+            )}
           </p>
         ) : null}
 
@@ -158,17 +176,18 @@ export function SocialSettings({
           {config.configured ? (
             <a className="btn btn-primary" href="/api/social/start">
               <Icon name="facebook" size={17} />
-              Facebook ile bağlan
+              {t('Facebook ile bağlan')}
             </a>
           ) : (
             <button type="button" className="btn btn-primary" disabled>
               <Icon name="facebook" size={17} />
-              Facebook ile bağlan
+              {t('Facebook ile bağlan')}
             </button>
           )}
           <small>
-            Gerekli izinler: sayfa listesi, sayfa içeriği yönetimi, Instagram içerik
-            yayınlama.
+            {t(
+              'Gerekli izinler: sayfa listesi, sayfa içeriği yönetimi, Instagram içerik yayınlama.',
+            )}
           </small>
         </div>
       </section>
@@ -176,8 +195,12 @@ export function SocialSettings({
       <section className="aside-card social-connections">
         <div className="social-section-head">
           <div>
-            <span className="eyebrow">BAĞLI HESAPLAR</span>
-            <h2>{items.length > 0 ? `${items.length} bağlantı` : 'Henüz bağlantı yok'}</h2>
+            <span className="eyebrow">{t('BAĞLI HESAPLAR')}</span>
+            <h2>
+              {items.length > 0
+                ? t('{count} bağlantı', { count: items.length })
+                : t('Henüz bağlantı yok')}
+            </h2>
           </div>
         </div>
 
@@ -185,8 +208,9 @@ export function SocialSettings({
 
         {items.length === 0 ? (
           <p className="muted-note">
-            Facebook ile bağlan dediğinde izin verdiğin sayfalar ve varsa bağlı
-            Instagram Business hesapları burada listelenir.
+            {t(
+              'Facebook ile bağlan dediğinde izin verdiğin sayfalar ve varsa bağlı Instagram Business hesapları burada listelenir.',
+            )}
           </p>
         ) : (
           <ul className="social-connection-list">
@@ -199,12 +223,16 @@ export function SocialSettings({
                   <strong>{item.accountName}</strong>
                   <small>
                     {item.provider === 'facebook'
-                      ? 'Facebook Sayfası'
-                      : `Instagram Business · ${item.pageName} sayfasına bağlı`}
+                      ? t('Facebook Sayfası')
+                      : t('Instagram Business · {page} sayfasına bağlı', {
+                          page: item.pageName,
+                        })}
                     {item.accountUsername ? ` · @${item.accountUsername}` : ''}
                   </small>
                   <small className="social-connection-date">
-                    {formatDate(item.createdAt)} tarihinde bağlandı
+                    {t('{date} tarihinde bağlandı', {
+                      date: formatDate(item.createdAt, locale),
+                    })}
                   </small>
                 </span>
                 <button
@@ -214,7 +242,7 @@ export function SocialSettings({
                   onClick={() => disconnect(item.id)}
                 >
                   <Icon name="logout" size={15} />
-                  {busyId === item.id ? 'Kaldırılıyor…' : 'Kaldır'}
+                  {busyId === item.id ? t('Kaldırılıyor…') : t('Kaldır')}
                 </button>
               </li>
             ))}
@@ -223,22 +251,22 @@ export function SocialSettings({
       </section>
 
       <section className="aside-card social-formats">
-        <span className="eyebrow">PAYLAŞIM BİÇİMLERİ</span>
+        <span className="eyebrow">{t('PAYLAŞIM BİÇİMLERİ')}</span>
         <div className="social-format-grid">
           <div>
             <Icon name="image" size={18} />
-            <strong>Gönderi</strong>
-            <small>Facebook Sayfasında fotoğraf veya video gönderisi.</small>
+            <strong>{t('Gönderi')}</strong>
+            <small>{t('Facebook Sayfasında fotoğraf veya video gönderisi.')}</small>
           </div>
           <div>
             <Icon name="sparkles" size={18} />
-            <strong>Hikâye</strong>
-            <small>Kapak fotoğrafı 24 saatlik hikâye olarak paylaşılır.</small>
+            <strong>{t('Hikâye paylaşımı')}</strong>
+            <small>{t('Kapak fotoğrafı 24 saatlik hikâye olarak paylaşılır.')}</small>
           </div>
           <div>
             <Icon name="camera" size={18} />
             <strong>Reels</strong>
-            <small>Varlığa bağlı videolar dikey Reels olarak yayınlanır.</small>
+            <small>{t('Varlığa bağlı videolar dikey Reels olarak yayınlanır.')}</small>
           </div>
         </div>
       </section>

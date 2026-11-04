@@ -1,0 +1,37 @@
+<resources>
+    <!-- Écran « Ajouter une entrée » -->
+    <string name="add_entry_title">Ajouter une entrée</string>
+    <string name="add_entry_eyebrow">À LA CHRONOLOGIE</string>
+    <string name="add_entry_headline">Que s\'est-il passé aujourd\'hui ?</string>
+    <string name="add_entry_intro">Un entretien, un instant, une mesure… Quoi que ce soit, qu\'il reste avec sa date.</string>
+
+    <string name="add_entry_section_type">Type d\'entrée</string>
+    <string name="add_entry_field_title">Titre (facultatif)</string>
+    <string name="add_entry_field_notes">Notes</string>
+    <string name="add_entry_notes_placeholder">Qu\'avez-vous fait, qu\'est-ce qui a changé, qu\'avez-vous ressenti ?</string>
+
+    <string name="add_entry_section_when">Quand ?</string>
+    <string name="add_entry_change_datetime">Modifier la date et l\'heure</string>
+
+    <string name="add_entry_section_measurement">Mesure</string>
+    <string name="add_entry_metric">Grandeur</string>
+    <string name="add_entry_metric_placeholder">Taille</string>
+    <string name="add_entry_value">Valeur</string>
+    <string name="add_entry_unit">Unité</string>
+    <string name="add_entry_unit_placeholder">cm</string>
+    <string name="add_entry_measurement_hint">Si vous le remplissez, la mesure est ajoutée à l\'historique des mesures.</string>
+
+    <string name="add_entry_section_visibility">Qui peut le voir ?</string>
+    <string name="add_entry_visibility_hint">Une entrée ne peut pas être plus visible que son bien.</string>
+
+    <string name="add_entry_section_files">Photo / document</string>
+    <string name="add_entry_add_file">Ajouter un fichier (%1$s, %2$d Mo)</string>
+    <string name="add_entry_remove_file">Retirer</string>
+    <plurals name="add_entry_media_limit_count">
+        <item quantity="one">jusqu\'à %1$d fichier</item>
+        <item quantity="other">jusqu\'à %1$d fichiers</item>
+    </plurals>
+
+    <string name="add_entry_footer_hint">L\'entrée est ajoutée à la chronologie avec la date et l\'heure choisies ; vous pourrez la modifier ensuite.</string>
+    <string name="add_entry_save">Ajouter à l\'histoire</string>
+</resources>

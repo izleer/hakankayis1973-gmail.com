@@ -1,0 +1,31 @@
+<resources>
+    <!-- Archiv -->
+    <string name="archive_filter_all">Alle</string>
+    <string name="archive_subtitle">%1$d Bilder · %2$d Dokumente · %3$d Videos</string>
+    <string name="archive_search_placeholder">Im Archiv suchen</string>
+    <string name="archive_clear_search">Leeren</string>
+    <string name="archive_empty_title">Noch ist es still im Archiv</string>
+    <string name="archive_empty_body">Fotos, Dokumente und Videos, die du deinen Objekten hinzufügst, sammeln sich hier.</string>
+    <string name="archive_no_match_title">Keine passende Datei</string>
+    <string name="archive_no_match_body">Versuche es mit einem anderen Wort.</string>
+    <string name="archive_footer">Tippe auf ein Foto, um es zu vergrößern. Dokumente und Videos öffnen sich in der App deines Geräts.</string>
+    <string name="archive_close">Schließen</string>
+
+    <plurals name="archive_file_count">
+        <item quantity="one">%1$d Datei</item>
+        <item quantity="other">%1$d Dateien</item>
+    </plurals>
+
+    <!-- Benachrichtigungen -->
+    <string name="archive_all_read">Alles gelesen</string>
+    <string name="archive_mark_all_read">Alle als gelesen markieren</string>
+    <string name="archive_notifications_empty_title">Keine Benachrichtigungen</string>
+    <string name="archive_notifications_empty_body">Wenn dir jemand folgt, ein Objekt von dir teilt oder einen deiner Einträge mag, erscheint das hier.</string>
+    <string name="archive_notifications_footer">Benachrichtigungen werden nur für dich erstellt; sie werden mit niemandem geteilt.</string>
+    <string name="archive_notification_fallback">Eine neue Benachrichtigung</string>
+
+    <plurals name="archive_unread_count">
+        <item quantity="one">%1$d ungelesen</item>
+        <item quantity="other">%1$d ungelesen</item>
+    </plurals>
+</resources>

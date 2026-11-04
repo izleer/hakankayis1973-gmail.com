@@ -1,3 +1,4 @@
+import type { Metadata } from 'next';
 import Link from 'next/link';
 import { EmptyState } from '@/components/EmptyState';
 import { FeedCard } from '@/components/FeedCard';
@@ -5,14 +6,19 @@ import { FollowButton } from '@/components/FollowButton';
 import { Icon } from '@/components/Icons';
 import { MediaImage } from '@/components/MediaImage';
 import { api, requireViewer } from '@/lib/api';
-import { formatNumber, initials, typeIconName } from '@/lib/format';
+import { initials, typeIconName } from '@/lib/format';
+import { getI18n, getT } from '@/lib/i18n/server';
 import type { Asset, CursorPage, FeedPost, Paged, UserMini } from '@/lib/types';
 
-export const metadata = { title: 'Keşfet' };
+export async function generateMetadata(): Promise<Metadata> {
+  const t = await getT();
+  return { title: t('Keşfet') };
+}
 
 type Suggestion = UserMini & { bio: string | null; followerCount: number; isFollowing: boolean };
 
 export default async function ExplorePage() {
+  const { t, locale } = await getI18n();
   await requireViewer();
   const [feed, discover, suggestions] = await Promise.all([
     api<CursorPage<FeedPost>>('/v1/feed?scope=explore&limit=16'),
@@ -24,16 +30,17 @@ export default async function ExplorePage() {
     <main className="page">
       <header className="page-head">
         <div>
-          <span className="eyebrow">Başka hafızalara bak</span>
-          <h1>Keşfet</h1>
+          <span className="eyebrow">{t('Başka hafızalara bak')}</span>
+          <h1>{t('Keşfet')}</h1>
           <p>
-            Bonsai’sinden bir yaprak, yıllardır süren bir restorasyon ya da yeni
-            aldığı ilk fotoğraf… Başkalarının izleri burada.
+            {t(
+              'Bonsai’sinden bir yaprak, yıllardır süren bir restorasyon ya da yeni aldığı ilk fotoğraf… Başkalarının izleri burada.',
+            )}
           </p>
         </div>
         <Link href="/arsiv" className="btn btn-ghost">
           <Icon name="archive" size={17} />
-          Kendi arşivin
+          {t('Kendi arşivin')}
         </Link>
       </header>
 
@@ -44,9 +51,11 @@ export default async function ExplorePage() {
           ) : (
             <EmptyState
               icon="compass"
-              title="Şimdilik sessiz"
-              body="Herkese açık paylaşılan bir iz henüz yok. Kendi varlığını herkese açarak başlayabilirsin."
-              action={{ href: '/varliklar', label: 'Varlıklarına git' }}
+              title={t('Şimdilik sessiz')}
+              body={t(
+                'Herkese açık paylaşılan bir iz henüz yok. Kendi varlığını herkese açarak başlayabilirsin.',
+              )}
+              action={{ href: '/varliklar', label: t('Varlıklarına git') }}
             />
           )}
         </section>
@@ -55,10 +64,10 @@ export default async function ExplorePage() {
           <section className="aside-card">
             <div className="aside-head">
               <div>
-                <span className="eyebrow">Herkese açık</span>
-                <h2>Hafıza önerileri</h2>
+                <span className="eyebrow">{t('Herkese açık')}</span>
+                <h2>{t('Hafıza önerileri')}</h2>
               </div>
-              <span className="aside-count">{formatNumber(discover.total)}</span>
+              <span className="aside-count">{discover.items.length}</span>
             </div>
             {discover.items.length > 0 ? (
               <div className="discover-list">
@@ -79,22 +88,23 @@ export default async function ExplorePage() {
                       <small>{asset.type.label}</small>
                       <strong>{asset.title}</strong>
                       <span>
-                        {asset.owner.displayName} · {asset.entryCount} kayıt
+                        {asset.owner.displayName} ·{' '}
+                        {t('{count} kayıt', { count: asset.entryCount })}
                       </span>
                     </span>
                   </Link>
                 ))}
               </div>
             ) : (
-              <p className="muted-note">Henüz herkese açık bir varlık yok.</p>
+              <p className="muted-note">{t('Henüz herkese açık bir varlık yok.')}</p>
             )}
           </section>
 
           <section className="aside-card">
             <div className="aside-head">
               <div>
-                <span className="eyebrow">Topluluk</span>
-                <h2>Tanış</h2>
+                <span className="eyebrow">{t('Topluluk')}</span>
+                <h2>{t('Tanış')}</h2>
               </div>
             </div>
             {suggestions.items.length > 0 ? (
@@ -106,13 +116,14 @@ export default async function ExplorePage() {
                         {person.avatarUrl ? (
                           <img src={person.avatarUrl} alt="" />
                         ) : (
-                          initials(person.displayName)
+                          initials(person.displayName, locale)
                         )}
                       </span>
                       <span>
                         <strong>{person.displayName}</strong>
                         <small>
-                          @{person.username} · {formatNumber(person.followerCount)} takipçi
+                          @{person.username} ·{' '}
+                          {t('{count} takipçi', { count: person.followerCount })}
                         </small>
                       </span>
                     </Link>
@@ -125,15 +136,16 @@ export default async function ExplorePage() {
                 ))}
               </div>
             ) : (
-              <p className="muted-note">Önerilecek yeni bir kişi yok.</p>
+              <p className="muted-note">{t('Önerilecek yeni bir kişi yok.')}</p>
             )}
           </section>
 
           <div className="explore-note">
             <Icon name="leaf" size={20} />
             <p>
-              Bir varlığı herkese açtığında yalnızca seçtiğin kayıtlar ve
-              fotoğraflar görünür. Özel notların hep sende kalır.
+              {t(
+                'Bir varlığı herkese açtığında yalnızca seçtiğin kayıtlar ve fotoğraflar görünür. Özel notların hep sende kalır.',
+              )}
             </p>
           </div>
         </aside>

@@ -19,12 +19,14 @@ val Paper = Color(0xFFF6F1E6)
 val PaperDeep = Color(0xFFEDE5D5)
 val Ivory = Color(0xFFFFFCF5)
 val Sage = Color(0xFF8FA08A)
+val SageInk = Color(0xFF5F7359)
 val SageLight = Color(0xFFDDE4D6)
-val Clay = Color(0xFFB56242)
+val Clay = Color(0xFFA65336)
 val ClayLight = Color(0xFFF1DED4)
 val Gold = Color(0xFFC7A253)
+val GoldInk = Color(0xFF866329)
 val Ink = Color(0xFF222A25)
-val Muted = Color(0xFF6E776F)
+val Muted = Color(0xFF5C665E)
 val Line = Color(0xFFDCD3C2)
 val Danger = Color(0xFF973B2B)
 
@@ -108,8 +110,8 @@ private val VhTypography = Typography(
     ),
     bodySmall = TextStyle(
         fontFamily = FontFamily.SansSerif,
-        fontSize = 12.sp,
-        lineHeight = 17.sp,
+        fontSize = 12.5.sp,
+        lineHeight = 18.sp,
     ),
     labelLarge = TextStyle(
         fontFamily = FontFamily.SansSerif,
@@ -120,14 +122,14 @@ private val VhTypography = Typography(
     labelMedium = TextStyle(
         fontFamily = FontFamily.SansSerif,
         fontWeight = FontWeight.Medium,
-        fontSize = 11.sp,
-        letterSpacing = 0.6.sp,
+        fontSize = 12.sp,
+        letterSpacing = 0.3.sp,
     ),
     labelSmall = TextStyle(
         fontFamily = FontFamily.SansSerif,
         fontWeight = FontWeight.Medium,
-        fontSize = 10.sp,
-        letterSpacing = 1.sp,
+        fontSize = 11.sp,
+        letterSpacing = 0.5.sp,
     ),
 )
 

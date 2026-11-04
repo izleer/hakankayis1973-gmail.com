@@ -1,0 +1,27 @@
+<resources>
+    <!-- Pantalla de inicio -->
+    <string name="home_greeting">Hola, %1$s.</string>
+    <string name="home_subtitle">¿Qué añadirás hoy a tu memoria?</string>
+    <string name="home_summary_label">MEMORIA EN RESUMEN</string>
+    <string name="home_summary_stats">%1$s\n%2$s</string>
+    <string name="home_summary_empty">Todo tiene una\nhistoria.</string>
+    <string name="home_stat_media">Medios</string>
+    <string name="home_new_asset">Nuevo bien</string>
+    <string name="home_open_archive">Explorar el archivo</string>
+    <string name="home_see_all">Todo</string>
+    <string name="home_empty_title">Deja la primera huella</string>
+    <string name="home_empty_body">Un bonsái, un amigo o el cuadro de la pared… Añade tu primer bien y que su historia empiece aquí.</string>
+    <string name="home_recent_title">Actividad reciente</string>
+    <string name="home_entry_fallback">Registro</string>
+    <string name="home_quote">«Guardar algo es\npara volver a mirarlo.»</string>
+    <string name="home_quote_attribution">izleer · archivo diario</string>
+
+    <plurals name="home_summary_assets">
+        <item quantity="one">%1$d bien</item>
+        <item quantity="other">%1$d bienes</item>
+    </plurals>
+    <plurals name="home_summary_traces">
+        <item quantity="one">dejó %1$d huella.</item>
+        <item quantity="other">dejaron %1$d huellas.</item>
+    </plurals>
+</resources>

@@ -1,0 +1,49 @@
+<resources>
+    <!-- Sekmeler -->
+    <string name="asset_detail_tab_story">Hikâye</string>
+    <string name="asset_detail_tab_media">Medya</string>
+    <string name="asset_detail_tab_measurements">Ölçümler</string>
+    <string name="asset_detail_tab_people">Kişiler</string>
+
+    <!-- Üst eylemler -->
+    <string name="asset_detail_add_entry">Kayıt ekle</string>
+    <string name="asset_detail_share_with_people">Kişilerle paylaş</string>
+
+    <!-- Kapak ve özet -->
+    <string name="asset_detail_shared_with_you">Bu varlık sizinle paylaşıldı.</string>
+    <string name="asset_detail_meta_entries">kayıt</string>
+    <string name="asset_detail_meta_acquired">edinme</string>
+    <string name="asset_detail_meta_location">mekân</string>
+    <string name="asset_detail_cover_type_fallback">VARLIK</string>
+
+    <!-- Boş durumlar -->
+    <string name="asset_detail_story_empty_title">Henüz bir iz yok</string>
+    <string name="asset_detail_story_empty_body">İlk notunu, fotoğrafını ya da bakım kaydını ekle; zaman çizelgesi burada başlasın.</string>
+    <string name="asset_detail_media_empty_title">Medya sessiz</string>
+    <string name="asset_detail_media_empty_body">Kayıtlara eklediğin fotoğraf ve belgeler burada toplanır.</string>
+    <plurals name="asset_detail_media_count">
+        <item quantity="one">%1$d dosya · dokunarak büyüt</item>
+        <item quantity="other">%1$d dosya · dokunarak büyüt</item>
+    </plurals>
+    <string name="asset_detail_measurements_empty_title">Ölçüm yok</string>
+    <string name="asset_detail_measurements_empty_body">Boy, ağırlık, sulama miktarı… Ölçüm tipinde bir kayıt ekleyince burada birikir.</string>
+    <string name="asset_detail_measurement_history">Ölçüm geçmişi</string>
+
+    <!-- Erişim yönetimi -->
+    <string name="asset_detail_access_section">Kimler görebilir?</string>
+    <string name="asset_detail_access_body">Varlık %1$s olsa da aşağıdaki kişiler yalnızca bu varlığı görüntüleyebilir. Kayıtların görünürlüğü ayrıca yönetilir.</string>
+    <string name="asset_detail_username_label">Kullanıcı adı</string>
+    <string name="asset_detail_add">Ekle</string>
+    <string name="asset_detail_remove_access">Erişimi kaldır</string>
+    <string name="asset_detail_no_viewers_title">Kimseyle paylaşılmadı</string>
+    <string name="asset_detail_no_viewers_body">Bir kullanıcı adı ekleyerek bu varlığın hikâyesini seçtiğin kişiyle paylaşabilirsin.</string>
+    <string name="asset_detail_owner_only_title">Sadece sahibi yönetir</string>
+    <string name="asset_detail_owner_only_body">Bu varlığın erişim listesini yalnızca sahibi düzenleyebilir.</string>
+
+    <!-- Silme ve görsel görüntüleyici -->
+    <string name="asset_detail_delete">Sil</string>
+    <string name="asset_detail_delete_title">Kayıt silinsin mi?</string>
+    <string name="asset_detail_delete_body">Bu kayıt ve bağlı medyaları arşivden kaldırılacak. Bu işlem geri alınamaz.</string>
+    <string name="asset_detail_cancel">Vazgeç</string>
+    <string name="asset_detail_close">Kapat</string>
+</resources>

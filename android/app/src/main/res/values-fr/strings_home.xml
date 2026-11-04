@@ -1,0 +1,27 @@
+<resources>
+    <!-- Écran d’accueil -->
+    <string name="home_greeting">Bonjour, %1$s.</string>
+    <string name="home_subtitle">Qu\'ajouterez-vous à votre mémoire aujourd\'hui ?</string>
+    <string name="home_summary_label">MÉMOIRE EN BREF</string>
+    <string name="home_summary_stats">%1$s\n%2$s</string>
+    <string name="home_summary_empty">Tout a une\nhistoire.</string>
+    <string name="home_stat_media">Médias</string>
+    <string name="home_new_asset">Nouveau bien</string>
+    <string name="home_open_archive">Parcourir les archives</string>
+    <string name="home_see_all">Tout</string>
+    <string name="home_empty_title">Laissez la première trace</string>
+    <string name="home_empty_body">Un bonsaï, un ami ou le tableau au mur… Ajoutez votre premier bien et que son histoire commence ici.</string>
+    <string name="home_recent_title">Activité récente</string>
+    <string name="home_entry_fallback">Entrée</string>
+    <string name="home_quote">« Garder une chose,\nc\'est pour la regarder à nouveau. »</string>
+    <string name="home_quote_attribution">izleer · archive quotidienne</string>
+
+    <plurals name="home_summary_assets">
+        <item quantity="one">%1$d bien</item>
+        <item quantity="other">%1$d biens</item>
+    </plurals>
+    <plurals name="home_summary_traces">
+        <item quantity="one">a laissé %1$d trace.</item>
+        <item quantity="other">ont laissé %1$d traces.</item>
+    </plurals>
+</resources>

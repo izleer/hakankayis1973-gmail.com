@@ -1,0 +1,16 @@
+<resources>
+    <!-- Explorar -->
+    <string name="explore_subtitle">Inspírate en los procesos de los demás</string>
+    <string name="explore_hero_eyebrow">EL ARCHIVO DE LOS CURIOSOS</string>
+    <string name="explore_hero_title">Cada bien,\nun proceso.</string>
+    <string name="explore_hero_body">Podas de bonsái, el primer año de un perro, notas de restauración… Descubre procesos reales.</string>
+    <string name="explore_assets_title">Bienes inspiradores</string>
+    <string name="explore_people_title">Personas por conocer</string>
+    <string name="explore_feed_title">Novedades</string>
+    <string name="explore_empty_title">Sin novedades por ahora</string>
+    <string name="explore_empty_body">Aquí aparecen las entradas compartidas públicamente. Tú también puedes empezar haciendo público uno de tus bienes.</string>
+    <string name="explore_footer_note">Explorar solo muestra bienes y publicaciones públicos. Tu archivo privado es solo tuyo.</string>
+    <string name="explore_follow">Seguir</string>
+    <string name="explore_following">Siguiendo</string>
+    <string name="explore_like">Me gusta</string>
+</resources>

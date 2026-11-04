@@ -11,6 +11,7 @@ import {
   initials,
   mediaSrc,
 } from '@/lib/format';
+import { useI18n, useT } from '@/lib/i18n/client';
 import type {
   Asset,
   CommunityRole,
@@ -79,6 +80,7 @@ export function GroupDetail({
   myAssets: Asset[];
   viewer: User;
 }) {
+  const { t, locale } = useI18n();
   const router = useRouter();
   const [group, setGroup] = useState<Group>(data.community);
   const [members, setMembers] = useState<GroupMember[]>(data.members);
@@ -154,23 +156,23 @@ export function GroupDetail({
           { user: viewer, role: 'member', joinedAt: new Date().toISOString() },
         ]);
         await Promise.all([loadFeed(), loadAssets()]);
-        flash('Gruba katıldın. Artık akışı görebilirsin.');
+        flash(t('Gruba katıldın. Artık akışı görebilirsin.'));
       } else if (result.pending) {
         setGroup((current) => ({
           ...current,
           membershipStatus: 'pending',
         }));
-        flash('Katılım isteğin gönderildi. Yönetici onayı bekleniyor.');
+        flash(t('Katılım isteğin gönderildi. Yönetici onayı bekleniyor.'));
       }
     } catch (caught) {
-      setError(caught instanceof Error ? caught.message : 'Gruba katılınamadı.');
+      setError(caught instanceof Error ? caught.message : t('Gruba katılınamadı.'));
     } finally {
       setBusy(false);
     }
   }
 
   async function leave() {
-    if (!window.confirm('Bu gruptan ayrılmak istiyor musun? Varlıkların sende kalır.')) return;
+    if (!window.confirm(t('Bu gruptan ayrılmak istiyor musun? Varlıkların sende kalır.'))) return;
     setBusy(true);
     setError(null);
     try {
@@ -186,9 +188,9 @@ export function GroupDetail({
       setAssets([]);
       setTab('feed');
       router.refresh();
-      flash('Gruptan ayrıldın. Varlıkların ve kişisel geçmişin yerinde.');
+      flash(t('Gruptan ayrıldın. Varlıkların ve kişisel geçmişin yerinde.'));
     } catch (caught) {
-      setError(caught instanceof Error ? caught.message : 'Gruptan ayrılınamadı.');
+      setError(caught instanceof Error ? caught.message : t('Gruptan ayrılınamadı.'));
     } finally {
       setBusy(false);
     }
@@ -205,14 +207,15 @@ export function GroupDetail({
           member.user.id === userId ? { ...member, role: nextRole } : member,
         ),
       );
-      flash('Üye rolü güncellendi.');
+      flash(t('Üye rolü güncellendi.'));
     } catch (caught) {
-      setError(caught instanceof Error ? caught.message : 'Rol değiştirilemedi.');
+      setError(caught instanceof Error ? caught.message : t('Rol değiştirilemedi.'));
     }
   }
 
   async function removeMember(member: GroupMember) {
-    if (!window.confirm(`${member.user.displayName} gruptan çıkarılsın mı?`)) return;
+    if (!window.confirm(t('{name} gruptan çıkarılsın mı?', { name: member.user.displayName })))
+      return;
     setError(null);
     try {
       await vh.delete(
@@ -223,9 +226,9 @@ export function GroupDetail({
         ...current,
         memberCount: Math.max(0, current.memberCount - 1),
       }));
-      flash('Üye gruptan çıkarıldı.');
+      flash(t('Üye gruptan çıkarıldı.'));
     } catch (caught) {
-      setError(caught instanceof Error ? caught.message : 'Üye çıkarılamadı.');
+      setError(caught instanceof Error ? caught.message : t('Üye çıkarılamadı.'));
     }
   }
 
@@ -245,9 +248,9 @@ export function GroupDetail({
         ...current,
         { user, role: 'member', joinedAt: new Date().toISOString() },
       ]);
-      flash('Katılım isteği onaylandı.');
+      flash(t('Katılım isteği onaylandı.'));
     } catch (caught) {
-      setError(caught instanceof Error ? caught.message : 'İstek onaylanamadı.');
+      setError(caught instanceof Error ? caught.message : t('İstek onaylanamadı.'));
     }
   }
 
@@ -262,14 +265,19 @@ export function GroupDetail({
           ? { ...current, requests: current.requests.filter((item) => item.user.id !== user.id) }
           : current,
       );
-      flash('Katılım isteği reddedildi.');
+      flash(t('Katılım isteği reddedildi.'));
     } catch (caught) {
-      setError(caught instanceof Error ? caught.message : 'İstek reddedilemedi.');
+      setError(caught instanceof Error ? caught.message : t('İstek reddedilemedi.'));
     }
   }
 
   async function removeShare(asset: GroupAsset) {
-    if (!window.confirm(`${asset.title} bu grupla paylaşımından kaldırılsın mı?`)) return;
+    if (
+      !window.confirm(
+        t('{title} bu grupla paylaşımından kaldırılsın mı?', { title: asset.title }),
+      )
+    )
+      return;
     setError(null);
     try {
       await vh.delete(
@@ -280,9 +288,9 @@ export function GroupDetail({
         ...current,
         assetCount: Math.max(0, current.assetCount - 1),
       }));
-      flash('Varlık grubun listesinden kaldırıldı.');
+      flash(t('Varlık grubun listesinden kaldırıldı.'));
     } catch (caught) {
-      setError(caught instanceof Error ? caught.message : 'Paylaşım kaldırılamadı.');
+      setError(caught instanceof Error ? caught.message : t('Paylaşım kaldırılamadı.'));
     }
   }
 
@@ -296,9 +304,9 @@ export function GroupDetail({
       setAssets((current) =>
         current.map((item) => (item.id === asset.id ? { ...item, scope } : item)),
       );
-      flash('Paylaşım kapsamı güncellendi.');
+      flash(t('Paylaşım kapsamı güncellendi.'));
     } catch (caught) {
-      setError(caught instanceof Error ? caught.message : 'Kapsam güncellenemedi.');
+      setError(caught instanceof Error ? caught.message : t('Kapsam güncellenemedi.'));
     }
   }
 
@@ -308,7 +316,7 @@ export function GroupDetail({
     <main className="page page-group">
       <Link href="/gruplar" className="back-link">
         <Icon name="arrow-left" size={16} />
-        Gruplar
+        {t('Gruplar')}
       </Link>
 
       <header className="group-hero">
@@ -316,30 +324,33 @@ export function GroupDetail({
           <MediaImage src={group.coverUrl} alt={group.name} fallbackIcon="users" loading="eager" />
           <span className={`visibility-pill is-${group.visibility === 'private' ? 'private' : 'public'}`}>
             <Icon name={group.visibility === 'private' ? 'lock' : 'eye'} size={13} />
-            {group.visibility === 'private' ? 'Özel grup' : 'Herkese açık'}
+            {group.visibility === 'private' ? t('Özel grup') : t('Herkese açık')}
           </span>
         </div>
 
         <div className="group-hero-info">
           <div className="detail-kicker">
-            {group.category ? <span className="group-category">{group.category}</span> : null}
+            {group.category ? <span className="group-category">{t(group.category)}</span> : null}
             <span className="status-pill">
-              {group.joinPolicy === 'approval' ? 'Onaylı katılım' : 'Serbest katılım'}
+              {group.joinPolicy === 'approval' ? t('Onaylı katılım') : t('Serbest katılım')}
             </span>
-            {isPending ? <span className="status-pill is-pending">Onay bekliyor</span> : null}
+            {isPending ? <span className="status-pill is-pending">{t('Onay bekliyor')}</span> : null}
           </div>
           <h1>{group.name}</h1>
           {group.description ? <p className="detail-description">{group.description}</p> : null}
 
           <div className="group-stats">
             <span>
-              <strong>{formatNumber(group.memberCount)}</strong> üye
+              <strong>{formatNumber(group.memberCount, locale)}</strong>{' '}
+              {t('üye', { count: group.memberCount })}
             </span>
             <span>
-              <strong>{formatNumber(group.postCount)}</strong> gönderi
+              <strong>{formatNumber(group.postCount, locale)}</strong>{' '}
+              {t('gönderi', { count: group.postCount })}
             </span>
             <span>
-              <strong>{formatNumber(group.assetCount)}</strong> varlık
+              <strong>{formatNumber(group.assetCount, locale)}</strong>{' '}
+              {t('varlık', { count: group.assetCount })}
             </span>
             {group.owner ? (
               <span className="group-owner">
@@ -347,10 +358,10 @@ export function GroupDetail({
                   {group.owner.avatarUrl ? (
                     <img src={group.owner.avatarUrl} alt="" />
                   ) : (
-                    initials(group.owner.displayName)
+                    initials(group.owner.displayName, locale)
                   )}
                 </span>
-                Kurucu: {group.owner.displayName}
+                {t('Kurucu: {name}', { name: group.owner.displayName })}
               </span>
             ) : null}
           </div>
@@ -365,40 +376,40 @@ export function GroupDetail({
               >
                 <Icon name="users" size={17} />
                 {group.visibility === 'private'
-                  ? 'Davet gerekli'
+                  ? t('Davet gerekli')
                   : group.joinPolicy === 'approval'
-                    ? 'Katılım isteği gönder'
-                    : 'Gruba katıl'}
+                    ? t('Katılım isteği gönder')
+                    : t('Gruba katıl')}
               </button>
             ) : null}
             {isPending ? (
               <span className="shared-note">
                 <Icon name="clock" size={16} />
-                Katılım isteğin yönetici onayında
+                {t('Katılım isteğin yönetici onayında')}
               </span>
             ) : null}
             {isMember && !isOwner ? (
               <button type="button" className="btn btn-ghost" onClick={leave} disabled={busy}>
                 <Icon name="logout" size={16} />
-                Ayrıl
+                {t('Ayrıl')}
               </button>
             ) : null}
             {canManage ? (
               <>
                 <button type="button" className="btn btn-ghost" onClick={() => setInviteOpen(true)}>
                   <Icon name="user" size={16} />
-                  Davet et
+                  {t('Davet et')}
                 </button>
                 <button type="button" className="btn btn-ghost" onClick={() => setEditOpen(true)}>
                   <Icon name="edit" size={16} />
-                  Grubu düzenle
+                  {t('Grubu düzenle')}
                 </button>
               </>
             ) : null}
             {isMember ? (
               <button type="button" className="btn btn-ghost" onClick={() => setShareOpen(true)}>
                 <Icon name="leaf" size={16} />
-                Varlık ekle
+                {t('Varlık ekle')}
               </button>
             ) : null}
           </div>
@@ -413,27 +424,27 @@ export function GroupDetail({
       ) : null}
       {error ? <p className="form-error">{error}</p> : null}
 
-      <nav className="tabs" aria-label="Grup bölümleri">
+      <nav className="tabs" aria-label={t('Grup bölümleri')}>
         <button
           type="button"
           className={tab === 'feed' ? 'is-active' : ''}
           onClick={() => setTab('feed')}
         >
-          Akış <span>{posts.length}</span>
+          {t('Akış')} <span>{posts.length}</span>
         </button>
         <button
           type="button"
           className={tab === 'assets' ? 'is-active' : ''}
           onClick={() => setTab('assets')}
         >
-          Varlıklar <span>{assets.length}</span>
+          {t('Varlıklar')} <span>{assets.length}</span>
         </button>
         <button
           type="button"
           className={tab === 'members' ? 'is-active' : ''}
           onClick={() => setTab('members')}
         >
-          Üyeler <span>{members.length}</span>
+          {t('Üyeler')} <span>{members.length}</span>
         </button>
         {canManage ? (
           <button
@@ -441,7 +452,7 @@ export function GroupDetail({
             className={tab === 'manage' ? 'is-active' : ''}
             onClick={() => setTab('manage')}
           >
-            Yönetim <span>{pendingCount}</span>
+            {t('Yönetim')} <span>{pendingCount}</span>
           </button>
         ) : null}
       </nav>
@@ -451,17 +462,17 @@ export function GroupDetail({
           <span className="group-locked-icon">
             <Icon name={isPending ? 'clock' : 'lock'} size={26} />
           </span>
-          <h2>{isPending ? 'Onay bekleniyor' : 'Grup içeriği üyelere açık'}</h2>
+          <h2>{isPending ? t('Onay bekleniyor') : t('Grup içeriği üyelere açık')}</h2>
           <p>
             {isPending
-              ? 'Katılım isteğin yöneticiye iletildi. Onaylandığında akış ve paylaşılan varlıklar burada görünecek.'
+              ? t('Katılım isteğin yöneticiye iletildi. Onaylandığında akış ve paylaşılan varlıklar burada görünecek.')
               : group.visibility === 'private'
-                ? 'Bu özel gruba katılmak için bir üyeden davet alman gerekiyor.'
-                : 'Katıldığında grup akışını, paylaşılan varlıkları ve üyeleri görebilirsin.'}
+                ? t('Bu özel gruba katılmak için bir üyeden davet alman gerekiyor.')
+                : t('Katıldığında grup akışını, paylaşılan varlıkları ve üyeleri görebilirsin.')}
           </p>
           {group.rules ? (
             <div className="group-rules">
-              <span className="eyebrow">Grup kuralları</span>
+              <span className="eyebrow">{t('Grup kuralları')}</span>
               <p>{group.rules}</p>
             </div>
           ) : null}
@@ -480,8 +491,8 @@ export function GroupDetail({
                 <Icon name="plus" size={18} />
               </span>
               <span>
-                <strong>Gruba bir iz bırak</strong>
-                <small>Bir not, fotoğraf ya da paylaştığın bir varlığın kaydı.</small>
+                <strong>{t('Gruba bir iz bırak')}</strong>
+                <small>{t('Bir not, fotoğraf ya da paylaştığın bir varlığın kaydı.')}</small>
               </span>
               <Icon name="arrow-right" size={18} />
             </button>
@@ -506,8 +517,8 @@ export function GroupDetail({
             ) : (
               <EmptyState
                 icon="book"
-                title="Akış henüz sessiz"
-                body="Grubun ilk gönderisini sen başlatabilirsin."
+                title={t('Akış henüz sessiz')}
+                body={t('Grubun ilk gönderisini sen başlatabilirsin.')}
               />
             )}
           </div>
@@ -515,20 +526,19 @@ export function GroupDetail({
           <aside className="group-side">
             {group.rules ? (
               <section className="aside-card">
-                <span className="eyebrow">Grup kuralları</span>
+                <span className="eyebrow">{t('Grup kuralları')}</span>
                 <p className="group-rules-text">{group.rules}</p>
               </section>
             ) : null}
             <section className="aside-card">
               <div className="aside-head">
                 <div>
-                  <span className="eyebrow">Paylaşım</span>
-                  <h2>Görünürlük</h2>
+                  <span className="eyebrow">{t('Paylaşım')}</span>
+                  <h2>{t('Görünürlük')}</h2>
                 </div>
               </div>
               <p className="muted-note">
-                Gruba eklediğin varlıklarda hangi kapsamın görüneceğini sen seçersin.
-                Kişisel notların ve paylaşmadığın kayıtlar grupta görünmez.
+                {t('Gruba eklediğin varlıklarda hangi kapsamın görüneceğini sen seçersin. Kişisel notların ve paylaşmadığın kayıtlar grupta görünmez.')}
               </p>
               <button
                 type="button"
@@ -536,14 +546,14 @@ export function GroupDetail({
                 onClick={() => setShareOpen(true)}
               >
                 <Icon name="leaf" size={15} />
-                Varlık paylaş
+                {t('Varlık paylaş')}
               </button>
             </section>
             <section className="aside-card">
               <div className="aside-head">
                 <div>
-                  <span className="eyebrow">Üyeler</span>
-                  <h2>Topluluk</h2>
+                  <span className="eyebrow">{t('Üyeler')}</span>
+                  <h2>{t('Topluluk')}</h2>
                 </div>
                 <button type="button" className="aside-count" onClick={() => setTab('members')}>
                   {members.length}
@@ -557,12 +567,12 @@ export function GroupDetail({
                         {member.user.avatarUrl ? (
                           <img src={member.user.avatarUrl} alt="" />
                         ) : (
-                          initials(member.user.displayName)
+                          initials(member.user.displayName, locale)
                         )}
                       </span>
                       <span>
                         <strong>{member.user.displayName}</strong>
-                        <small>{roleLabels[member.role]}</small>
+                        <small>{t(roleLabels[member.role])}</small>
                       </span>
                     </Link>
                   </div>
@@ -577,23 +587,23 @@ export function GroupDetail({
         <section className="group-assets">
           <div className="group-assets-head">
             <div>
-              <span className="eyebrow">Paylaşılan hafıza</span>
-              <h2>Gruptaki varlıklar</h2>
+              <span className="eyebrow">{t('Paylaşılan hafıza')}</span>
+              <h2>{t('Gruptaki varlıklar')}</h2>
               <p className="muted-note">
-                Her varlık yalnızca sahibinin izin verdiği kapsamda görünür.
+                {t('Her varlık yalnızca sahibinin izin verdiği kapsamda görünür.')}
               </p>
             </div>
             <button type="button" className="btn btn-primary" onClick={() => setShareOpen(true)}>
               <Icon name="plus" size={17} />
-              Varlık ekle
+              {t('Varlık ekle')}
             </button>
           </div>
 
           {assets.length === 0 ? (
             <EmptyState
               icon="leaf"
-              title="Henüz paylaşılan varlık yok"
-              body="Kendi varlıklarından birini gruba ekleyerek başla."
+              title={t('Henüz paylaşılan varlık yok')}
+              body={t('Kendi varlıklarından birini gruba ekleyerek başla.')}
             />
           ) : (
             <div className="group-asset-grid">
@@ -604,7 +614,7 @@ export function GroupDetail({
                     className="group-asset-cover"
                   >
                     <MediaImage src={asset.coverUrl} alt={asset.title} fallbackIcon="leaf" />
-                    <span className="group-asset-scope">{scopeLabels[asset.scope]}</span>
+                    <span className="group-asset-scope">{t(scopeLabels[asset.scope])}</span>
                   </Link>
                   <div className="group-asset-body">
                     <span className="eyebrow">{asset.type.label}</span>
@@ -612,22 +622,22 @@ export function GroupDetail({
                       <strong>{asset.title}</strong>
                     </Link>
                     <small>
-                      {asset.owner.id === viewer.id ? 'Senin varlığın' : asset.owner.displayName} ·{' '}
-                      {formatDate(asset.sharedAt)}
+                      {asset.owner.id === viewer.id ? t('Senin varlığın') : asset.owner.displayName} ·{' '}
+                      {formatDate(asset.sharedAt, locale)}
                     </small>
                     <div className="group-asset-actions">
                       {asset.owner.id === viewer.id ? (
                         <label className="inline-select">
-                          <span>Kapsam</span>
+                          <span>{t('Kapsam')}</span>
                           <select
                             value={asset.scope}
                             onChange={(event) =>
                               changeScope(asset, event.target.value as GroupAssetScope)
                             }
                           >
-                            <option value="summary">Özet</option>
-                            <option value="timeline">Herkese açık kayıtlar</option>
-                            <option value="all">Tüm hikâye</option>
+                            <option value="summary">{t('Özet')}</option>
+                            <option value="timeline">{t('Herkese açık kayıtlar')}</option>
+                            <option value="all">{t('Tüm hikâye')}</option>
                           </select>
                         </label>
                       ) : null}
@@ -638,7 +648,7 @@ export function GroupDetail({
                           onClick={() => removeShare(asset)}
                         >
                           <Icon name="trash" size={14} />
-                          Kaldır
+                          {t('Kaldır')}
                         </button>
                       ) : null}
                     </div>
@@ -654,16 +664,16 @@ export function GroupDetail({
         <section className="group-members">
           <div className="group-assets-head">
             <div>
-              <span className="eyebrow">Topluluk</span>
-              <h2>Üyeler</h2>
+              <span className="eyebrow">{t('Topluluk')}</span>
+              <h2>{t('Üyeler')}</h2>
               <p className="muted-note">
-                Grup yöneticileri üyeleri ve rolleri yönetir; varlık sahipliği değişmez.
+                {t('Grup yöneticileri üyeleri ve rolleri yönetir; varlık sahipliği değişmez.')}
               </p>
             </div>
             {canManage ? (
               <button type="button" className="btn btn-ghost" onClick={() => setInviteOpen(true)}>
                 <Icon name="user" size={16} />
-                Davet et
+                {t('Davet et')}
               </button>
             ) : null}
           </div>
@@ -675,18 +685,18 @@ export function GroupDetail({
                     {member.user.avatarUrl ? (
                       <img src={member.user.avatarUrl} alt="" />
                     ) : (
-                      initials(member.user.displayName)
+                      initials(member.user.displayName, locale)
                     )}
                   </span>
                   <span>
                     <strong>{member.user.displayName}</strong>
                     <small>
-                      @{member.user.username} · {formatDate(member.joinedAt)}
+                      @{member.user.username} · {formatDate(member.joinedAt, locale)}
                     </small>
                   </span>
                 </Link>
                 <span className={`member-role is-${member.role}`}>
-                  {roleLabels[member.role]}
+                  {t(roleLabels[member.role])}
                 </span>
                 {canChangeRoles &&
                 member.role !== 'owner' &&
@@ -702,12 +712,12 @@ export function GroupDetail({
                           event.target.value as 'member' | 'moderator' | 'admin',
                         )
                       }
-                      aria-label={`${member.user.displayName} rolü`}
+                      aria-label={t('{name} rolü', { name: member.user.displayName })}
                     >
-                      <option value="member">Üye</option>
-                      <option value="moderator">Moderatör</option>
+                      <option value="member">{t('Üye')}</option>
+                      <option value="moderator">{t('Moderatör')}</option>
                       {isOwner || viewer.role === 'admin' ? (
-                        <option value="admin">Yönetici</option>
+                        <option value="admin">{t('Yönetici')}</option>
                       ) : null}
                     </select>
                     {canManage ? (
@@ -715,8 +725,8 @@ export function GroupDetail({
                         type="button"
                         className="icon-btn"
                         onClick={() => removeMember(member)}
-                        aria-label={`${member.user.displayName} grubundan çıkar`}
-                        title="Gruptan çıkar"
+                        aria-label={t('{name} grubundan çıkar', { name: member.user.displayName })}
+                        title={t('Gruptan çıkar')}
                       >
                         <Icon name="trash" size={15} />
                       </button>
@@ -735,8 +745,8 @@ export function GroupDetail({
             <article className="aside-card">
               <div className="aside-head">
                 <div>
-                  <span className="eyebrow">Katılım</span>
-                  <h2>Bekleyen istekler</h2>
+                  <span className="eyebrow">{t('Katılım')}</span>
+                  <h2>{t('Bekleyen istekler')}</h2>
                 </div>
                 <span className="aside-count">{requests?.requests.length ?? 0}</span>
               </div>
@@ -748,7 +758,7 @@ export function GroupDetail({
                         {request.user.avatarUrl ? (
                           <img src={request.user.avatarUrl} alt="" />
                         ) : (
-                          initials(request.user.displayName)
+                          initials(request.user.displayName, locale)
                         )}
                       </span>
                       <span className="request-text">
@@ -761,29 +771,29 @@ export function GroupDetail({
                           className="btn btn-primary btn-sm"
                           onClick={() => approveRequest(request.user)}
                         >
-                          Onayla
+                          {t('Onayla')}
                         </button>
                         <button
                           type="button"
                           className="btn btn-ghost btn-sm"
                           onClick={() => rejectRequest(request.user)}
                         >
-                          Reddet
+                          {t('Reddet')}
                         </button>
                       </span>
                     </div>
                   ))}
                 </div>
               ) : (
-                <p className="muted-note">Bekleyen katılım isteği yok.</p>
+                <p className="muted-note">{t('Bekleyen katılım isteği yok.')}</p>
               )}
             </article>
 
             <article className="aside-card">
               <div className="aside-head">
                 <div>
-                  <span className="eyebrow">Davetler</span>
-                  <h2>Bekleyen davetler</h2>
+                  <span className="eyebrow">{t('Davetler')}</span>
+                  <h2>{t('Bekleyen davetler')}</h2>
                 </div>
                 <span className="aside-count">{requests?.invitations.length ?? 0}</span>
               </div>
@@ -795,19 +805,19 @@ export function GroupDetail({
                         {invitation.invitee.avatarUrl ? (
                           <img src={invitation.invitee.avatarUrl} alt="" />
                         ) : (
-                          initials(invitation.invitee.displayName)
+                          initials(invitation.invitee.displayName, locale)
                         )}
                       </span>
                       <span className="request-text">
                         <strong>{invitation.invitee.displayName}</strong>
                         <small>@{invitation.invitee.username}</small>
                       </span>
-                      <span className="member-role is-pending">Davetli</span>
+                      <span className="member-role is-pending">{t('Davetli')}</span>
                     </div>
                   ))}
                 </div>
               ) : (
-                <p className="muted-note">Bekleyen davet yok.</p>
+                <p className="muted-note">{t('Bekleyen davet yok.')}</p>
               )}
               <button
                 type="button"
@@ -815,35 +825,35 @@ export function GroupDetail({
                 onClick={() => setInviteOpen(true)}
               >
                 <Icon name="user" size={15} />
-                Yeni davet
+                {t('Yeni davet')}
               </button>
             </article>
 
             <article className="aside-card">
               <div className="aside-head">
                 <div>
-                  <span className="eyebrow">Grup ayarları</span>
-                  <h2>Görünürlük ve kurallar</h2>
+                  <span className="eyebrow">{t('Grup ayarları')}</span>
+                  <h2>{t('Görünürlük ve kurallar')}</h2>
                 </div>
               </div>
               <dl className="manage-facts">
                 <div>
-                  <dt>Görünürlük</dt>
-                  <dd>{group.visibility === 'private' ? 'Özel grup' : 'Herkese açık'}</dd>
+                  <dt>{t('Görünürlük')}</dt>
+                  <dd>{group.visibility === 'private' ? t('Özel grup') : t('Herkese açık')}</dd>
                 </div>
                 <div>
-                  <dt>Katılım</dt>
-                  <dd>{group.joinPolicy === 'approval' ? 'Yönetici onayı' : 'Serbest'}</dd>
+                  <dt>{t('Katılım')}</dt>
+                  <dd>{group.joinPolicy === 'approval' ? t('Yönetici onayı') : t('Serbest')}</dd>
                 </div>
                 <div>
-                  <dt>Kategori</dt>
-                  <dd>{group.category ?? 'Belirtilmedi'}</dd>
+                  <dt>{t('Kategori')}</dt>
+                  <dd>{group.category ? t(group.category) : t('Belirtilmedi')}</dd>
                 </div>
               </dl>
               {group.rules ? <p className="group-rules-text">{group.rules}</p> : null}
               <button type="button" className="btn btn-ghost btn-sm" onClick={() => setEditOpen(true)}>
                 <Icon name="edit" size={15} />
-                Ayarları düzenle
+                {t('Ayarları düzenle')}
               </button>
             </article>
           </div>
@@ -860,7 +870,7 @@ export function GroupDetail({
             setComposerOpen(false);
             setGroup((current) => ({ ...current, postCount: current.postCount + 1 }));
             await loadFeed();
-            flash('Gönderi gruba eklendi.');
+            flash(t('Gönderi gruba eklendi.'));
           }}
         />
       ) : null}
@@ -875,7 +885,7 @@ export function GroupDetail({
           onSaved={async () => {
             setShareOpen(false);
             await loadAssets();
-            flash('Varlık paylaşımı güncellendi.');
+            flash(t('Varlık paylaşımı güncellendi.'));
           }}
         />
       ) : null}
@@ -887,7 +897,7 @@ export function GroupDetail({
           onInvited={async () => {
             setInviteOpen(false);
             await loadRequests();
-            flash('Davet gönderildi.');
+            flash(t('Davet gönderildi.'));
           }}
         />
       ) : null}
@@ -899,7 +909,7 @@ export function GroupDetail({
           onSaved={(next) => {
             setGroup(next);
             setEditOpen(false);
-            flash('Grup ayarları güncellendi.');
+            flash(t('Grup ayarları güncellendi.'));
             router.refresh();
           }}
         />
@@ -921,6 +931,7 @@ function GroupComposer({
   onClose: () => void;
   onPublished: () => Promise<void> | void;
 }) {
+  const t = useT();
   const fileRef = useRef<HTMLInputElement>(null);
   const [body, setBody] = useState('');
   const [files, setFiles] = useState<File[]>([]);
@@ -945,7 +956,7 @@ function GroupComposer({
       );
       setEntries(detail.entries);
     } catch {
-      setError('Varlığın kayıtları yüklenemedi.');
+      setError(t('Varlığın kayıtları yüklenemedi.'));
     } finally {
       setLoadingEntries(false);
     }
@@ -954,7 +965,7 @@ function GroupComposer({
   async function submit(event: React.FormEvent) {
     event.preventDefault();
     if (!body.trim() && files.length === 0) {
-      setError('Bir not yaz ya da fotoğraf ekle.');
+      setError(t('Bir not yaz ya da fotoğraf ekle.'));
       return;
     }
     setBusy(true);
@@ -972,7 +983,7 @@ function GroupComposer({
       }
       await onPublished();
     } catch (caught) {
-      setError(caught instanceof Error ? caught.message : 'Gönderi paylaşılamadı.');
+      setError(caught instanceof Error ? caught.message : t('Gönderi paylaşılamadı.'));
     } finally {
       setBusy(false);
     }
@@ -984,45 +995,45 @@ function GroupComposer({
         <div className="modal-head">
           <div>
             <span className="eyebrow">{group.name}</span>
-            <h2>Gruba gönderi ekle</h2>
+            <h2>{t('Gruba gönderi ekle')}</h2>
           </div>
-          <button type="button" className="icon-btn" onClick={onClose} aria-label="Kapat">
+          <button type="button" className="icon-btn" onClick={onClose} aria-label={t('Kapat')}>
             <Icon name="close" size={20} />
           </button>
         </div>
         <div className="modal-body">
           <label className="field">
-            <span>Not</span>
+            <span>{t('Not')}</span>
             <textarea
               className="textarea"
               rows={4}
               maxLength={3000}
               value={body}
               onChange={(event) => setBody(event.target.value)}
-              placeholder="Bugün ne oldu? Bir gözlem, soru ya da deneyim…"
+              placeholder={t('Bugün ne oldu? Bir gözlem, soru ya da deneyim…')}
             />
           </label>
 
           {ownAssets.length > 0 ? (
             <div className="form-grid">
               <label className="field">
-                <span>Varlık (isteğe bağlı)</span>
+                <span>{t('Varlık (isteğe bağlı)')}</span>
                 <select
                   className="select"
                   value={assetId}
                   onChange={(event) => chooseAsset(event.target.value)}
                 >
-                  <option value="">Varlık seçme</option>
+                  <option value="">{t('Varlık seçme')}</option>
                   {ownAssets.map((asset) => (
                     <option key={asset.id} value={asset.id}>
-                      {asset.title} · {scopeLabels[asset.scope]}
+                      {asset.title} · {t(scopeLabels[asset.scope])}
                     </option>
                   ))}
                 </select>
               </label>
               {assetId ? (
                 <label className="field">
-                  <span>Kayıt</span>
+                  <span>{t('Kayıt')}</span>
                   <select
                     className="select"
                     value={entryId}
@@ -1031,14 +1042,14 @@ function GroupComposer({
                   >
                     <option value="">
                       {loadingEntries
-                        ? 'Kayıtlar yükleniyor…'
+                        ? t('Kayıtlar yükleniyor…')
                         : entries.length === 0
-                          ? 'Bu kapsamda kayıt yok'
-                          : 'Kayıt seçme'}
+                          ? t('Bu kapsamda kayıt yok')
+                          : t('Kayıt seçme')}
                     </option>
                     {entries.map((entry) => (
                       <option key={entry.id} value={entry.id}>
-                        {entryTypeLabels[entry.type]} · {entry.title ?? 'İsimsiz kayıt'}
+                        {t(entryTypeLabels[entry.type])} · {entry.title ?? t('İsimsiz kayıt')}
                       </option>
                     ))}
                   </select>
@@ -1048,7 +1059,7 @@ function GroupComposer({
           ) : null}
 
           <label className="field">
-            <span>Fotoğraflar</span>
+            <span>{t('Fotoğraflar')}</span>
             <span className="composer-file-row">
               <button
                 type="button"
@@ -1056,9 +1067,13 @@ function GroupComposer({
                 onClick={() => fileRef.current?.click()}
               >
                 <Icon name="image" size={15} />
-                Fotoğraf seç
+                {t('Fotoğraf seç')}
               </button>
-              <small>{files.length > 0 ? `${files.length} dosya seçildi` : 'En fazla 4 görsel'}</small>
+              <small>
+                {files.length > 0
+                  ? t('{count} dosya seçildi', { count: files.length })
+                  : t('En fazla 4 görsel')}
+              </small>
               <input
                 ref={fileRef}
                 type="file"
@@ -1077,11 +1092,11 @@ function GroupComposer({
 
           <div className="modal-actions">
             <button type="button" className="btn btn-ghost" onClick={onClose} disabled={busy}>
-              Vazgeç
+              {t('Vazgeç')}
             </button>
             <button type="submit" className="btn btn-primary" disabled={busy}>
               <Icon name="send" size={16} />
-              {busy ? 'Paylaşılıyor…' : 'Paylaş'}
+              {busy ? t('Paylaşılıyor…') : t('Paylaş')}
             </button>
           </div>
         </div>
@@ -1105,6 +1120,7 @@ function ShareAssetModal({
   onClose: () => void;
   onSaved: () => Promise<void> | void;
 }) {
+  const t = useT();
   const existingMap = new Map(existing.map((item) => [item.id, item.scope]));
   const [assetId, setAssetId] = useState('');
   const [scope, setScope] = useState<GroupAssetScope>('summary');
@@ -1120,7 +1136,7 @@ function ShareAssetModal({
   async function submit(event: React.FormEvent) {
     event.preventDefault();
     if (!assetId) {
-      setError('Bir varlık seç.');
+      setError(t('Bir varlık seç.'));
       return;
     }
     setBusy(true);
@@ -1132,7 +1148,7 @@ function ShareAssetModal({
       });
       await onSaved();
     } catch (caught) {
-      setError(caught instanceof Error ? caught.message : 'Varlık gruba eklenemedi.');
+      setError(caught instanceof Error ? caught.message : t('Varlık gruba eklenemedi.'));
     } finally {
       setBusy(false);
     }
@@ -1144,9 +1160,9 @@ function ShareAssetModal({
         <div className="modal-head">
           <div>
             <span className="eyebrow">{group.name}</span>
-            <h2>Varlık paylaş</h2>
+            <h2>{t('Varlık paylaş')}</h2>
           </div>
-          <button type="button" className="icon-btn" onClick={onClose} aria-label="Kapat">
+          <button type="button" className="icon-btn" onClick={onClose} aria-label={t('Kapat')}>
             <Icon name="close" size={20} />
           </button>
         </div>
@@ -1154,25 +1170,25 @@ function ShareAssetModal({
           {myAssets.length === 0 ? (
             <>
               <p className="muted-note">
-                Henüz bir varlığın yok. Önce bir varlık oluştur, sonra gruba ekle.
+                {t('Henüz bir varlığın yok. Önce bir varlık oluştur, sonra gruba ekle.')}
               </p>
               <div className="modal-actions">
                 <Link href="/varliklar/yeni" className="btn btn-primary">
                   <Icon name="plus" size={16} />
-                  Yeni varlık
+                  {t('Yeni varlık')}
                 </Link>
               </div>
             </>
           ) : (
             <>
               <label className="field">
-                <span>Varlık</span>
+                <span>{t('Varlık')}</span>
                 <select className="select" value={assetId} onChange={(event) => pick(event.target.value)}>
-                  <option value="">Bir varlık seç</option>
+                  <option value="">{t('Bir varlık seç')}</option>
                   {myAssets.map((asset) => (
                     <option key={asset.id} value={asset.id}>
                       {asset.title}
-                      {sharedIds.has(asset.id) ? ' · grupta' : ''}
+                      {sharedIds.has(asset.id) ? t(' · grupta') : ''}
                     </option>
                   ))}
                 </select>
@@ -1193,7 +1209,7 @@ function ShareAssetModal({
               ) : null}
 
               <fieldset className="scope-picker">
-                <legend>Ne kadarını görsünler?</legend>
+                <legend>{t('Ne kadarını görsünler?')}</legend>
                 {(Object.keys(scopeLabels) as GroupAssetScope[]).map((value) => (
                   <label key={value} className={`scope-option${scope === value ? ' is-selected' : ''}`}>
                     <input
@@ -1204,27 +1220,31 @@ function ShareAssetModal({
                       onChange={() => setScope(value)}
                     />
                     <span>
-                      <strong>{scopeLabels[value]}</strong>
-                      <small>{scopeHints[value]}</small>
+                      <strong>{t(scopeLabels[value])}</strong>
+                      <small>{t(scopeHints[value])}</small>
                     </span>
                   </label>
                 ))}
               </fieldset>
 
               <p className="muted-note">
-                <Icon name="lock" size={14} /> Varlık sahipliği ve düzenleme hakkı sende
-                kalır. Paylaşımı dilediğin an kaldırabilirsin.
+                <Icon name="lock" size={14} />{' '}
+                {t('Varlık sahipliği ve düzenleme hakkı sende kalır. Paylaşımı dilediğin an kaldırabilirsin.')}
               </p>
 
               {error ? <p className="form-error">{error}</p> : null}
 
               <div className="modal-actions">
                 <button type="button" className="btn btn-ghost" onClick={onClose} disabled={busy}>
-                  Vazgeç
+                  {t('Vazgeç')}
                 </button>
                 <button type="submit" className="btn btn-primary" disabled={busy || !assetId}>
                   <Icon name="leaf" size={16} />
-                  {busy ? 'Ekleniyor…' : sharedIds.has(assetId) ? 'Paylaşımı güncelle' : 'Gruba ekle'}
+                  {busy
+                    ? t('Ekleniyor…')
+                    : sharedIds.has(assetId)
+                      ? t('Paylaşımı güncelle')
+                      : t('Gruba ekle')}
                 </button>
               </div>
             </>
@@ -1244,6 +1264,7 @@ function InviteModal({
   onClose: () => void;
   onInvited: () => Promise<void> | void;
 }) {
+  const t = useT();
   const [username, setUsername] = useState('');
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -1260,7 +1281,7 @@ function InviteModal({
       });
       await onInvited();
     } catch (caught) {
-      setError(caught instanceof Error ? caught.message : 'Davet gönderilemedi.');
+      setError(caught instanceof Error ? caught.message : t('Davet gönderilemedi.'));
     } finally {
       setBusy(false);
     }
@@ -1272,33 +1293,33 @@ function InviteModal({
         <div className="modal-head">
           <div>
             <span className="eyebrow">{group.name}</span>
-            <h2>Kullanıcı davet et</h2>
+            <h2>{t('Kullanıcı davet et')}</h2>
           </div>
-          <button type="button" className="icon-btn" onClick={onClose} aria-label="Kapat">
+          <button type="button" className="icon-btn" onClick={onClose} aria-label={t('Kapat')}>
             <Icon name="close" size={20} />
           </button>
         </div>
         <div className="modal-body">
           <label className="field">
-            <span>Kullanıcı adı</span>
+            <span>{t('Kullanıcı adı')}</span>
             <input
               className="input"
               value={username}
               onChange={(event) => setUsername(event.target.value)}
-              placeholder="orn. mert"
+              placeholder={t('orn. mert')}
               maxLength={30}
               autoFocus
             />
-            <small>Davet, kullanıcının bildirimlerine ve gruplar sayfasına düşer.</small>
+            <small>{t('Davet, kullanıcının bildirimlerine ve gruplar sayfasına düşer.')}</small>
           </label>
           {error ? <p className="form-error">{error}</p> : null}
           <div className="modal-actions">
             <button type="button" className="btn btn-ghost" onClick={onClose} disabled={busy}>
-              Vazgeç
+              {t('Vazgeç')}
             </button>
             <button type="submit" className="btn btn-primary" disabled={busy || !username.trim()}>
               <Icon name="send" size={16} />
-              {busy ? 'Gönderiliyor…' : 'Davet gönder'}
+              {busy ? t('Gönderiliyor…') : t('Davet gönder')}
             </button>
           </div>
         </div>
@@ -1316,6 +1337,7 @@ function EditGroupModal({
   onClose: () => void;
   onSaved: (group: Group) => void;
 }) {
+  const t = useT();
   const fileRef = useRef<HTMLInputElement>(null);
   const [name, setName] = useState(group.name);
   const [description, setDescription] = useState(group.description ?? '');
@@ -1358,7 +1380,7 @@ function EditGroupModal({
       );
       onSaved(result.community);
     } catch (caught) {
-      setError(caught instanceof Error ? caught.message : 'Grup güncellenemedi.');
+      setError(caught instanceof Error ? caught.message : t('Grup güncellenemedi.'));
     } finally {
       setBusy(false);
     }
@@ -1369,17 +1391,17 @@ function EditGroupModal({
       <form className="modal" onSubmit={submit} onClick={(event) => event.stopPropagation()}>
         <div className="modal-head">
           <div>
-            <span className="eyebrow">Grup ayarları</span>
-            <h2>Grubu düzenle</h2>
+            <span className="eyebrow">{t('Grup ayarları')}</span>
+            <h2>{t('Grubu düzenle')}</h2>
           </div>
-          <button type="button" className="icon-btn" onClick={onClose} aria-label="Kapat">
+          <button type="button" className="icon-btn" onClick={onClose} aria-label={t('Kapat')}>
             <Icon name="close" size={20} />
           </button>
         </div>
         <div className="modal-body">
           <div className="form-grid">
             <label className="field wide">
-              <span>Grup adı</span>
+              <span>{t('Grup adı')}</span>
               <input
                 className="input"
                 value={name}
@@ -1389,7 +1411,7 @@ function EditGroupModal({
               />
             </label>
             <label className="field wide">
-              <span>Açıklama</span>
+              <span>{t('Açıklama')}</span>
               <textarea
                 className="textarea"
                 rows={3}
@@ -1399,45 +1421,45 @@ function EditGroupModal({
               />
             </label>
             <label className="field">
-              <span>Kategori</span>
+              <span>{t('Kategori')}</span>
               <select
                 className="select"
                 value={category}
                 onChange={(event) => setCategory(event.target.value)}
               >
-                <option value="">Kategori yok</option>
+                <option value="">{t('Kategori yok')}</option>
                 {categories.map((item) => (
                   <option key={item} value={item}>
-                    {item}
+                    {t(item)}
                   </option>
                 ))}
               </select>
             </label>
             <label className="field">
-              <span>Görünürlük</span>
+              <span>{t('Görünürlük')}</span>
               <select
                 className="select"
                 value={visibility}
                 onChange={(event) => setVisibility(event.target.value as 'public' | 'private')}
               >
-                <option value="public">Herkese açık</option>
-                <option value="private">Özel (davetle)</option>
+                <option value="public">{t('Herkese açık')}</option>
+                <option value="private">{t('Özel (davetle)')}</option>
               </select>
             </label>
             <label className="field">
-              <span>Katılım</span>
+              <span>{t('Katılım')}</span>
               <select
                 className="select"
                 value={joinPolicy}
                 onChange={(event) => setJoinPolicy(event.target.value as GroupJoinPolicy)}
                 disabled={visibility === 'private'}
               >
-                <option value="open">Serbest</option>
-                <option value="approval">Yönetici onayı</option>
+                <option value="open">{t('Serbest')}</option>
+                <option value="approval">{t('Yönetici onayı')}</option>
               </select>
             </label>
             <label className="field">
-              <span>Kapak</span>
+              <span>{t('Kapak')}</span>
               <span className="cover-picker">
                 <span className="cover-preview">
                   {preview ? <img src={preview} alt="" /> : <MediaImage src={null} alt="" fallbackIcon="users" />}
@@ -1449,7 +1471,7 @@ function EditGroupModal({
                     onClick={() => fileRef.current?.click()}
                   >
                     <Icon name="upload" size={15} />
-                    Değiştir
+                    {t('Değiştir')}
                   </button>
                 </span>
                 <input
@@ -1462,7 +1484,7 @@ function EditGroupModal({
               </span>
             </label>
             <label className="field wide">
-              <span>Kurallar</span>
+              <span>{t('Kurallar')}</span>
               <textarea
                 className="textarea"
                 rows={4}
@@ -1475,10 +1497,10 @@ function EditGroupModal({
           {error ? <p className="form-error">{error}</p> : null}
           <div className="modal-actions">
             <button type="button" className="btn btn-ghost" onClick={onClose} disabled={busy}>
-              Vazgeç
+              {t('Vazgeç')}
             </button>
             <button type="submit" className="btn btn-primary" disabled={busy || name.trim().length < 2}>
-              {busy ? 'Kaydediliyor…' : 'Kaydet'}
+              {busy ? t('Kaydediliyor…') : t('Kaydet')}
             </button>
           </div>
         </div>

@@ -1,0 +1,37 @@
+<resources>
+    <!-- Pantalla «Añadir entrada» -->
+    <string name="add_entry_title">Añadir entrada</string>
+    <string name="add_entry_eyebrow">A LA CRONOLOGÍA</string>
+    <string name="add_entry_headline">¿Qué pasó hoy?</string>
+    <string name="add_entry_intro">Un mantenimiento, un momento, una medición… Sea lo que sea, que quede con su fecha.</string>
+
+    <string name="add_entry_section_type">Tipo de entrada</string>
+    <string name="add_entry_field_title">Título (opcional)</string>
+    <string name="add_entry_field_notes">Notas</string>
+    <string name="add_entry_notes_placeholder">¿Qué hiciste, qué cambió, qué sentiste?</string>
+
+    <string name="add_entry_section_when">¿Cuándo?</string>
+    <string name="add_entry_change_datetime">Cambiar fecha y hora</string>
+
+    <string name="add_entry_section_measurement">Medición</string>
+    <string name="add_entry_metric">Métrica</string>
+    <string name="add_entry_metric_placeholder">Altura</string>
+    <string name="add_entry_value">Valor</string>
+    <string name="add_entry_unit">Unidad</string>
+    <string name="add_entry_unit_placeholder">cm</string>
+    <string name="add_entry_measurement_hint">Si lo rellenas, se añade al historial de mediciones.</string>
+
+    <string name="add_entry_section_visibility">¿Quién puede verlo?</string>
+    <string name="add_entry_visibility_hint">Una entrada no puede ser más visible que su bien.</string>
+
+    <string name="add_entry_section_files">Foto / documento</string>
+    <string name="add_entry_add_file">Añadir archivo (%1$s, %2$d MB)</string>
+    <string name="add_entry_remove_file">Quitar</string>
+    <plurals name="add_entry_media_limit_count">
+        <item quantity="one">hasta %1$d archivo</item>
+        <item quantity="other">hasta %1$d archivos</item>
+    </plurals>
+
+    <string name="add_entry_footer_hint">La entrada se añade a la cronología con la fecha y la hora que elijas; podrás editarla después.</string>
+    <string name="add_entry_save">Añadir a la historia</string>
+</resources>

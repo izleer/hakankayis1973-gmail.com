@@ -1,0 +1,38 @@
+<resources>
+    <!-- Lista de bienes -->
+    <string name="assets_search_placeholder">Buscar por nombre o descripción</string>
+    <string name="assets_search_clear">Borrar</string>
+    <string name="assets_empty_title">Tu memoria aún está vacía</string>
+    <string name="assets_empty_body">Añade tu primer bien; que viva junto a fotos, documentos y notas de mantenimiento.</string>
+    <string name="assets_no_match_title">No hay bienes coincidentes</string>
+    <string name="assets_no_match_body">Prueba a buscar con otra palabra.</string>
+    <string name="assets_footer">Cada bien es una puerta a su propia historia.</string>
+
+    <plurals name="assets_count">
+        <item quantity="one">%1$d bien en tu memoria</item>
+        <item quantity="other">%1$d bienes en tu memoria</item>
+    </plurals>
+
+    <!-- Nuevo bien -->
+    <string name="assets_new_title">Nuevo bien</string>
+    <string name="assets_new_kicker">UNA NUEVA HUELLA EN TU MEMORIA</string>
+    <string name="assets_new_headline">Ponle nombre,\ncomparte el primero.</string>
+    <string name="assets_new_body">Un ser vivo, una obra, un lugar… Añade su primera foto y empieza su historia.</string>
+    <string name="assets_type_label">Tipo de bien</string>
+    <string name="assets_type_placeholder">Elige un tipo</string>
+    <string name="assets_type_parent_format">%1$s · %2$s</string>
+    <string name="assets_name_label">Nombre del bien</string>
+    <string name="assets_name_placeholder">Ej. Bonzai · el pino de Ada</string>
+    <string name="assets_description_label">Descripción breve (opcional)</string>
+    <string name="assets_visibility_label">¿Quién puede verlo?</string>
+    <string name="assets_visibility_selected_short">Seleccionados</string>
+    <string name="assets_visibility_public_hint">Aparece en el feed de Explorar. Puedes cambiarlo más tarde.</string>
+    <string name="assets_visibility_selected_hint">Solo lo ven las personas con las que lo compartes.</string>
+    <string name="assets_visibility_private_hint">Solo lo ves tú. Es la opción predeterminada.</string>
+    <string name="assets_cover_label">Foto de portada</string>
+    <string name="assets_cover_preview">Vista previa de la portada</string>
+    <string name="assets_cover_change">Cambiar</string>
+    <string name="assets_cover_pick">Elige una foto de tu galería</string>
+    <string name="assets_error_type_required">Primero elige un tipo de bien.</string>
+    <string name="assets_submit">Añadir a la memoria</string>
+</resources>

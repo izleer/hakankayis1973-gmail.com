@@ -45,11 +45,14 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.pluralStringResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import app.varlikhafizasi.R
 import app.varlikhafizasi.data.ArchiveItem
 import app.varlikhafizasi.data.MediaUrl
 import app.varlikhafizasi.ui.VhViewModel
@@ -60,7 +63,7 @@ import app.varlikhafizasi.ui.components.Pill
 import app.varlikhafizasi.ui.components.VhTopBar
 import app.varlikhafizasi.ui.components.kindLabel
 import app.varlikhafizasi.ui.theme.Forest
-import app.varlikhafizasi.ui.theme.Gold
+import app.varlikhafizasi.ui.theme.GoldInk
 import app.varlikhafizasi.ui.theme.Line
 import app.varlikhafizasi.ui.theme.Muted
 import app.varlikhafizasi.ui.theme.Paper
@@ -68,10 +71,10 @@ import app.varlikhafizasi.ui.theme.PaperDeep
 import coil.compose.AsyncImage
 
 private val filters = listOf(
-    null to "Tümü",
-    "image" to "Görsel",
-    "document" to "Belge",
-    "video" to "Video",
+    null to R.string.archive_filter_all,
+    "image" to R.string.kind_image,
+    "document" to R.string.kind_document,
+    "video" to R.string.kind_video,
 )
 
 @Composable
@@ -92,16 +95,21 @@ fun ArchiveScreen(vm: VhViewModel) {
             .background(Paper),
     ) {
         VhTopBar(
-            title = "Arşiv",
+            title = stringResource(R.string.nav_archive),
             subtitle = state.data?.let {
-                "${it.counts.images} görsel · ${it.counts.documents} belge"
+                stringResource(
+                    R.string.archive_subtitle,
+                    it.counts.images,
+                    it.counts.documents,
+                    it.counts.videos,
+                )
             },
         )
 
         OutlinedTextField(
             value = query,
             onValueChange = { query = it },
-            placeholder = { Text("Arşivde ara", color = Muted) },
+            placeholder = { Text(stringResource(R.string.archive_search_placeholder), color = Muted) },
             leadingIcon = { Icon(Icons.Outlined.Search, contentDescription = null, tint = Muted) },
             trailingIcon = {
                 if (query.isNotEmpty()) {
@@ -109,7 +117,11 @@ fun ArchiveScreen(vm: VhViewModel) {
                         query = ""
                         vm.loadArchive(kind)
                     }) {
-                        Icon(Icons.Outlined.Close, contentDescription = "Temizle", tint = Muted)
+                        Icon(
+                            Icons.Outlined.Close,
+                            contentDescription = stringResource(R.string.archive_clear_search),
+                            tint = Muted,
+                        )
                     }
                 }
             },
@@ -132,9 +144,9 @@ fun ArchiveScreen(vm: VhViewModel) {
             modifier = Modifier.padding(horizontal = 20.dp, vertical = 10.dp),
             horizontalArrangement = Arrangement.spacedBy(7.dp),
         ) {
-            filters.forEach { (key, label) ->
+            filters.forEach { (key, labelRes) ->
                 Pill(
-                    text = label,
+                    text = stringResource(labelRes),
                     selected = kind == key,
                     onClick = {
                         kind = key
@@ -162,12 +174,12 @@ fun ArchiveScreen(vm: VhViewModel) {
                     .background(PaperDeep, RoundedCornerShape(18.dp)),
             ) {
                 EmptyState(
-                    title = if (query.isBlank()) "Arşiv henüz sessiz" else "Eşleşen dosya yok",
-                    body = if (query.isBlank()) {
-                        "Varlıklarına eklediğin fotoğraf ve belgeler burada birikir."
-                    } else {
-                        "Farklı bir kelimeyle aramayı dene."
-                    },
+                    title = stringResource(
+                        if (query.isBlank()) R.string.archive_empty_title else R.string.archive_no_match_title,
+                    ),
+                    body = stringResource(
+                        if (query.isBlank()) R.string.archive_empty_body else R.string.archive_no_match_body,
+                    ),
                 )
             }
         }
@@ -180,6 +192,7 @@ fun ArchiveScreen(vm: VhViewModel) {
             modifier = Modifier.weight(1f),
         ) {
             item(span = { GridItemSpan(maxLineSpan) }) {
+                val total = state.data?.counts?.total ?: 0
                 Row(
                     modifier = Modifier
                         .fillMaxWidth()
@@ -187,15 +200,15 @@ fun ArchiveScreen(vm: VhViewModel) {
                     verticalAlignment = Alignment.CenterVertically,
                 ) {
                     Text(
-                        "ARŞİVDEKİ İZLER",
+                        stringResource(R.string.profile_assets_title).uppercase(),
                         style = MaterialTheme.typography.labelMedium,
                         color = Muted,
                     )
                     Spacer(Modifier.weight(1f))
                     Text(
-                        "${state.data?.counts?.total ?: 0} dosya",
+                        pluralStringResource(R.plurals.archive_file_count, total, total),
                         style = MaterialTheme.typography.labelSmall,
-                        color = Gold,
+                        color = GoldInk,
                     )
                 }
             }
@@ -215,7 +228,7 @@ fun ArchiveScreen(vm: VhViewModel) {
             }
             item(span = { GridItemSpan(maxLineSpan) }) {
                 Text(
-                    "Fotoğrafa dokun, büyüt. Belge ve videolar cihazın görüntüleyicisiyle açılır.",
+                    stringResource(R.string.archive_footer),
                     style = MaterialTheme.typography.bodySmall,
                     color = Muted,
                     modifier = Modifier.padding(top = 12.dp),
@@ -240,7 +253,7 @@ fun ArchiveScreen(vm: VhViewModel) {
                         .height(430.dp),
                 )
                 Text(
-                    "Kapat",
+                    stringResource(R.string.archive_close),
                     style = MaterialTheme.typography.labelLarge,
                     color = Color.White,
                     modifier = Modifier

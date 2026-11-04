@@ -1,0 +1,38 @@
+<resources>
+    <!-- Objektliste -->
+    <string name="assets_search_placeholder">Nach Name oder Beschreibung suchen</string>
+    <string name="assets_search_clear">Löschen</string>
+    <string name="assets_empty_title">Dein Gedächtnis ist noch leer</string>
+    <string name="assets_empty_body">Füge dein erstes Objekt hinzu; lass es mit Fotos, Dokumenten und Wartungsnotizen leben.</string>
+    <string name="assets_no_match_title">Keine passenden Objekte</string>
+    <string name="assets_no_match_body">Versuche es mit einem anderen Wort.</string>
+    <string name="assets_footer">Jedes Objekt ist eine Tür zu seiner eigenen Geschichte.</string>
+
+    <plurals name="assets_count">
+        <item quantity="one">%1$d Objekt in deinem Gedächtnis</item>
+        <item quantity="other">%1$d Objekte in deinem Gedächtnis</item>
+    </plurals>
+
+    <!-- Neues Objekt -->
+    <string name="assets_new_title">Neues Objekt</string>
+    <string name="assets_new_kicker">EINE NEUE SPUR IM GEDÄCHTNIS</string>
+    <string name="assets_new_headline">Gib ihm einen Namen,\nteile das erste.</string>
+    <string name="assets_new_body">Ein Lebewesen, ein Werk, ein Ort… Füge das erste Foto hinzu und beginne seine Geschichte.</string>
+    <string name="assets_type_label">Objekttyp</string>
+    <string name="assets_type_placeholder">Wähle einen Typ</string>
+    <string name="assets_type_parent_format">%1$s · %2$s</string>
+    <string name="assets_name_label">Objektname</string>
+    <string name="assets_name_placeholder">Z. B. Bonzai · Adas Kiefer</string>
+    <string name="assets_description_label">Kurze Beschreibung (optional)</string>
+    <string name="assets_visibility_label">Wer kann es sehen?</string>
+    <string name="assets_visibility_selected_short">Ausgewählt</string>
+    <string name="assets_visibility_public_hint">Erscheint im Entdecken-Feed. Du kannst das später ändern.</string>
+    <string name="assets_visibility_selected_hint">Nur die Personen, mit denen du es teilst, können es sehen.</string>
+    <string name="assets_visibility_private_hint">Nur du siehst es. Das ist die Standardeinstellung.</string>
+    <string name="assets_cover_label">Titelbild</string>
+    <string name="assets_cover_preview">Titelbild-Vorschau</string>
+    <string name="assets_cover_change">Ändern</string>
+    <string name="assets_cover_pick">Wähle ein Foto aus deiner Galerie</string>
+    <string name="assets_error_type_required">Wähle zuerst einen Objekttyp.</string>
+    <string name="assets_submit">Zum Gedächtnis hinzufügen</string>
+</resources>

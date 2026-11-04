@@ -1,0 +1,31 @@
+<resources>
+    <!-- Archives -->
+    <string name="archive_filter_all">Tout</string>
+    <string name="archive_subtitle">%1$d images · %2$d documents · %3$d vidéos</string>
+    <string name="archive_search_placeholder">Rechercher dans les archives</string>
+    <string name="archive_clear_search">Effacer</string>
+    <string name="archive_empty_title">Vos archives sont encore silencieuses</string>
+    <string name="archive_empty_body">Les photos, documents et vidéos ajoutés à vos biens s\'accumulent ici.</string>
+    <string name="archive_no_match_title">Aucun fichier correspondant</string>
+    <string name="archive_no_match_body">Essayez avec un autre mot.</string>
+    <string name="archive_footer">Touchez une photo pour l\'agrandir. Les documents et les vidéos s\'ouvrent dans la visionneuse de votre appareil.</string>
+    <string name="archive_close">Fermer</string>
+
+    <plurals name="archive_file_count">
+        <item quantity="one">%1$d fichier</item>
+        <item quantity="other">%1$d fichiers</item>
+    </plurals>
+
+    <!-- Notifications -->
+    <string name="archive_all_read">Tout est lu</string>
+    <string name="archive_mark_all_read">Tout marquer comme lu</string>
+    <string name="archive_notifications_empty_title">Aucune notification</string>
+    <string name="archive_notifications_empty_body">Quand quelqu\'un vous suit, partage l\'un de vos biens ou aime l\'une de vos entrées, cela apparaît ici.</string>
+    <string name="archive_notifications_footer">Les notifications sont générées uniquement pour vous ; elles ne sont jamais partagées.</string>
+    <string name="archive_notification_fallback">Une nouvelle notification</string>
+
+    <plurals name="archive_unread_count">
+        <item quantity="one">%1$d non lue</item>
+        <item quantity="other">%1$d non lues</item>
+    </plurals>
+</resources>

@@ -4,6 +4,7 @@ import { query, queryOne } from '../db.js';
 import { decodeCursor, encodeCursor, limitFrom, parseQuery } from '../lib/http.js';
 import { optionalViewer, requireViewer } from '../lib/session.js';
 import { mapUserMini } from '../lib/serialize.js';
+import { translate } from '../lib/i18n/index.js';
 
 const uuid = z.string().uuid();
 
@@ -55,7 +56,9 @@ export async function notificationRoutes(app: FastifyInstance): Promise<void> {
           type: row.type,
           entityType: row.entity_type,
           entityId: row.entity_id,
-          message: row.message,
+          message: row.message_key
+            ? translate(req.locale, row.message_key, row.message_params ?? {})
+            : row.message,
           readAt: row.read_at ? new Date(row.read_at).toISOString() : null,
           createdAt: new Date(row.created_at).toISOString(),
           actor: row.actor_id ? mapUserMini(row, 'actor_') : null,

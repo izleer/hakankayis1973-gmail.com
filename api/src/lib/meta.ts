@@ -290,8 +290,9 @@ export async function waitForInstagramContainer(
         502,
         'SOCIAL_IG_PROCESSING',
         status.status
-          ? `Instagram medyayı işleyemedi: ${status.status}`
+          ? 'Instagram medyayı işleyemedi.'
           : 'Instagram medyayı işleyemedi. Video biçimini kontrol edin.',
+        status.status ? { status: status.status } : undefined,
       );
     }
     await new Promise((resolve) => setTimeout(resolve, 3_000));

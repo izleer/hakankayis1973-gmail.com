@@ -1,0 +1,37 @@
+<resources>
+    <!-- Kayıt ekle ekranı -->
+    <string name="add_entry_title">Kayıt ekle</string>
+    <string name="add_entry_eyebrow">ZAMAN ÇİZELGESİNE</string>
+    <string name="add_entry_headline">Bugün ne oldu?</string>
+    <string name="add_entry_intro">Bir bakım, bir an, bir ölçüm… Ne olursa olsun, tarihiyle birlikte kalsın.</string>
+
+    <string name="add_entry_section_type">Kayıt türü</string>
+    <string name="add_entry_field_title">Başlık (isteğe bağlı)</string>
+    <string name="add_entry_field_notes">Notlar</string>
+    <string name="add_entry_notes_placeholder">Ne yaptın, ne değişti, ne hissettin?</string>
+
+    <string name="add_entry_section_when">Ne zaman?</string>
+    <string name="add_entry_change_datetime">Tarih ve saati değiştir</string>
+
+    <string name="add_entry_section_measurement">Ölçüm</string>
+    <string name="add_entry_metric">Metrik</string>
+    <string name="add_entry_metric_placeholder">Boy</string>
+    <string name="add_entry_value">Değer</string>
+    <string name="add_entry_unit">Birim</string>
+    <string name="add_entry_unit_placeholder">cm</string>
+    <string name="add_entry_measurement_hint">Doldurursan ölçüm geçmişine eklenir.</string>
+
+    <string name="add_entry_section_visibility">Kimler görebilir?</string>
+    <string name="add_entry_visibility_hint">Kayıt, varlıktan daha geniş görünürlükte olamaz.</string>
+
+    <string name="add_entry_section_files">Fotoğraf / belge</string>
+    <string name="add_entry_add_file">Dosya ekle (%1$s, %2$d MB)</string>
+    <string name="add_entry_remove_file">Kaldır</string>
+    <plurals name="add_entry_media_limit_count">
+        <item quantity="one">en fazla %1$d dosya</item>
+        <item quantity="other">en fazla %1$d dosya</item>
+    </plurals>
+
+    <string name="add_entry_footer_hint">Kayıt, seçtiğin tarih ve saatle zaman çizelgesine işlenir; sonradan düzenleyebilirsin.</string>
+    <string name="add_entry_save">Hikâyeye ekle</string>
+</resources>

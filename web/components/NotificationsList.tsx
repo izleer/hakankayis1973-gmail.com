@@ -4,6 +4,7 @@ import Link from 'next/link';
 import { useState } from 'react';
 import { vh } from '@/lib/client';
 import { formatDateTime, initials } from '@/lib/format';
+import { useI18n } from '@/lib/i18n/client';
 import type { Notification } from '@/lib/types';
 import { EmptyState } from './EmptyState';
 import { Icon, type IconName } from './Icons';
@@ -32,6 +33,7 @@ export function NotificationsList({
   initial: Notification[];
   initialUnread: number;
 }) {
+  const { t, locale } = useI18n();
   const [items, setItems] = useState(initial);
   const [unread, setUnread] = useState(initialUnread);
   const [busy, setBusy] = useState(false);
@@ -67,9 +69,11 @@ export function NotificationsList({
     return (
       <EmptyState
         icon="bell"
-        title="Henüz bildirim yok"
-        body="Biri gönderini beğendiğinde, yorum yaptığında ya da seni takip ettiğinde burada görünecek."
-        action={{ href: '/kesfet', label: 'Keşfete göz at' }}
+        title={t('Henüz bildirim yok')}
+        body={t(
+          'Biri gönderini beğendiğinde, yorum yaptığında ya da seni takip ettiğinde burada görünecek.',
+        )}
+        action={{ href: '/kesfet', label: t('Keşfete göz at') }}
       />
     );
   }
@@ -78,7 +82,7 @@ export function NotificationsList({
     <>
       <div className="notice-toolbar">
         <span className="notice-count">
-          {unread > 0 ? `${unread} okunmamış bildirim` : 'Tümü okundu'}
+          {unread > 0 ? t('{count} okunmamış bildirim', { count: unread }) : t('Tümü okundu')}
         </span>
         <button
           type="button"
@@ -87,7 +91,7 @@ export function NotificationsList({
           disabled={busy || unread === 0}
         >
           <Icon name="check" size={15} />
-          Tümünü okundu işaretle
+          {t('Tümünü okundu işaretle')}
         </button>
       </div>
 
@@ -111,7 +115,7 @@ export function NotificationsList({
                   {item.actor?.avatarUrl ? (
                     <img src={item.actor.avatarUrl} alt="" />
                   ) : item.actor ? (
-                    initials(item.actor.displayName)
+                    initials(item.actor.displayName, locale)
                   ) : (
                     <Icon name="bell" size={15} />
                   )}
@@ -119,11 +123,11 @@ export function NotificationsList({
               </span>
               <span className="notice-body">
                 <span className="notice-kicker">
-                  {info.label}
+                  {t(info.label)}
                   {item.readAt ? null : <span className="notice-dot" />}
                 </span>
-                <strong>{item.message ?? 'Yeni bir bildirim var.'}</strong>
-                <small>{formatDateTime(item.createdAt)}</small>
+                <strong>{item.message ?? t('Yeni bir bildirim var.')}</strong>
+                <small>{formatDateTime(item.createdAt, locale)}</small>
               </span>
               <Icon name="arrow-right" size={16} />
             </Link>

@@ -1,0 +1,49 @@
+<resources>
+    <!-- Tabs -->
+    <string name="asset_detail_tab_story">Story</string>
+    <string name="asset_detail_tab_media">Medien</string>
+    <string name="asset_detail_tab_measurements">Messungen</string>
+    <string name="asset_detail_tab_people">Personen</string>
+
+    <!-- Obere Aktionen -->
+    <string name="asset_detail_add_entry">Eintrag hinzufügen</string>
+    <string name="asset_detail_share_with_people">Mit Personen teilen</string>
+
+    <!-- Titelbild und Übersicht -->
+    <string name="asset_detail_shared_with_you">Dieses Objekt wurde mit dir geteilt.</string>
+    <string name="asset_detail_meta_entries">Einträge</string>
+    <string name="asset_detail_meta_acquired">erworben</string>
+    <string name="asset_detail_meta_location">Ort</string>
+    <string name="asset_detail_cover_type_fallback">OBJEKT</string>
+
+    <!-- Leere Zustände -->
+    <string name="asset_detail_story_empty_title">Noch keine Spuren</string>
+    <string name="asset_detail_story_empty_body">Füge deine erste Notiz, dein erstes Foto oder deine erste Wartung hinzu, damit die Zeitleiste hier beginnt.</string>
+    <string name="asset_detail_media_empty_title">Medien sind still</string>
+    <string name="asset_detail_media_empty_body">Die Fotos und Dokumente, die du Einträgen hinzufügst, sammeln sich hier.</string>
+    <plurals name="asset_detail_media_count">
+        <item quantity="one">%1$d Datei · zum Vergrößern tippen</item>
+        <item quantity="other">%1$d Dateien · zum Vergrößern tippen</item>
+    </plurals>
+    <string name="asset_detail_measurements_empty_title">Keine Messungen</string>
+    <string name="asset_detail_measurements_empty_body">Größe, Gewicht, Gießmenge… Sie sammeln sich hier, sobald du einen Eintrag vom Typ Messung hinzufügst.</string>
+    <string name="asset_detail_measurement_history">Messverlauf</string>
+
+    <!-- Zugriffsverwaltung -->
+    <string name="asset_detail_access_section">Wer kann das sehen?</string>
+    <string name="asset_detail_access_body">Das Objekt ist %1$s, die unten genannten Personen können aber ausschließlich dieses Objekt sehen. Die Sichtbarkeit der Einträge wird separat verwaltet.</string>
+    <string name="asset_detail_username_label">Benutzername</string>
+    <string name="asset_detail_add">Hinzufügen</string>
+    <string name="asset_detail_remove_access">Zugriff entfernen</string>
+    <string name="asset_detail_no_viewers_title">Mit niemandem geteilt</string>
+    <string name="asset_detail_no_viewers_body">Füge einen Benutzernamen hinzu, um die Geschichte dieses Objekts mit einer Person deiner Wahl zu teilen.</string>
+    <string name="asset_detail_owner_only_title">Nur die besitzende Person verwaltet das</string>
+    <string name="asset_detail_owner_only_body">Nur die besitzende Person kann die Zugriffsliste dieses Objekts bearbeiten.</string>
+
+    <!-- Löschen und Bildansicht -->
+    <string name="asset_detail_delete">Löschen</string>
+    <string name="asset_detail_delete_title">Eintrag löschen?</string>
+    <string name="asset_detail_delete_body">Dieser Eintrag und die zugehörigen Medien werden aus deinem Archiv entfernt. Das lässt sich nicht rückgängig machen.</string>
+    <string name="asset_detail_cancel">Abbrechen</string>
+    <string name="asset_detail_close">Schließen</string>
+</resources>

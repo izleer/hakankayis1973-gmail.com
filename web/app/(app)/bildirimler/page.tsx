@@ -1,10 +1,16 @@
+import type { Metadata } from 'next';
 import { NotificationsList } from '@/components/NotificationsList';
 import { api, requireViewer } from '@/lib/api';
+import { getT } from '@/lib/i18n/server';
 import type { Notification } from '@/lib/types';
 
-export const metadata = { title: 'Bildirimler' };
+export async function generateMetadata(): Promise<Metadata> {
+  const t = await getT();
+  return { title: t('Bildirimler') };
+}
 
 export default async function NotificationsPage() {
+  const t = await getT();
   await requireViewer();
   const data = await api<{
     items: Notification[];
@@ -16,11 +22,12 @@ export default async function NotificationsPage() {
     <main className="page page-narrow">
       <header className="page-head compact">
         <div>
-          <span className="eyebrow">Sana dokunan izler</span>
-          <h1>Bildirimler</h1>
+          <span className="eyebrow">{t('Sana dokunan izler')}</span>
+          <h1>{t('Bildirimler')}</h1>
           <p>
-            Varlıklarına, gönderilerine ve hafızana başkaları dokunduğunda burada
-            görünür.
+            {t(
+              'Varlıklarına, gönderilerine ve hafızana başkaları dokunduğunda burada görünür.',
+            )}
           </p>
         </div>
       </header>
