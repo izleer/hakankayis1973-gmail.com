@@ -25,6 +25,12 @@ const links: { href: string; label: string; description: string; icon: IconName 
     icon: 'archive',
   },
   {
+    href: '/rapor',
+    label: 'Rapor',
+    description: 'Bir varlık seç ve ayrıntılı raporunu yazdır ya da PDF olarak indir.',
+    icon: 'file',
+  },
+  {
     href: '/bildirimler',
     label: 'Bildirimler',
     description: 'Takip, beğeni ve grup davetlerini gör.',

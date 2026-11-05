@@ -37,6 +37,7 @@ import { useI18n, useT } from '@/lib/i18n/client';
 import { EmptyState } from './EmptyState';
 import { Icon, type IconName } from './Icons';
 import { MediaImage } from './MediaImage';
+import { MiniMap } from './MiniMap';
 import { SocialShareModal } from './SocialShareModal';
 import { useModalA11y } from './useModalA11y';
 
@@ -212,6 +213,16 @@ export function AssetDetail({
               ))}
           </dl>
 
+          {asset.latitude !== null && asset.longitude !== null ? (
+            <div className="detail-map">
+              <MiniMap
+                latitude={asset.latitude}
+                longitude={asset.longitude}
+                label={formatLocation(asset.locationName, locale) || asset.title}
+              />
+            </div>
+          ) : null}
+
           <div className="detail-actions">
             {isOwner ? (
               <>
@@ -243,7 +254,7 @@ export function AssetDetail({
                 {t('{name} tarafından paylaşıldı', { name: asset.owner.displayName })}
               </span>
             )}
-            <Link href={`/varliklar/${asset.id}/rapor`} className="btn btn-ghost">
+            <Link href={`/rapor/${asset.id}`} className="btn btn-ghost">
               <Icon name="download" size={16} />
               {t('Rapor')}
             </Link>

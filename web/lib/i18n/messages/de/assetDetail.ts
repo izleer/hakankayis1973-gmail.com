@@ -159,6 +159,15 @@ const assetDetail = {
   'Rapor, izleer varlık hafızasından oluşturuldu.':
     'Dieser Bericht wurde aus dem izleer-Objektgedächtnis erstellt.',
   'Varlığa dön': 'Zurück zum Objekt',
+  Raporlar: 'Berichte',
+  'Yazdırılabilir kayıtlar': 'Druckbare Aufzeichnungen',
+  'Bir varlık seç; künyesi, konumu, ölçümleri ve hikâyesi tek bir ayrıntılı raporda toplansın.':
+    'Wähle ein Objekt; Steckbrief, Standort, Messungen und Geschichte werden in einem ausführlichen Bericht zusammengeführt.',
+  '{title} raporunu aç': 'Bericht zu {title} öffnen',
+  'Raporu aç': 'Bericht öffnen',
+  'Raporlara dön': 'Zurück zu den Berichten',
+  'Bir varlık seç ve ayrıntılı raporunu yazdır ya da PDF olarak indir.':
+    'Wähle ein Objekt und drucke den ausführlichen Bericht oder lade ihn als PDF herunter.',
 } as const;
 
 export default assetDetail;

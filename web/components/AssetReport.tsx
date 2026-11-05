@@ -13,6 +13,7 @@ import {
 import { getI18n } from '@/lib/i18n/server';import type { Asset, AssetDetailData, Entry, EntryType, Measurement } from '@/lib/types';
 import { Icon, type IconName } from './Icons';
 import { MediaImage } from './MediaImage';
+import { MiniMap } from './MiniMap';
 import { ReportActions } from './ReportActions';
 
 const entryIcons: Record<EntryType, IconName> = {
@@ -87,12 +88,12 @@ export async function AssetReport({
     ([, value]) => value !== null && value !== undefined && String(value).trim() !== '',
   );
   const measurementGroups = groupMeasurements(measurements);
-  const coordinates =
-    asset.latitude !== null && asset.longitude !== null
-      ? formatCoordinates(asset.latitude, asset.longitude)
-      : null;
-  const mapsUrl = coordinates
-    ? `https://www.google.com/maps/search/?api=1&query=${asset.latitude},${asset.longitude}`
+  const latitude = asset.latitude;
+  const longitude = asset.longitude;
+  const hasCoordinates = latitude !== null && longitude !== null;
+  const coordinates = hasCoordinates ? formatCoordinates(latitude, longitude) : null;
+  const mapsUrl = hasCoordinates
+    ? `https://www.google.com/maps/search/?api=1&query=${latitude},${longitude}`
     : null;
 
   return (
@@ -208,6 +209,13 @@ export async function AssetReport({
         {asset.locationName || coordinates ? (
           <section className="report-section">
             <h2>{t('Konum')}</h2>
+            {hasCoordinates ? (
+              <MiniMap
+                latitude={latitude}
+                longitude={longitude}
+                label={formatLocation(asset.locationName, locale) || undefined}
+              />
+            ) : null}
             <div className="report-location">
               <Icon name="pin" size={16} />
               <div>
@@ -371,12 +379,16 @@ export async function AssetReport({
         </footer>
       </article>
 
-      <p className="report-back no-print">
-        <Link href={`/varliklar/${asset.id}`} className="btn btn-ghost">
+      <div className="report-back no-print">
+        <Link href="/rapor" className="btn btn-ghost">
           <Icon name="arrow-left" size={16} />
-          {t('Varlığa dön')}
+          {t('Raporlara dön')}
         </Link>
-      </p>
+        <Link href={`/varliklar/${asset.id}`} className="btn btn-ghost">
+          {t('Varlığa dön')}
+          <Icon name="arrow-right" size={16} />
+        </Link>
+      </div>
     </main>
   );
 }

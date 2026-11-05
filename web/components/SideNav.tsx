@@ -8,6 +8,7 @@ import { Icon, type IconName } from './Icons';
 const items: { href: string; label: string; icon: IconName }[] = [
   { href: '/', label: 'Hafıza', icon: 'leaf' },
   { href: '/varliklar', label: 'Varlıklar', icon: 'grid' },
+  { href: '/rapor', label: 'Rapor', icon: 'file' },
   { href: '/gruplar', label: 'Gruplar', icon: 'users' },
   { href: '/arsiv', label: 'Arşiv', icon: 'archive' },
   { href: '/kesfet', label: 'Keşfet', icon: 'compass' },
@@ -53,7 +54,7 @@ const mobileItems: { href: string; label: string; icon: IconName }[] = [
   { href: '/menu', label: 'Daha fazla', icon: 'more' },
 ];
 
-const menuPaths = ['/menu', '/kesfet', '/arsiv', '/bildirimler', '/profil', '/ayarlar'];
+const menuPaths = ['/menu', '/kesfet', '/arsiv', '/bildirimler', '/profil', '/ayarlar', '/rapor'];
 
 function isMobileActive(href: string, pathname: string) {
   if (href === '/') return pathname === '/';

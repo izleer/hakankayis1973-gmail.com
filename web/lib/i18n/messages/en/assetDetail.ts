@@ -159,6 +159,15 @@ const assetDetail = {
   'Rapor, izleer varlık hafızasından oluşturuldu.':
     'This report was generated from the izleer asset memory.',
   'Varlığa dön': 'Back to asset',
+  Raporlar: 'Reports',
+  'Yazdırılabilir kayıtlar': 'Printable records',
+  'Bir varlık seç; künyesi, konumu, ölçümleri ve hikâyesi tek bir ayrıntılı raporda toplansın.':
+    'Choose an asset; its details, location, measurements and story come together in one detailed report.',
+  '{title} raporunu aç': 'Open the {title} report',
+  'Raporu aç': 'Open report',
+  'Raporlara dön': 'Back to reports',
+  'Bir varlık seç ve ayrıntılı raporunu yazdır ya da PDF olarak indir.':
+    'Choose an asset and print its detailed report or download it as a PDF.',
 } as const;
 
 export default assetDetail;
