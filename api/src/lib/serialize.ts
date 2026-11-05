@@ -118,6 +118,8 @@ export type AssetDto = {
   status: 'active' | 'archived';
   coverUrl: string | null;
   locationName: string | null;
+  latitude: number | null;
+  longitude: number | null;
   acquiredAt: string | null;
   attributes: Record<string, unknown>;
   owner: ReturnType<typeof mapUserMini>;
@@ -146,6 +148,8 @@ export async function mapAsset(row: Row, locale: Locale = 'tr'): Promise<AssetDt
     status: row.status,
     coverUrl: cover ?? null,
     locationName: row.location_name,
+    latitude: row.latitude == null ? null : Number(row.latitude),
+    longitude: row.longitude == null ? null : Number(row.longitude),
     acquiredAt: dateOnly(row.acquired_at),
     attributes: row.attributes ?? {},
     owner: mapUserMini(row, 'owner_'),
@@ -171,6 +175,8 @@ export async function mapEntry(row: Row, media: MediaDto[] = []): Promise<Record
     occurredAt: iso(row.occurred_at)!,
     visibility: row.visibility,
     locationName: row.location_name,
+    latitude: row.latitude == null ? null : Number(row.latitude),
+    longitude: row.longitude == null ? null : Number(row.longitude),
     attributes: row.attributes ?? {},
     author: mapUserMini(row, 'author_'),
     media,

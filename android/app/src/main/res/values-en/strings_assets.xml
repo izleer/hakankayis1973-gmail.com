@@ -35,4 +35,16 @@
     <string name="assets_cover_pick">Choose a photo from your gallery</string>
     <string name="assets_error_type_required">Choose an asset type first.</string>
     <string name="assets_submit">Add to memory</string>
+
+    <!-- Location -->
+    <string name="assets_location_label">Location</string>
+    <string name="assets_location_name_label">Location name (optional)</string>
+    <string name="assets_location_name_placeholder">E.g. Moda beach, Istanbul</string>
+    <string name="assets_location_use">Use my current location</string>
+    <string name="assets_location_update">Update location</string>
+    <string name="assets_location_fetching">Getting location…</string>
+    <string name="assets_location_hint">The location is taken from your device GPS and can be opened in Maps. You can edit the name field as you like.</string>
+    <string name="assets_location_permission_denied">Location permission was not granted. Live location cannot be taken without it.</string>
+    <string name="assets_location_unavailable">Could not get your location. Check that GPS is on and try again.</string>
+    <string name="assets_location_open_maps">Open in Maps</string>
 </resources>

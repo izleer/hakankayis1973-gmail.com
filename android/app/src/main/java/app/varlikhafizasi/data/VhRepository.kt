@@ -189,6 +189,9 @@ class VhRepository(
         description: String?,
         visibility: String,
         coverUri: Uri?,
+        locationName: String? = null,
+        latitude: Double? = null,
+        longitude: Double? = null,
     ): Asset {
         val cover = coverUri?.let { uploadImage(it) }
         val payload = call {
@@ -199,6 +202,9 @@ class VhRepository(
                     description = description?.trim()?.takeIf { it.isNotEmpty() },
                     visibility = visibility,
                     coverMediaId = cover?.id,
+                    locationName = locationName?.trim()?.takeIf { it.isNotEmpty() },
+                    latitude = latitude,
+                    longitude = longitude,
                 ),
             )
         }

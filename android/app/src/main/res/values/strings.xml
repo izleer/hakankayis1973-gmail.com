@@ -95,4 +95,9 @@
     <string name="notice_access_removed">Erişim kaldırıldı.</string>
     <string name="notice_unfollowed">@%1$s takipten çıkarıldı.</string>
     <string name="notice_following">@%1$s takip ediliyor.</string>
+
+    <!-- Medya eylemleri -->
+    <string name="media_pick_gallery">Galeriden seç</string>
+    <string name="media_take_photo">Fotoğraf çek</string>
+    <string name="media_camera_unavailable">Kamera uygulaması bulunamadı.</string>
 </resources>

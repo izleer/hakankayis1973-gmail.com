@@ -35,4 +35,16 @@
     <string name="assets_cover_pick">Elige una foto de tu galería</string>
     <string name="assets_error_type_required">Primero elige un tipo de bien.</string>
     <string name="assets_submit">Añadir a la memoria</string>
+
+    <!-- Ubicación -->
+    <string name="assets_location_label">Ubicación</string>
+    <string name="assets_location_name_label">Nombre de la ubicación (opcional)</string>
+    <string name="assets_location_name_placeholder">Ej. playa de Moda, Estambul</string>
+    <string name="assets_location_use">Usar mi ubicación actual</string>
+    <string name="assets_location_update">Actualizar ubicación</string>
+    <string name="assets_location_fetching">Obteniendo ubicación…</string>
+    <string name="assets_location_hint">La ubicación se obtiene con el GPS del dispositivo y puede abrirse en Mapas. Puedes editar el nombre libremente.</string>
+    <string name="assets_location_permission_denied">No se concedió el permiso de ubicación. Sin él no se puede obtener la ubicación actual.</string>
+    <string name="assets_location_unavailable">No se pudo obtener la ubicación. Comprueba que el GPS esté activado e inténtalo de nuevo.</string>
+    <string name="assets_location_open_maps">Abrir en Mapas</string>
 </resources>

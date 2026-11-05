@@ -35,4 +35,16 @@
     <string name="assets_cover_pick">Galeriden bir fotoğraf seç</string>
     <string name="assets_error_type_required">Önce bir varlık türü seçin.</string>
     <string name="assets_submit">Hafızaya ekle</string>
+
+    <!-- Konum -->
+    <string name="assets_location_label">Konum</string>
+    <string name="assets_location_name_label">Konum adı (isteğe bağlı)</string>
+    <string name="assets_location_name_placeholder">Örn. Moda sahil, İstanbul</string>
+    <string name="assets_location_use">Mevcut konumumu kullan</string>
+    <string name="assets_location_update">Konumu güncelle</string>
+    <string name="assets_location_fetching">Konum alınıyor…</string>
+    <string name="assets_location_hint">Konum, cihazın GPS\'i ile alınır ve haritada açılabilir. Ad alanını istediğin gibi düzenleyebilirsin.</string>
+    <string name="assets_location_permission_denied">Konum izni verilmedi. İzin olmadan anlık konum alınamaz.</string>
+    <string name="assets_location_unavailable">Konum alınamadı. GPS\'in açık olduğunu kontrol edip yeniden dene.</string>
+    <string name="assets_location_open_maps">Haritada aç</string>
 </resources>

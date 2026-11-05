@@ -313,6 +313,9 @@ class VhViewModel(
         description: String?,
         visibility: String,
         coverUri: Uri?,
+        locationName: String? = null,
+        latitude: Double? = null,
+        longitude: Double? = null,
         onCreated: (String) -> Unit,
     ) {
         if (typeId.isBlank() || title.isBlank()) {
@@ -323,7 +326,16 @@ class VhViewModel(
             _formBusy.value = true
             _formError.value = null
             try {
-                val asset = repository.createAsset(typeId, title, description, visibility, coverUri)
+                val asset = repository.createAsset(
+                    typeId = typeId,
+                    title = title,
+                    description = description,
+                    visibility = visibility,
+                    coverUri = coverUri,
+                    locationName = locationName,
+                    latitude = latitude,
+                    longitude = longitude,
+                )
                 loadHome()
                 loadAssets()
                 loadArchive()

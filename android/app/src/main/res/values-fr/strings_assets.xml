@@ -35,4 +35,16 @@
     <string name="assets_cover_pick">Choisissez une photo dans votre galerie</string>
     <string name="assets_error_type_required">Choisissez d\'abord un type de bien.</string>
     <string name="assets_submit">Ajouter à la mémoire</string>
+
+    <!-- Emplacement -->
+    <string name="assets_location_label">Emplacement</string>
+    <string name="assets_location_name_label">Nom de l\'emplacement (facultatif)</string>
+    <string name="assets_location_name_placeholder">Ex. plage de Moda, Istanbul</string>
+    <string name="assets_location_use">Utiliser ma position actuelle</string>
+    <string name="assets_location_update">Mettre à jour la position</string>
+    <string name="assets_location_fetching">Localisation en cours…</string>
+    <string name="assets_location_hint">La position est obtenue via le GPS de votre appareil et peut être ouverte dans Plans. Vous pouvez modifier le nom librement.</string>
+    <string name="assets_location_permission_denied">L\'autorisation de localisation n\'a pas été accordée. Sans elle, la position actuelle est indisponible.</string>
+    <string name="assets_location_unavailable">Impossible d\'obtenir votre position. Vérifiez que le GPS est activé et réessayez.</string>
+    <string name="assets_location_open_maps">Ouvrir dans Plans</string>
 </resources>

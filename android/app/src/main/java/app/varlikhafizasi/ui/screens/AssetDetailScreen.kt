@@ -23,6 +23,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Add
 import androidx.compose.material.icons.outlined.Delete
+import androidx.compose.material.icons.outlined.Place
 import androidx.compose.material.icons.outlined.Share
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Icon
@@ -43,6 +44,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextOverflow
@@ -96,6 +98,7 @@ fun AssetDetailScreen(
     val state by vm.detail.collectAsStateWithLifecycle()
     val formError by vm.formError.collectAsStateWithLifecycle()
     val formBusy by vm.formBusy.collectAsStateWithLifecycle()
+    val context = LocalContext.current
     var selectedTab by rememberSaveable { mutableStateOf(0) }
     var pendingDelete by rememberSaveable { mutableStateOf<String?>(null) }
     var lightboxUrl by rememberSaveable { mutableStateOf<String?>(null) }
@@ -190,6 +193,52 @@ fun AssetDetailScreen(
                                 stringResource(R.string.asset_detail_meta_location),
                                 Modifier.weight(1f),
                             )
+                        }
+                        if (asset.latitude != null && asset.longitude != null) {
+                            Spacer(Modifier.height(8.dp))
+                            Row(
+                                verticalAlignment = Alignment.CenterVertically,
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .background(PaperDeep, RoundedCornerShape(10.dp))
+                                    .clickable {
+                                        openInMaps(
+                                            context,
+                                            asset.latitude,
+                                            asset.longitude,
+                                            asset.locationName,
+                                        )
+                                    }
+                                    .padding(horizontal = 12.dp, vertical = 9.dp),
+                            ) {
+                                Icon(
+                                    Icons.Outlined.Place,
+                                    contentDescription = null,
+                                    tint = Forest,
+                                    modifier = Modifier.size(18.dp),
+                                )
+                                Spacer(Modifier.width(8.dp))
+                                Column(Modifier.weight(1f)) {
+                                    Text(
+                                        asset.locationName
+                                            ?: stringResource(R.string.asset_detail_meta_location),
+                                        style = MaterialTheme.typography.titleSmall,
+                                        color = Forest,
+                                        maxLines = 1,
+                                        overflow = TextOverflow.Ellipsis,
+                                    )
+                                    Text(
+                                        formatCoordinates(asset.latitude, asset.longitude),
+                                        style = MaterialTheme.typography.bodySmall,
+                                        color = Muted,
+                                    )
+                                }
+                                Text(
+                                    stringResource(R.string.assets_location_open_maps),
+                                    style = MaterialTheme.typography.labelMedium,
+                                    color = Forest,
+                                )
+                            }
                         }
                         Spacer(Modifier.height(14.dp))
                         Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {

@@ -23,6 +23,8 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.AddPhotoAlternate
 import androidx.compose.material.icons.outlined.ArrowDropDown
+import androidx.compose.material.icons.outlined.PhotoCamera
+import androidx.compose.material.icons.outlined.PhotoLibrary
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.CircularProgressIndicator
@@ -39,12 +41,14 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.Saver
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -52,6 +56,7 @@ import app.varlikhafizasi.R
 import app.varlikhafizasi.data.AssetType
 import app.varlikhafizasi.ui.VhViewModel
 import app.varlikhafizasi.ui.components.GoldRule
+import app.varlikhafizasi.ui.components.LocationPicker
 import app.varlikhafizasi.ui.components.Pill
 import app.varlikhafizasi.ui.components.SectionLabel
 import app.varlikhafizasi.ui.components.VhTopBar
@@ -67,6 +72,11 @@ import app.varlikhafizasi.ui.theme.Ivory
 import coil.compose.AsyncImage
 
 private data class TypeOption(val id: String, val label: String, val parent: String?)
+
+private val UriStateSaver = Saver<Uri?, String>(
+    save = { it?.toString().orEmpty() },
+    restore = { value -> value.takeIf { it.isNotEmpty() }?.let(Uri::parse) },
+)
 
 private fun flattenTypes(types: List<AssetType>): List<TypeOption> =
     types.flatMap { root ->
@@ -92,7 +102,13 @@ fun NewAssetScreen(
     var visibility by rememberSaveable { mutableStateOf("private") }
     var selectedId by rememberSaveable { mutableStateOf<String?>(null) }
     var menuOpen by rememberSaveable { mutableStateOf(false) }
-    var coverUri by remember { mutableStateOf<Uri?>(null) }
+    var coverUri by rememberSaveable(stateSaver = UriStateSaver) { mutableStateOf<Uri?>(null) }
+    var pendingCoverUri by rememberSaveable(stateSaver = UriStateSaver) { mutableStateOf<Uri?>(null) }
+    var locationName by rememberSaveable { mutableStateOf("") }
+    var latitude by rememberSaveable { mutableStateOf<Double?>(null) }
+    var longitude by rememberSaveable { mutableStateOf<Double?>(null) }
+    val context = LocalContext.current
+    val cameraUnavailable = stringResource(R.string.media_camera_unavailable)
 
     val options = remember(types) { flattenTypes(types) }
     val selected = options.firstOrNull { it.id == selectedId }
@@ -105,6 +121,24 @@ fun NewAssetScreen(
 
     val picker = rememberLauncherForActivityResult(ActivityResultContracts.GetContent()) { uri ->
         if (uri != null) coverUri = uri
+    }
+
+    val camera = rememberLauncherForActivityResult(ActivityResultContracts.TakePicture()) { saved ->
+        val captured = pendingCoverUri
+        pendingCoverUri = null
+        if (saved && captured != null) coverUri = captured
+    }
+
+    fun captureCover() {
+        val target = runCatching { createCaptureUri(context, "cover") }.getOrElse {
+            vm.setNotice(cameraUnavailable)
+            return
+        }
+        pendingCoverUri = target
+        runCatching { camera.launch(target) }.onFailure {
+            pendingCoverUri = null
+            vm.setNotice(cameraUnavailable)
+        }
     }
 
     Box(
@@ -244,6 +278,22 @@ fun NewAssetScreen(
             )
 
             Spacer(Modifier.height(20.dp))
+            LocationPicker(
+                locationName = locationName,
+                onLocationNameChange = { locationName = it },
+                latitude = latitude,
+                longitude = longitude,
+                onLocationPicked = { picked ->
+                    latitude = picked.latitude
+                    longitude = picked.longitude
+                    if (locationName.isBlank() && !picked.name.isNullOrBlank()) {
+                        locationName = picked.name
+                    }
+                },
+                enabled = !busy,
+            )
+
+            Spacer(Modifier.height(20.dp))
             SectionLabel(stringResource(R.string.assets_cover_label))
             Surface(
                 color = PaperDeep,
@@ -294,6 +344,50 @@ fun NewAssetScreen(
                 }
             }
 
+            Spacer(Modifier.height(8.dp))
+            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                OutlinedButton(
+                    onClick = { picker.launch("image/*") },
+                    enabled = !busy,
+                    shape = RoundedCornerShape(12.dp),
+                    border = BorderStroke(1.dp, Line),
+                    modifier = Modifier.weight(1f),
+                ) {
+                    Icon(
+                        Icons.Outlined.PhotoLibrary,
+                        contentDescription = null,
+                        tint = Forest,
+                        modifier = Modifier.size(18.dp),
+                    )
+                    Spacer(Modifier.size(6.dp))
+                    Text(
+                        stringResource(R.string.media_pick_gallery),
+                        style = MaterialTheme.typography.labelMedium,
+                        color = Forest,
+                    )
+                }
+                OutlinedButton(
+                    onClick = { captureCover() },
+                    enabled = !busy,
+                    shape = RoundedCornerShape(12.dp),
+                    border = BorderStroke(1.dp, Line),
+                    modifier = Modifier.weight(1f),
+                ) {
+                    Icon(
+                        Icons.Outlined.PhotoCamera,
+                        contentDescription = null,
+                        tint = Forest,
+                        modifier = Modifier.size(18.dp),
+                    )
+                    Spacer(Modifier.size(6.dp))
+                    Text(
+                        stringResource(R.string.media_take_photo),
+                        style = MaterialTheme.typography.labelMedium,
+                        color = Forest,
+                    )
+                }
+            }
+
             if (error != null) {
                 Spacer(Modifier.height(14.dp))
                 Text(error ?: "", style = MaterialTheme.typography.bodySmall, color = Danger)
@@ -323,6 +417,9 @@ fun NewAssetScreen(
                         description = description,
                         visibility = visibility,
                         coverUri = coverUri,
+                        locationName = locationName,
+                        latitude = latitude,
+                        longitude = longitude,
                         onCreated = onCreated,
                     )
                 },

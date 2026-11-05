@@ -29,12 +29,14 @@ import androidx.compose.material.icons.outlined.AddPhotoAlternate
 import androidx.compose.material.icons.outlined.CalendarMonth
 import androidx.compose.material.icons.outlined.Close
 import androidx.compose.material.icons.outlined.Edit
+import androidx.compose.material.icons.outlined.PhotoCamera
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
@@ -43,6 +45,7 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.Saver
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
@@ -79,6 +82,16 @@ private val entryTypes = listOf(
     "note", "photo", "maintenance", "health", "measurement", "acquisition", "event", "document",
 )
 
+private val UriStateSaver = Saver<Uri?, String>(
+    save = { it?.toString().orEmpty() },
+    restore = { value -> value.takeIf { it.isNotEmpty() }?.let(Uri::parse) },
+)
+
+private val UriListStateSaver = Saver<List<Uri>, ArrayList<String>>(
+    save = { uris -> ArrayList(uris.map(Uri::toString)) },
+    restore = { values -> values.map(Uri::parse) },
+)
+
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
 fun AddEntryScreen(
@@ -98,9 +111,11 @@ fun AddEntryScreen(
     var metric by rememberSaveable { mutableStateOf("") }
     var value by rememberSaveable { mutableStateOf("") }
     var unit by rememberSaveable { mutableStateOf("") }
-    var mediaUris by remember { mutableStateOf<List<Uri>>(emptyList()) }
+    var mediaUris by rememberSaveable(stateSaver = UriListStateSaver) { mutableStateOf<List<Uri>>(emptyList()) }
+    var pendingMediaUri by rememberSaveable(stateSaver = UriStateSaver) { mutableStateOf<Uri?>(null) }
     var occurredAt by rememberSaveable { mutableStateOf(System.currentTimeMillis()) }
     val context = LocalContext.current
+    val cameraUnavailable = stringResource(R.string.media_camera_unavailable)
 
     fun openOccurredAtPicker() {
         val calendar = Calendar.getInstance().apply { timeInMillis = occurredAt }
@@ -143,6 +158,27 @@ fun AddEntryScreen(
     ) { uris ->
         if (uris.isNotEmpty()) {
             mediaUris = (mediaUris + uris).take(6)
+        }
+    }
+
+    val camera = rememberLauncherForActivityResult(ActivityResultContracts.TakePicture()) { saved ->
+        val captured = pendingMediaUri
+        pendingMediaUri = null
+        if (saved && captured != null) {
+            mediaUris = (mediaUris + captured).take(6)
+        }
+    }
+
+    fun capturePhoto() {
+        if (mediaUris.size >= 6) return
+        val target = runCatching { createCaptureUri(context, "entry") }.getOrElse {
+            vm.setNotice(cameraUnavailable)
+            return
+        }
+        pendingMediaUri = target
+        runCatching { camera.launch(target) }.onFailure {
+            pendingMediaUri = null
+            vm.setNotice(cameraUnavailable)
         }
     }
 
@@ -353,6 +389,28 @@ fun AddEntryScreen(
                         color = Muted,
                     )
                 }
+            }
+
+            Spacer(Modifier.height(8.dp))
+            OutlinedButton(
+                onClick = { capturePhoto() },
+                enabled = !busy && mediaUris.size < 6,
+                shape = RoundedCornerShape(12.dp),
+                border = BorderStroke(1.dp, Line),
+                modifier = Modifier.fillMaxWidth(),
+            ) {
+                Icon(
+                    Icons.Outlined.PhotoCamera,
+                    contentDescription = null,
+                    tint = Forest,
+                    modifier = Modifier.size(18.dp),
+                )
+                Spacer(Modifier.size(8.dp))
+                Text(
+                    stringResource(R.string.media_take_photo),
+                    style = MaterialTheme.typography.labelMedium,
+                    color = Forest,
+                )
             }
 
             if (mediaUris.isNotEmpty()) {

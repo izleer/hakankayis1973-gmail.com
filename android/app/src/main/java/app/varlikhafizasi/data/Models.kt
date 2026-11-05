@@ -92,6 +92,8 @@ data class Asset(
     val status: String = "active",
     val coverUrl: String? = null,
     val locationName: String? = null,
+    val latitude: Double? = null,
+    val longitude: Double? = null,
     val acquiredAt: String? = null,
     val owner: UserMini? = null,
     val type: AssetTypeRef? = null,
@@ -136,6 +138,8 @@ data class Entry(
     val occurredAt: String? = null,
     val visibility: String = "private",
     val locationName: String? = null,
+    val latitude: Double? = null,
+    val longitude: Double? = null,
     val author: UserMini? = null,
     val media: List<Media> = emptyList(),
     val createdAt: String? = null,
@@ -390,6 +394,9 @@ data class CreateAssetRequest(
     val description: String? = null,
     val visibility: String = "private",
     val coverMediaId: String? = null,
+    val locationName: String? = null,
+    val latitude: Double? = null,
+    val longitude: Double? = null,
 )
 
 @Serializable

@@ -95,4 +95,9 @@
     <string name="notice_access_removed">Access removed.</string>
     <string name="notice_unfollowed">Unfollowed @%1$s.</string>
     <string name="notice_following">Now following @%1$s.</string>
+
+    <!-- Media actions -->
+    <string name="media_pick_gallery">Choose from gallery</string>
+    <string name="media_take_photo">Take a photo</string>
+    <string name="media_camera_unavailable">No camera app found.</string>
 </resources>

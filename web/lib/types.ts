@@ -60,6 +60,8 @@ export type Asset = {
   status: AssetStatus;
   coverUrl: string | null;
   locationName: string | null;
+  latitude: number | null;
+  longitude: number | null;
   acquiredAt: string | null;
   attributes: Record<string, unknown>;
   owner: UserMini;
@@ -91,6 +93,8 @@ export type Entry = {
   occurredAt: string;
   visibility: Visibility;
   locationName: string | null;
+  latitude: number | null;
+  longitude: number | null;
   attributes: Record<string, unknown>;
   author: UserMini;
   media: Media[];

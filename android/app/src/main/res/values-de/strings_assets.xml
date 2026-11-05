@@ -35,4 +35,16 @@
     <string name="assets_cover_pick">Wähle ein Foto aus deiner Galerie</string>
     <string name="assets_error_type_required">Wähle zuerst einen Objekttyp.</string>
     <string name="assets_submit">Zum Gedächtnis hinzufügen</string>
+
+    <!-- Standort -->
+    <string name="assets_location_label">Standort</string>
+    <string name="assets_location_name_label">Standortname (optional)</string>
+    <string name="assets_location_name_placeholder">Z. B. Moda-Strand, Istanbul</string>
+    <string name="assets_location_use">Aktuellen Standort verwenden</string>
+    <string name="assets_location_update">Standort aktualisieren</string>
+    <string name="assets_location_fetching">Standort wird ermittelt…</string>
+    <string name="assets_location_hint">Der Standort wird über das GPS deines Geräts ermittelt und kann in Karten geöffnet werden. Den Namen kannst du frei bearbeiten.</string>
+    <string name="assets_location_permission_denied">Standortberechtigung wurde nicht erteilt. Ohne sie kann der aktuelle Standort nicht ermittelt werden.</string>
+    <string name="assets_location_unavailable">Standort konnte nicht ermittelt werden. Prüfe, ob GPS aktiv ist, und versuche es erneut.</string>
+    <string name="assets_location_open_maps">In Karten öffnen</string>
 </resources>

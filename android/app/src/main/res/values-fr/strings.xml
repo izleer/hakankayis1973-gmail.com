@@ -95,4 +95,9 @@
     <string name="notice_access_removed">Accès retiré.</string>
     <string name="notice_unfollowed">Vous ne suivez plus @%1$s.</string>
     <string name="notice_following">Vous suivez maintenant @%1$s.</string>
+
+    <!-- Actions média -->
+    <string name="media_pick_gallery">Choisir dans la galerie</string>
+    <string name="media_take_photo">Prendre une photo</string>
+    <string name="media_camera_unavailable">Aucune application d\'appareil photo trouvée.</string>
 </resources>
