@@ -126,6 +126,39 @@ const assetDetail = {
   '“{title}” ve tüm kayıtları kalıcı olarak silinsin mi? Bu işlem geri alınamaz.':
     '„{title}“ und alle zugehörigen Einträge endgültig löschen? Das lässt sich nicht rückgängig machen.',
   'Varlığı sil': 'Objekt löschen',
+
+  // Rapor
+  Rapor: 'Bericht',
+  'Varlık raporu': 'Objektbericht',
+  '{title} raporu': '{title}-Bericht',
+  '{type} hafızasından yazdırılabilir varlık raporu.':
+    'Druckbarer Objektbericht aus dem {type}-Gedächtnis.',
+  '{title} varlık raporu': 'Objektbericht: {title}',
+  'PDF olarak indir': 'Als PDF herunterladen',
+  'Yazdır penceresinde “PDF olarak kaydet” seçeneğini kullan.':
+    'Wähle im Druckdialog „Als PDF speichern“.',
+  Künye: 'Steckbrief',
+  Sahip: 'Eigentümer',
+  Oluşturulma: 'Erstellt',
+  'Son güncelleme': 'Zuletzt aktualisiert',
+  'Rapor tarihi': 'Berichtsdatum',
+  'Paylaşım durumu': 'Freigabestatus',
+  'Seninle paylaşıldı': 'Mit dir geteilt',
+  Kayıtlar: 'Einträge',
+  Tarih: 'Datum',
+  Değer: 'Wert',
+  'Konum bilgisi yok': 'Kein Standort',
+  'Haritada aç': 'In Karten öffnen',
+  'Henüz kayıt yok.': 'Noch keine Einträge.',
+  'Henüz ölçüm yok.': 'Noch keine Messungen.',
+  '{metric} ölçüm geçmişi': 'Messverlauf: {metric}',
+  'Bu raporda ilk {count} kayıt yer alıyor.':
+    'Dieser Bericht enthält die ersten {count} Einträge.',
+  'Galeride {count} görselden ilk 12 tanesi gösteriliyor.':
+    'In der Galerie werden die ersten 12 von {count} Bildern gezeigt.',
+  'Rapor, izleer varlık hafızasından oluşturuldu.':
+    'Dieser Bericht wurde aus dem izleer-Objektgedächtnis erstellt.',
+  'Varlığa dön': 'Zurück zum Objekt',
 } as const;
 
 export default assetDetail;

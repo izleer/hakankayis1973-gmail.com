@@ -126,6 +126,39 @@ const assetDetail = {
   '“{title}” ve tüm kayıtları kalıcı olarak silinsin mi? Bu işlem geri alınamaz.':
     'Delete “{title}” and all its entries permanently? This cannot be undone.',
   'Varlığı sil': 'Delete asset',
+
+  // Rapor
+  Rapor: 'Report',
+  'Varlık raporu': 'Asset report',
+  '{title} raporu': '{title} report',
+  '{type} hafızasından yazdırılabilir varlık raporu.':
+    'Printable asset report from the {type} memory.',
+  '{title} varlık raporu': '{title} asset report',
+  'PDF olarak indir': 'Download as PDF',
+  'Yazdır penceresinde “PDF olarak kaydet” seçeneğini kullan.':
+    'Choose “Save as PDF” in the print dialog.',
+  Künye: 'Details',
+  Sahip: 'Owner',
+  Oluşturulma: 'Created',
+  'Son güncelleme': 'Last updated',
+  'Rapor tarihi': 'Report date',
+  'Paylaşım durumu': 'Sharing status',
+  'Seninle paylaşıldı': 'Shared with you',
+  Kayıtlar: 'Entries',
+  Tarih: 'Date',
+  Değer: 'Value',
+  'Konum bilgisi yok': 'No location',
+  'Haritada aç': 'Open in maps',
+  'Henüz kayıt yok.': 'No entries yet.',
+  'Henüz ölçüm yok.': 'No measurements yet.',
+  '{metric} ölçüm geçmişi': '{metric} measurement history',
+  'Bu raporda ilk {count} kayıt yer alıyor.':
+    'This report includes the first {count} entries.',
+  'Galeride {count} görselden ilk 12 tanesi gösteriliyor.':
+    'The gallery shows the first 12 of {count} images.',
+  'Rapor, izleer varlık hafızasından oluşturuldu.':
+    'This report was generated from the izleer asset memory.',
+  'Varlığa dön': 'Back to asset',
 } as const;
 
 export default assetDetail;

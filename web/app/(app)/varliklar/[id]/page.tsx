@@ -2,29 +2,11 @@ import type { Metadata } from 'next';
 import { notFound } from 'next/navigation';
 import { AssetDetail } from '@/components/AssetDetail';
 import { ApiError, api, requireViewer } from '@/lib/api';
+import { loadAttributeLabels } from '@/lib/asset-types';
 import { getT } from '@/lib/i18n/server';
-import type { AssetDetailData, AssetType, Measurement, SocialConnectionsResponse } from '@/lib/types';
+import type { AssetDetailData, Measurement, SocialConnectionsResponse } from '@/lib/types';
 
 type Params = Promise<{ id: string }>;
-
-function findType(types: AssetType[], id: string): AssetType | null {
-  for (const type of types) {
-    if (type.id === id) return type;
-    const child = findType(type.children ?? [], id);
-    if (child) return child;
-  }
-  return null;
-}
-
-async function loadAttributeLabels(typeId: string): Promise<Record<string, string>> {
-  try {
-    const types = await api<{ items: AssetType[] }>('/v1/asset-types');
-    const fields = findType(types.items, typeId)?.attributesSchema?.fields ?? [];
-    return Object.fromEntries(fields.map((field) => [field.key, field.label]));
-  } catch {
-    return {};
-  }
-}
 
 async function loadAsset(
   id: string,

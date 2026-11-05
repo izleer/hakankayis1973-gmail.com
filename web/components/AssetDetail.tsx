@@ -243,6 +243,10 @@ export function AssetDetail({
                 {t('{name} tarafından paylaşıldı', { name: asset.owner.displayName })}
               </span>
             )}
+            <Link href={`/varliklar/${asset.id}/rapor`} className="btn btn-ghost">
+              <Icon name="download" size={16} />
+              {t('Rapor')}
+            </Link>
           </div>
           <p className="detail-owner">
             <span className="avatar avatar-tiny">
