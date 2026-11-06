@@ -367,6 +367,7 @@ fun FriendsScreen(
                                 listOf(
                                     "" to R.string.friends_assets_filter_all,
                                     "friends" to R.string.friends_assets_filter_friends,
+                                    "public" to R.string.visibility_public,
                                     "granted" to R.string.friends_assets_filter_granted,
                                 ).forEach { (value, label) ->
                                     Pill(
@@ -800,18 +801,20 @@ private fun SharedAssetRow(asset: Asset, onClick: () -> Unit) {
                 Spacer(Modifier.height(4.dp))
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     VisibilityTag(asset.visibility)
-                    Spacer(Modifier.width(6.dp))
-                    Text(
-                        stringResource(
-                            if (asset.relation == "friends") {
-                                R.string.friends_relation_friends
-                            } else {
-                                R.string.friends_relation_granted
-                            },
-                        ),
-                        style = MaterialTheme.typography.labelSmall,
-                        color = SageInk,
-                    )
+                    if (asset.relation != "public") {
+                        Spacer(Modifier.width(6.dp))
+                        Text(
+                            stringResource(
+                                if (asset.relation == "friends") {
+                                    R.string.friends_relation_friends
+                                } else {
+                                    R.string.friends_relation_granted
+                                },
+                            ),
+                            style = MaterialTheme.typography.labelSmall,
+                            color = SageInk,
+                        )
+                    }
                 }
             }
             Icon(

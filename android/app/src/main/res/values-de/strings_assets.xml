@@ -55,4 +55,12 @@
     <string name="assets_location_permission_denied">Standortberechtigung wurde nicht erteilt. Ohne sie kann der aktuelle Standort nicht ermittelt werden.</string>
     <string name="assets_location_unavailable">Standort konnte nicht ermittelt werden. Prüfe, ob GPS aktiv ist, und versuche es erneut.</string>
     <string name="assets_location_open_maps">In Karten öffnen</string>
+
+    <!-- Seçili kişiler -->
+    <string name="assets_viewers_title">Ausgewählte Personen</string>
+    <string name="assets_viewers_hint">Wähle, wer dieses Objekt sehen darf. Du kannst mehrere Personen auswählen.</string>
+    <string name="assets_viewers_count">%1$d ausgewählt</string>
+    <string name="assets_viewers_loading">Personen werden geladen…</string>
+    <string name="assets_viewers_empty">Noch niemand in deiner Freundesliste. Du kannst zuerst Freunde hinzufügen.</string>
+    <string name="error_asset_viewers_required">Wähle mindestens eine Person für die Sichtbarkeit „Ausgewählt“.</string>
 </resources>

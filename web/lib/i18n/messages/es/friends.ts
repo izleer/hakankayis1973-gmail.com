@@ -44,10 +44,10 @@ const friends = {
   'Paylaşılan varlık ara': 'Buscar un elemento compartido',
   'Arkadaş paylaşımı': 'Compartido con amigos',
   'Paylaşılan bir varlık yok': 'No hay elementos compartidos',
-  'Arkadaşların varlıklarını arkadaşlarına açtığında ya da sana özellikle izin verdiğinde burada görünür.':
-    'Aquí aparecen los elementos que tus amigos abren a sus amigos o te autorizan específicamente.',
-  'Yalnızca arkadaşlarına açılmış varlıklar ve sana özellikle izin verilen parçalar burada listelenir. Özel varlıklar hiçbir zaman görünmez.':
-    'Aquí solo se muestran los elementos abiertos a amigos y los que se te han autorizado específicamente. Los elementos privados nunca se muestran.',
+  'Arkadaşların herkese açık bir varlık paylaştığında, varlıklarını arkadaşlarına açtığında ya da sana özellikle izin verdiğinde burada görünür.':
+    'Cuando tus amigos comparten un elemento público, abren un elemento a sus amigos o te conceden acceso específico, aparece aquí.',
+  'Arkadaşlarının herkese açık varlıkları, yalnızca arkadaşlarına açtıkları varlıklar ve sana özellikle izin verilen parçalar burada listelenir. Özel varlıklar hiçbir zaman görünmez.':
+    'Aquí se muestran los elementos públicos de tus amigos, los que abren a sus amigos y los que te conceden específicamente. Los elementos privados nunca se muestran.',
 
   // Acciones de amistad
   'Arkadaş ekle': 'Añadir amigo',
@@ -60,6 +60,7 @@ const friends = {
 
   // Etiquetas de uso compartido y visibilidad
   'arkadaş paylaşımı': 'compartido con amigos',
+  'herkese açık': 'público',
   'seninle paylaşıldı': 'compartido contigo',
   'Yalnızca kabul edilmiş arkadaşlarınız görebilir.':
     'Solo los amigos aceptados pueden verlo.',

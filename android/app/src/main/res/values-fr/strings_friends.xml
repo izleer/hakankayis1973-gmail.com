@@ -46,13 +46,13 @@
 
     <!-- Objets partagés -->
     <string name="friends_assets_title">Les objets de vos amis</string>
-    <string name="friends_assets_search">Rechercher des objets partagés…</string>
+    <string name="friends_assets_search">Rechercher parmi les objets de vos amis…</string>
     <string name="friends_assets_filter_all">Tous</string>
     <string name="friends_assets_filter_friends">Partagés avec des amis</string>
     <string name="friends_assets_filter_granted">Partagés avec vous</string>
     <string name="friends_assets_empty_title">Aucun objet partagé</string>
-    <string name="friends_assets_empty_body">Les objets que vos amis ouvrent à leurs amis, ou qu\'ils vous accordent spécifiquement, apparaissent ici.</string>
-    <string name="friends_assets_note">Seuls les objets ouverts aux amis et les éléments qui vous sont spécifiquement accordés sont listés ici. Les objets privés ne sont jamais affichés.</string>
+    <string name="friends_assets_empty_body">Lorsque vos amis partagent un objet public, ouvrent un objet à leurs amis ou vous accordent un accès spécifique, il apparaît ici.</string>
+    <string name="friends_assets_note">Les objets publics de vos amis, ceux qu\'ils ouvrent à leurs amis et ceux qui vous sont spécifiquement accordés sont listés ici. Les objets privés ne sont jamais affichés.</string>
     <string name="friends_shared_by">Partagé par %1$s</string>
     <string name="friends_relation_friends">partagé avec des amis</string>
     <string name="friends_relation_granted">partagé avec vous</string>

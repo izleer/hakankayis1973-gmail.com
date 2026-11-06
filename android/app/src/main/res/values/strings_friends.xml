@@ -46,13 +46,13 @@
 
     <!-- Paylaşılan varlıklar -->
     <string name="friends_assets_title">Arkadaşlarının varlıkları</string>
-    <string name="friends_assets_search">Paylaşılan varlıklarda ara…</string>
+    <string name="friends_assets_search">Arkadaşlarının varlıklarında ara…</string>
     <string name="friends_assets_filter_all">Tümü</string>
     <string name="friends_assets_filter_friends">Arkadaş paylaşımı</string>
     <string name="friends_assets_filter_granted">Seninle paylaşılan</string>
     <string name="friends_assets_empty_title">Paylaşılan bir varlık yok</string>
-    <string name="friends_assets_empty_body">Arkadaşların varlıklarını arkadaşlarına açtığında ya da sana özellikle izin verdiğinde burada görünür.</string>
-    <string name="friends_assets_note">Yalnızca arkadaşlarına açılmış varlıklar ve sana özellikle izin verilen parçalar burada listelenir. Özel varlıklar hiçbir zaman görünmez.</string>
+    <string name="friends_assets_empty_body">Arkadaşların herkese açık bir varlık paylaştığında, varlıklarını arkadaşlarına açtığında ya da sana özellikle izin verdiğinde burada görünür.</string>
+    <string name="friends_assets_note">Arkadaşlarının herkese açık varlıkları, yalnızca arkadaşlarına açtıkları varlıklar ve sana özellikle izin verilen parçalar burada listelenir. Özel varlıklar hiçbir zaman görünmez.</string>
     <string name="friends_shared_by">%1$s paylaştı</string>
     <string name="friends_relation_friends">arkadaş paylaşımı</string>
     <string name="friends_relation_granted">seninle paylaşıldı</string>

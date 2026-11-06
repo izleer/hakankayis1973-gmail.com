@@ -9,6 +9,7 @@ import { useT } from '@/lib/i18n/client';
 import type { Asset, AssetType, AttributeField, Visibility } from '@/lib/types';
 import { Icon } from './Icons';
 import { MediaImage } from './MediaImage';
+import { ViewerPicker } from './ViewerPicker';
 
 type Leaf = AssetType & { parentLabel: string | null };
 
@@ -36,6 +37,7 @@ export function NewAssetForm({ types }: { types: AssetType[] }) {
   const [acquiredAt, setAcquiredAt] = useState('');
   const [locationName, setLocationName] = useState('');
   const [visibility, setVisibility] = useState<Visibility>('private');
+  const [viewerIds, setViewerIds] = useState<string[]>([]);
   const [attributes, setAttributes] = useState<Record<string, string>>({});
   const [cover, setCover] = useState<File | null>(null);
   const [preview, setPreview] = useState<string | null>(null);
@@ -61,6 +63,10 @@ export function NewAssetForm({ types }: { types: AssetType[] }) {
       setError(t('Bir varlık türü seçin.'));
       return;
     }
+    if (visibility === 'selected' && viewerIds.length === 0) {
+      setError(t('Seçili kişiler görünürlüğü için en az bir kişi seçin.'));
+      return;
+    }
     setBusy(true);
     setError(null);
     try {
@@ -75,6 +81,7 @@ export function NewAssetForm({ types }: { types: AssetType[] }) {
         title,
         description: description || null,
         visibility,
+        viewerIds: visibility === 'selected' ? viewerIds : undefined,
         acquiredAt: acquiredAt || null,
         locationName: locationName || null,
         attributes: Object.fromEntries(
@@ -245,6 +252,9 @@ export function NewAssetForm({ types }: { types: AssetType[] }) {
             </button>
           ))}
         </div>
+        {visibility === 'selected' ? (
+          <ViewerPicker selected={viewerIds} onChange={setViewerIds} disabled={busy} />
+        ) : null}
       </section>
 
       <section className="form-section">

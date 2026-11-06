@@ -46,13 +46,13 @@
 
     <!-- Geteilte Objekte -->
     <string name="friends_assets_title">Die Objekte deiner Freunde</string>
-    <string name="friends_assets_search">Geteilte Objekte durchsuchen…</string>
+    <string name="friends_assets_search">In den Objekten deiner Freunde suchen…</string>
     <string name="friends_assets_filter_all">Alle</string>
     <string name="friends_assets_filter_friends">Mit Freunden geteilt</string>
     <string name="friends_assets_filter_granted">Mit dir geteilt</string>
     <string name="friends_assets_empty_title">Keine geteilten Objekte</string>
-    <string name="friends_assets_empty_body">Objekte, die deine Freunde für Freunde freigeben oder dir gezielt gewähren, erscheinen hier.</string>
-    <string name="friends_assets_note">Hier werden nur Objekte angezeigt, die für Freunde freigegeben sind, sowie Inhalte, die dir gezielt gewährt wurden. Private Objekte werden nie angezeigt.</string>
+    <string name="friends_assets_empty_body">Wenn deine Freunde ein öffentliches Objekt teilen, ein Objekt für Freunde freigeben oder dir gezielt Zugriff gewähren, erscheint es hier.</string>
+    <string name="friends_assets_note">Öffentliche Objekte deiner Freunde, Objekte, die sie für Freunde freigeben, und Stücke, die dir gezielt freigegeben wurden, werden hier angezeigt. Private Objekte sind nie sichtbar.</string>
     <string name="friends_shared_by">Geteilt von %1$s</string>
     <string name="friends_relation_friends">mit Freunden geteilt</string>
     <string name="friends_relation_granted">mit dir geteilt</string>

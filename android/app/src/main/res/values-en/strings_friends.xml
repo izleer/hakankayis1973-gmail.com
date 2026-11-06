@@ -46,13 +46,13 @@
 
     <!-- Shared assets -->
     <string name="friends_assets_title">Your friends\' assets</string>
-    <string name="friends_assets_search">Search shared assets…</string>
+    <string name="friends_assets_search">Search your friends\' assets…</string>
     <string name="friends_assets_filter_all">All</string>
     <string name="friends_assets_filter_friends">Shared with friends</string>
     <string name="friends_assets_filter_granted">Shared with you</string>
     <string name="friends_assets_empty_title">No shared assets</string>
-    <string name="friends_assets_empty_body">Assets your friends open to friends, or grant to you specifically, appear here.</string>
-    <string name="friends_assets_note">Only assets opened to friends and pieces shared with you specifically are listed here. Private assets are never shown.</string>
+    <string name="friends_assets_empty_body">When your friends share a public asset, open an asset to friends, or grant you access specifically, it appears here.</string>
+    <string name="friends_assets_note">Your friends\' public assets, assets they open to friends, and pieces shared with you specifically are listed here. Private assets are never shown.</string>
     <string name="friends_shared_by">Shared by %1$s</string>
     <string name="friends_relation_friends">shared with friends</string>
     <string name="friends_relation_granted">shared with you</string>

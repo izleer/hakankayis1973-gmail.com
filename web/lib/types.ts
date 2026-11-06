@@ -76,7 +76,7 @@ export type Asset = {
   entryCount: number;
   createdAt: string;
   updatedAt: string;
-  relation?: 'friends' | 'granted';
+  relation?: 'friends' | 'public' | 'granted';
   sharedAt?: string;
   isFriend?: boolean;
 };

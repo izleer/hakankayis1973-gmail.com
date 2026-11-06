@@ -40,6 +40,7 @@ import { MediaImage } from './MediaImage';
 import { MiniMap } from './MiniMap';
 import { SocialShareModal } from './SocialShareModal';
 import { useModalA11y } from './useModalA11y';
+import { ViewerPicker } from './ViewerPicker';
 
 const entryIcons: Record<EntryType, IconName> = {
   note: 'book',
@@ -398,6 +399,8 @@ export function AssetDetail({
       {editOpen ? (
         <EditAssetModal
           asset={asset}
+          viewers={viewers}
+          onViewersChange={setViewers}
           onClose={() => setEditOpen(false)}
           onSaved={(next) => {
             setAsset(next);
@@ -1395,11 +1398,15 @@ function EntryEditModal({
 
 function EditAssetModal({
   asset,
+  viewers,
+  onViewersChange,
   onClose,
   onSaved,
   onDeleted,
 }: {
   asset: Asset;
+  viewers: { user: UserMini; grantedAt: string }[];
+  onViewersChange: (next: { user: UserMini; grantedAt: string }[]) => void;
   onClose: () => void;
   onSaved: (asset: Asset) => void;
   onDeleted: () => void;
@@ -1408,6 +1415,7 @@ function EditAssetModal({
   const [title, setTitle] = useState(asset.title);
   const [description, setDescription] = useState(asset.description ?? '');
   const [visibility, setVisibility] = useState<Visibility>(asset.visibility);
+  const [viewerIds, setViewerIds] = useState<string[]>(viewers.map((item) => item.user.id));
   const [status, setStatus] = useState(asset.status);
   const [acquiredAt, setAcquiredAt] = useState(asset.acquiredAt ?? '');
   const [locationName, setLocationName] = useState(asset.locationName ?? '');
@@ -1420,6 +1428,10 @@ function EditAssetModal({
 
   async function save(event: React.FormEvent) {
     event.preventDefault();
+    if (visibility === 'selected' && viewerIds.length === 0) {
+      setError(t('Seçili kişiler görünürlüğü için en az bir kişi seçin.'));
+      return;
+    }
     setBusy(true);
     setError(null);
     try {
@@ -1432,11 +1444,18 @@ function EditAssetModal({
         title,
         description: description || null,
         visibility,
+        viewerIds: visibility === 'selected' ? viewerIds : undefined,
         status,
         acquiredAt: acquiredAt || null,
         locationName: locationName || null,
         ...(coverMediaId ? { coverMediaId } : {}),
       });
+      if (visibility === 'selected') {
+        const access = await vh.get<{
+          items: { user: UserMini; grantedAt: string }[];
+        }>(`assets/${asset.id}/access`);
+        onViewersChange(access.items);
+      }
       onSaved(data.asset);
     } catch (caught) {
       setError(caught instanceof Error ? caught.message : t('Güncellenemedi.'));
@@ -1548,6 +1567,15 @@ function EditAssetModal({
               />
             </label>
           </div>
+
+          {visibility === 'selected' ? (
+            <ViewerPicker
+              selected={viewerIds}
+              onChange={setViewerIds}
+              extra={viewers.map((item) => item.user)}
+              disabled={busy}
+            />
+          ) : null}
 
           <div className="cover-edit">
             <div className="cover-edit-preview">

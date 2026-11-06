@@ -55,4 +55,12 @@
     <string name="assets_location_permission_denied">No se concedió el permiso de ubicación. Sin él no se puede obtener la ubicación actual.</string>
     <string name="assets_location_unavailable">No se pudo obtener la ubicación. Comprueba que el GPS esté activado e inténtalo de nuevo.</string>
     <string name="assets_location_open_maps">Abrir en Mapas</string>
+
+    <!-- Seçili kişiler -->
+    <string name="assets_viewers_title">Personas seleccionadas</string>
+    <string name="assets_viewers_hint">Elige quién puede ver este bien. Puedes seleccionar a varias personas.</string>
+    <string name="assets_viewers_count">%1$d seleccionadas</string>
+    <string name="assets_viewers_loading">Cargando personas…</string>
+    <string name="assets_viewers_empty">Aún no hay nadie en tu lista de amigos. Puedes añadir amigos primero.</string>
+    <string name="error_asset_viewers_required">Elige al menos una persona para la visibilidad «Seleccionado».</string>
 </resources>

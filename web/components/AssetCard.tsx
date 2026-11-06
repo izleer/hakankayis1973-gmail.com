@@ -70,7 +70,9 @@ export async function AssetCard({
                 @{asset.owner.username}
                 {asset.relation === 'friends'
                   ? ` · ${t('arkadaş paylaşımı')}`
-                  : ` · ${t('seninle paylaşıldı')}`}
+                  : asset.relation === 'public'
+                    ? ` · ${t('herkese açık')}`
+                    : ` · ${t('seninle paylaşıldı')}`}
               </small>
             </span>
           </div>

@@ -9,6 +9,7 @@ import androidx.lifecycle.viewmodel.initializer
 import androidx.lifecycle.viewmodel.viewModelFactory
 import app.varlikhafizasi.R
 import app.varlikhafizasi.data.AppLanguage
+import app.varlikhafizasi.data.AccessViewer
 import app.varlikhafizasi.data.ArchivePage
 import app.varlikhafizasi.data.Asset
 import app.varlikhafizasi.data.AssetDetail
@@ -120,6 +121,12 @@ class VhViewModel(
 
     private val _assetDraft = MutableStateFlow(Loadable<Asset>())
     val assetDraft: StateFlow<Loadable<Asset>> = _assetDraft.asStateFlow()
+
+    private val _assetViewers = MutableStateFlow<List<AccessViewer>>(emptyList())
+    val assetViewers: StateFlow<List<AccessViewer>> = _assetViewers.asStateFlow()
+
+    private val _pickerFriends = MutableStateFlow(Loadable<List<Friend>>())
+    val pickerFriends: StateFlow<Loadable<List<Friend>>> = _pickerFriends.asStateFlow()
 
     private val _archive = MutableStateFlow(Loadable<ArchivePage>())
     val archive: StateFlow<Loadable<ArchivePage>> = _archive.asStateFlow()
@@ -244,6 +251,8 @@ class VhViewModel(
             _detail.value = Loadable()
             _entryDraft.value = Loadable()
             _assetDraft.value = Loadable()
+            _assetViewers.value = emptyList()
+            _pickerFriends.value = Loadable()
             _archive.value = Loadable()
             _explore.value = Loadable()
             _notifications.value = Loadable()
@@ -330,9 +339,13 @@ class VhViewModel(
     fun loadAssetDraft(id: String) {
         viewModelScope.launch {
             _assetDraft.value = Loadable(loading = true)
+            _assetViewers.value = emptyList()
             try {
-                _assetDraft.value = Loadable(data = repository.asset(id).asset)
+                val detail = repository.asset(id)
+                _assetViewers.value = detail.access.viewers
+                _assetDraft.value = Loadable(data = detail.asset)
             } catch (error: Throwable) {
+                _assetViewers.value = emptyList()
                 _assetDraft.value = Loadable(error = messageOf(error))
             }
         }
@@ -340,6 +353,20 @@ class VhViewModel(
 
     fun clearAssetDraft() {
         _assetDraft.value = Loadable()
+        _assetViewers.value = emptyList()
+    }
+
+    /** Görünürlük "seçili kişiler" iken kullanılacak arkadaş listesini getirir. */
+    fun loadPickerFriends() {
+        if (_pickerFriends.value.loading || _pickerFriends.value.data != null) return
+        viewModelScope.launch {
+            _pickerFriends.value = Loadable(loading = true)
+            try {
+                _pickerFriends.value = Loadable(data = repository.friends())
+            } catch (error: Throwable) {
+                _pickerFriends.value = Loadable(error = messageOf(error))
+            }
+        }
     }
 
     fun loadArchive(kind: String? = null, query: String? = null) {
@@ -628,10 +655,15 @@ class VhViewModel(
         locationName: String? = null,
         latitude: Double? = null,
         longitude: Double? = null,
+        viewerIds: List<String> = emptyList(),
         onCreated: (String) -> Unit,
     ) {
         if (typeId.isBlank() || title.isBlank()) {
             _formError.value = str(R.string.error_asset_required)
+            return
+        }
+        if (visibility == "selected" && viewerIds.isEmpty()) {
+            _formError.value = str(R.string.error_asset_viewers_required)
             return
         }
         viewModelScope.launch {
@@ -647,6 +679,7 @@ class VhViewModel(
                     locationName = locationName,
                     latitude = latitude,
                     longitude = longitude,
+                    viewerIds = viewerIds,
                 )
                 loadHome()
                 loadAssets()
@@ -672,10 +705,15 @@ class VhViewModel(
         latitude: Double? = null,
         longitude: Double? = null,
         clearLocation: Boolean = false,
+        viewerIds: List<String> = emptyList(),
         onSaved: (String) -> Unit,
     ) {
         if (typeId.isBlank() || title.isBlank()) {
             _formError.value = str(R.string.error_asset_required)
+            return
+        }
+        if (visibility == "selected" && viewerIds.isEmpty()) {
+            _formError.value = str(R.string.error_asset_viewers_required)
             return
         }
         viewModelScope.launch {
@@ -693,6 +731,7 @@ class VhViewModel(
                     latitude = latitude,
                     longitude = longitude,
                     clearLocation = clearLocation,
+                    viewerIds = viewerIds,
                 )
                 loadDetail(assetId)
                 loadHome()

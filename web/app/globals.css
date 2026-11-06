@@ -2962,6 +2962,132 @@ dd {
   color: var(--forest);
 }
 
+.viewer-picker {
+  margin-top: 16px;
+  padding: 16px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: rgba(251, 248, 241, 0.55);
+}
+
+.viewer-picker-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 12px;
+}
+
+.viewer-picker-head > span {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  color: var(--ink);
+  font-size: 0.82rem;
+  font-weight: 600;
+}
+
+.viewer-picker-head small {
+  color: var(--ink-faint);
+  font-size: 0.7rem;
+  font-weight: 400;
+}
+
+.viewer-picker-head > strong {
+  color: var(--sage);
+  font-size: 0.72rem;
+  white-space: nowrap;
+}
+
+.viewer-search {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 0 12px;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  background: var(--paper-soft);
+  color: var(--ink-faint);
+}
+
+.viewer-search input {
+  flex: 1;
+  min-width: 0;
+  padding: 10px 0;
+  border: 0;
+  outline: none;
+  background: transparent;
+  font-size: 0.82rem;
+}
+
+.viewer-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  max-height: 260px;
+  margin-top: 12px;
+  overflow-y: auto;
+}
+
+.viewer-chip {
+  display: flex;
+  flex: 1 1 160px;
+  align-items: center;
+  gap: 8px;
+  min-width: 160px;
+  padding: 8px 10px;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  background: var(--paper-soft);
+  text-align: left;
+  transition: border-color 0.16s ease, box-shadow 0.16s ease;
+}
+
+.viewer-chip:hover {
+  border-color: var(--line-strong);
+}
+
+.viewer-chip > span:nth-child(2) {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  gap: 1px;
+  min-width: 0;
+}
+
+.viewer-chip strong {
+  overflow: hidden;
+  color: var(--ink);
+  font-size: 0.78rem;
+  font-weight: 600;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.viewer-chip small {
+  color: var(--ink-faint);
+  font-size: 0.66rem;
+}
+
+.viewer-chip.is-selected {
+  border-color: var(--sage);
+  box-shadow: 0 0 0 3px rgba(92, 114, 85, 0.08);
+}
+
+.viewer-chip .type-check {
+  background: var(--sage-pale);
+  color: var(--forest);
+}
+
+.viewer-chip:disabled {
+  opacity: 0.6;
+  cursor: default;
+}
+
+.viewer-picker .muted-note {
+  margin-top: 10px;
+}
+
 .cover-upload {
   display: flex;
   align-items: center;

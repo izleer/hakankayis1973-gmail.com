@@ -69,12 +69,16 @@ export default async function FriendsPage({ searchParams }: { searchParams: Sear
     api<Paged<Asset>>(`/v1/assets/shared?${sharedQuery.toString()}`),
   ]);
 
-  const rel = params.rel === 'friends' || params.rel === 'granted' ? params.rel : '';
+  const rel =
+    params.rel === 'friends' || params.rel === 'public' || params.rel === 'granted'
+      ? params.rel
+      : '';
   const sharedAssets = rel
     ? shared.items.filter((asset) => asset.relation === rel)
     : shared.items;
   const friendSharedCount = shared.items.filter((asset) => asset.relation === 'friends').length;
-  const grantedCount = shared.items.length - friendSharedCount;
+  const publicCount = shared.items.filter((asset) => asset.relation === 'public').length;
+  const grantedCount = shared.items.filter((asset) => asset.relation === 'granted').length;
   const pendingCount = requests.incoming.length;
 
   const tabs: { id: TabId; label: string; count: number }[] = [
@@ -356,6 +360,14 @@ export default async function FriendsPage({ searchParams }: { searchParams: Sear
               <span className="chip-count">{friendSharedCount}</span>
             </Link>
             <Link
+              href={sharedLink('public')}
+              className={`chip${rel === 'public' ? ' is-active' : ''}`}
+            >
+              <Icon name="globe" size={15} />
+              {t('Herkese açık')}
+              <span className="chip-count">{publicCount}</span>
+            </Link>
+            <Link
               href={sharedLink('granted')}
               className={`chip${rel === 'granted' ? ' is-active' : ''}`}
             >
@@ -372,7 +384,7 @@ export default async function FriendsPage({ searchParams }: { searchParams: Sear
               icon="users"
               title={t('Paylaşılan bir varlık yok')}
               body={t(
-                'Arkadaşların varlıklarını arkadaşlarına açtığında ya da sana özellikle izin verdiğinde burada görünür.',
+                'Arkadaşların herkese açık bir varlık paylaştığında, varlıklarını arkadaşlarına açtığında ya da sana özellikle izin verdiğinde burada görünür.',
               )}
               action={{ href: '/arkadaslar?tab=suggestions', label: t('Yeni arkadaş bul') }}
             />
@@ -381,7 +393,7 @@ export default async function FriendsPage({ searchParams }: { searchParams: Sear
           <p className="groups-note">
             <Icon name="lock" size={16} />
             {t(
-              'Yalnızca arkadaşlarına açılmış varlıklar ve sana özellikle izin verilen parçalar burada listelenir. Özel varlıklar hiçbir zaman görünmez.',
+              'Arkadaşlarının herkese açık varlıkları, yalnızca arkadaşlarına açtıkları varlıklar ve sana özellikle izin verilen parçalar burada listelenir. Özel varlıklar hiçbir zaman görünmez.',
             )}
           </p>
         </section>

@@ -25,6 +25,7 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.AddPhotoAlternate
 import androidx.compose.material.icons.outlined.ArrowDropDown
+import androidx.compose.material.icons.outlined.Check
 import androidx.compose.material.icons.outlined.Close
 import androidx.compose.material.icons.outlined.PhotoCamera
 import androidx.compose.material.icons.outlined.PhotoLibrary
@@ -59,6 +60,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import app.varlikhafizasi.R
 import app.varlikhafizasi.data.AssetType
 import app.varlikhafizasi.data.MediaUrl
+import app.varlikhafizasi.data.UserMini
 import app.varlikhafizasi.ui.VhViewModel
 import app.varlikhafizasi.ui.components.ErrorBox
 import app.varlikhafizasi.ui.components.GoldRule
@@ -85,6 +87,11 @@ private val UriStateSaver = Saver<Uri?, String>(
     restore = { value -> value.takeIf { it.isNotEmpty() }?.let(Uri::parse) },
 )
 
+private val ViewerIdsSaver = Saver<List<String>, String>(
+    save = { ids -> ids.joinToString(",") },
+    restore = { value -> value.split(",").filter { it.isNotBlank() } },
+)
+
 private fun flattenTypes(types: List<AssetType>): List<TypeOption> =
     types.flatMap { root ->
         if (root.children.isEmpty()) {
@@ -104,6 +111,8 @@ fun NewAssetScreen(
 ) {
     val types by vm.assetTypes.collectAsStateWithLifecycle()
     val assetState by vm.assetDraft.collectAsStateWithLifecycle()
+    val assetViewers by vm.assetViewers.collectAsStateWithLifecycle()
+    val pickerFriends by vm.pickerFriends.collectAsStateWithLifecycle()
     val busy by vm.formBusy.collectAsStateWithLifecycle()
     val error by vm.formError.collectAsStateWithLifecycle()
 
@@ -113,6 +122,9 @@ fun NewAssetScreen(
     var title by rememberSaveable { mutableStateOf("") }
     var description by rememberSaveable { mutableStateOf("") }
     var visibility by rememberSaveable { mutableStateOf("private") }
+    var viewerIds by rememberSaveable(assetId, stateSaver = ViewerIdsSaver) {
+        mutableStateOf(emptyList<String>())
+    }
     var selectedId by rememberSaveable { mutableStateOf<String?>(null) }
     var menuOpen by rememberSaveable { mutableStateOf(false) }
     var coverUri by rememberSaveable(stateSaver = UriStateSaver) { mutableStateOf<Uri?>(null) }
@@ -128,11 +140,29 @@ fun NewAssetScreen(
     val options = remember(types) { flattenTypes(types) }
     val selected = options.firstOrNull { it.id == selectedId }
     val typeRequiredNotice = stringResource(R.string.assets_error_type_required)
+    val viewersRequiredNotice = stringResource(R.string.error_asset_viewers_required)
+
+    val viewerOptions = remember(pickerFriends.data, assetViewers) {
+        val seen = mutableSetOf<String>()
+        val merged = buildList {
+            addAll(assetViewers.map { it.user })
+            addAll(
+                pickerFriends.data.orEmpty().map {
+                    UserMini(it.id, it.username, it.displayName, it.avatarUrl)
+                },
+            )
+        }
+        merged.filter { seen.add(it.id) }.sortedBy { it.displayName.lowercase() }
+    }
 
     LaunchedEffect(assetId) {
         vm.ensureAssetTypes()
         vm.clearFormError()
         if (assetId != null) vm.loadAssetDraft(assetId) else vm.clearAssetDraft()
+    }
+
+    LaunchedEffect(visibility) {
+        if (visibility == "selected") vm.loadPickerFriends()
     }
 
     // Ekrandan çıkarken taslağı bırak; aynı varlığı yeniden düzenlerken
@@ -151,6 +181,7 @@ fun NewAssetScreen(
         title = asset.title
         description = asset.description.orEmpty()
         visibility = asset.visibility
+        viewerIds = assetViewers.map { it.user.id }
         locationName = asset.locationName.orEmpty()
         latitude = asset.latitude
         longitude = asset.longitude
@@ -345,6 +376,99 @@ fun NewAssetScreen(
                 color = Muted,
             )
 
+            if (visibility == "selected") {
+                Spacer(Modifier.height(12.dp))
+                Surface(
+                    color = PaperDeep,
+                    shape = RoundedCornerShape(16.dp),
+                    border = BorderStroke(1.dp, Line),
+                    modifier = Modifier.fillMaxWidth(),
+                ) {
+                    Column(Modifier.padding(14.dp)) {
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            Text(
+                                stringResource(R.string.assets_viewers_title),
+                                style = MaterialTheme.typography.labelLarge,
+                                color = Forest,
+                                modifier = Modifier.weight(1f),
+                            )
+                            Text(
+                                stringResource(
+                                    R.string.assets_viewers_count,
+                                    viewerIds.size,
+                                ),
+                                style = MaterialTheme.typography.labelSmall,
+                                color = SageInk,
+                            )
+                        }
+                        Spacer(Modifier.height(2.dp))
+                        Text(
+                            stringResource(R.string.assets_viewers_hint),
+                            style = MaterialTheme.typography.bodySmall,
+                            color = Muted,
+                        )
+                        Spacer(Modifier.height(10.dp))
+                        when {
+                            viewerOptions.isEmpty() && pickerFriends.loading -> Text(
+                                stringResource(R.string.assets_viewers_loading),
+                                style = MaterialTheme.typography.bodySmall,
+                                color = Muted,
+                            )
+
+                            viewerOptions.isEmpty() -> Text(
+                                pickerFriends.error ?: stringResource(R.string.assets_viewers_empty),
+                                style = MaterialTheme.typography.bodySmall,
+                                color = Muted,
+                            )
+
+                            else -> FlowRow(
+                                horizontalArrangement = Arrangement.spacedBy(8.dp),
+                                verticalArrangement = Arrangement.spacedBy(8.dp),
+                            ) {
+                                viewerOptions.forEach { person ->
+                                    val chosen = viewerIds.contains(person.id)
+                                    Surface(
+                                        color = if (chosen) Forest else Ivory,
+                                        shape = RoundedCornerShape(50),
+                                        border = BorderStroke(1.dp, if (chosen) Forest else Line),
+                                        modifier = Modifier.clickable(enabled = !busy) {
+                                            viewerIds = if (chosen) {
+                                                viewerIds - person.id
+                                            } else {
+                                                viewerIds + person.id
+                                            }
+                                        },
+                                    ) {
+                                        Row(
+                                            verticalAlignment = Alignment.CenterVertically,
+                                            modifier = Modifier.padding(
+                                                horizontal = 12.dp,
+                                                vertical = 7.dp,
+                                            ),
+                                        ) {
+                                            if (chosen) {
+                                                Icon(
+                                                    Icons.Outlined.Check,
+                                                    contentDescription = null,
+                                                    tint = Paper,
+                                                    modifier = Modifier.size(14.dp),
+                                                )
+                                                Spacer(Modifier.size(4.dp))
+                                            }
+                                            Text(
+                                                person.displayName.ifBlank { person.username },
+                                                style = MaterialTheme.typography.labelMedium,
+                                                color = if (chosen) Paper else Forest,
+                                            )
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+
             Spacer(Modifier.height(20.dp))
             LocationPicker(
                 locationName = locationName,
@@ -511,6 +635,10 @@ fun NewAssetScreen(
                         vm.setNotice(typeRequiredNotice)
                         return@Button
                     }
+                    if (visibility == "selected" && viewerIds.isEmpty()) {
+                        vm.setNotice(viewersRequiredNotice)
+                        return@Button
+                    }
                     if (assetId != null) {
                         vm.updateAsset(
                             assetId = assetId,
@@ -523,6 +651,7 @@ fun NewAssetScreen(
                             latitude = latitude,
                             longitude = longitude,
                             clearLocation = clearLocation,
+                            viewerIds = viewerIds,
                             onSaved = onCreated,
                         )
                     } else {
@@ -535,6 +664,7 @@ fun NewAssetScreen(
                             locationName = locationName,
                             latitude = latitude,
                             longitude = longitude,
+                            viewerIds = viewerIds,
                             onCreated = onCreated,
                         )
                     }

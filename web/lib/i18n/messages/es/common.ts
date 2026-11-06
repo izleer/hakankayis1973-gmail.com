@@ -126,6 +126,19 @@ const common = {
   'Bağlantı eskimiş, varlık kaldırılmış ya da bu sayfayı görmek için erişimin olmayabilir.':
     'El enlace puede estar desactualizado, el objeto eliminado o quizá no tengas acceso a esta página.',
   Bulunamadı: 'No encontrado',
+
+  // Seçili kişiler
+  Kişiler: 'Personas',
+  'En az bir kişi seç. Birden çok kişi seçebilirsin.':
+    'Elige al menos una persona. Puedes seleccionar varias.',
+  '{count} seçili': { one: '{count} seleccionada', other: '{count} seleccionadas' },
+  'Arkadaşlarında ara': 'Buscar entre tus amigos',
+  'Kişiler yükleniyor…': 'Cargando personas…',
+  'Eşleşen kişi bulunamadı.': 'No se encontraron personas.',
+  'Arkadaş listende kişi yok. Önce arkadaş ekleyebilirsin.':
+    'Aún no hay nadie en tu lista de amigos. Puedes añadir amigos primero.',
+  'Seçili kişiler görünürlüğü için en az bir kişi seçin.':
+    'Elige al menos una persona para la visibilidad «Seleccionado».',
 } as const;
 
 export default common;

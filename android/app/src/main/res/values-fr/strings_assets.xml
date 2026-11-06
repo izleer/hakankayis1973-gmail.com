@@ -55,4 +55,12 @@
     <string name="assets_location_permission_denied">L\'autorisation de localisation n\'a pas été accordée. Sans elle, la position actuelle est indisponible.</string>
     <string name="assets_location_unavailable">Impossible d\'obtenir votre position. Vérifiez que le GPS est activé et réessayez.</string>
     <string name="assets_location_open_maps">Ouvrir dans Plans</string>
+
+    <!-- Seçili kişiler -->
+    <string name="assets_viewers_title">Personnes sélectionnées</string>
+    <string name="assets_viewers_hint">Choisissez qui peut voir ce bien. Vous pouvez sélectionner plusieurs personnes.</string>
+    <string name="assets_viewers_count">%1$d sélectionné(s)</string>
+    <string name="assets_viewers_loading">Chargement des personnes…</string>
+    <string name="assets_viewers_empty">Personne dans votre liste d\'amis pour le moment. Vous pouvez d\'abord ajouter des amis.</string>
+    <string name="error_asset_viewers_required">Choisissez au moins une personne pour la visibilité « Sélectionné ».</string>
 </resources>

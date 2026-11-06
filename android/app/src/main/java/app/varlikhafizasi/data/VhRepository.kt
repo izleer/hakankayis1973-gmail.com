@@ -235,6 +235,7 @@ class VhRepository(
         title: String,
         description: String?,
         visibility: String,
+        viewerIds: List<String> = emptyList(),
         coverUri: Uri?,
         locationName: String? = null,
         latitude: Double? = null,
@@ -248,6 +249,7 @@ class VhRepository(
                     title = title.trim(),
                     description = description?.trim()?.takeIf { it.isNotEmpty() },
                     visibility = visibility,
+                    viewerIds = viewerIds.takeIf { it.isNotEmpty() },
                     coverMediaId = cover?.id,
                     locationName = locationName?.trim()?.takeIf { it.isNotEmpty() },
                     latitude = latitude,
@@ -269,6 +271,7 @@ class VhRepository(
         latitude: Double?,
         longitude: Double?,
         clearLocation: Boolean,
+        viewerIds: List<String> = emptyList(),
     ): Asset {
         val cover = coverUri?.let { uploadImage(it) }
         val payload = call {
@@ -280,6 +283,7 @@ class VhRepository(
                     // Boş metin açıklamayı sunucuda temizler.
                     description = description?.trim().orEmpty(),
                     visibility = visibility,
+                    viewerIds = viewerIds.takeIf { visibility == "selected" && it.isNotEmpty() },
                     coverMediaId = cover?.id,
                     locationName = if (clearLocation) null else locationName?.trim(),
                     latitude = if (clearLocation) null else latitude,

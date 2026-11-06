@@ -46,11 +46,14 @@ const uuid = z.string().uuid();
 const dateOnly = z.string().regex(/^\d{4}-\d{2}-\d{2}$/, 'Tarih YYYY-MM-DD biçiminde olmalı.');
 const isoDate = z.string().refine((value) => !Number.isNaN(Date.parse(value)), 'Geçersiz tarih.');
 
+const visibilityValues = ['private', 'selected', 'friends', 'public'] as const;
+
 const createBody = z.object({
   typeId: z.string().trim().min(1).max(60),
   title: z.string().trim().min(1).max(120),
   description: z.string().trim().max(2000).optional().nullable(),
-  visibility: z.enum(['private', 'selected', 'friends', 'public']).default('private'),
+  visibility: z.enum(visibilityValues).default('private'),
+  viewerIds: z.array(uuid).max(100).optional(),
   attributes: z.record(z.unknown()).default({}),
   locationName: z.string().trim().max(160).optional().nullable(),
   latitude: z.number().min(-90).max(90).optional().nullable(),
@@ -75,7 +78,8 @@ const updateBody = z.object({
   typeId: z.string().trim().min(1).max(60).optional(),
   title: z.string().trim().min(1).max(120).optional(),
   description: z.string().trim().max(2000).optional().nullable(),
-  visibility: z.enum(['private', 'selected', 'friends', 'public']).optional(),
+  visibility: z.enum(visibilityValues).optional(),
+  viewerIds: z.array(uuid).max(100).optional(),
   status: z.enum(['active', 'archived']).optional(),
   attributes: z.record(z.unknown()).optional(),
   locationName: z.string().trim().max(160).optional().nullable(),
@@ -118,6 +122,80 @@ async function assertCover(mediaId: string, viewerId: string): Promise<void> {
   );
   if (!media || media.owner_id !== viewerId || media.status !== 'ready' || media.kind !== 'image') {
     throw new ApiError(422, 'INVALID_MEDIA', 'Kapak fotoğrafı geçerli değil.');
+  }
+}
+
+async function resolveViewerIds(
+  ownerId: string,
+  viewerIds: string[] | undefined,
+): Promise<string[] | null> {
+  if (viewerIds === undefined) return null;
+  const unique = [...new Set(viewerIds)].filter((value) => value !== ownerId);
+  if (unique.length === 0) return [];
+  const rows = await query<{ id: string }>(
+    `SELECT id FROM users WHERE id = ANY($1::uuid[]) AND deleted_at IS NULL`,
+    [unique],
+  );
+  if (rows.length !== unique.length) {
+    throw new ApiError(422, 'INVALID_VIEWERS', 'Seçilen kişilerden bazıları bulunamadı.');
+  }
+  return unique;
+}
+
+async function countAssetViewers(assetId: string): Promise<number> {
+  const row = await queryOne<{ count: string }>(
+    `SELECT count(*) FROM access_rules
+     WHERE resource_type = 'asset' AND resource_id = $1 AND permission = 'view'`,
+    [assetId],
+  );
+  return Number(row?.count ?? 0);
+}
+
+async function syncAssetViewers(
+  assetId: string,
+  ownerId: string,
+  viewerIds: string[],
+): Promise<string[]> {
+  return transaction(async (client) => {
+    const existing = await client.query<{ user_id: string }>(
+      `SELECT user_id FROM access_rules
+       WHERE resource_type = 'asset' AND resource_id = $1 AND permission = 'view'`,
+      [assetId],
+    );
+    const existingIds = new Set(existing.rows.map((row) => row.user_id));
+    await client.query(
+      `DELETE FROM access_rules
+       WHERE resource_type = 'asset' AND resource_id = $1
+         AND NOT (user_id = ANY($2::uuid[]))`,
+      [assetId, viewerIds],
+    );
+    if (viewerIds.length > 0) {
+      await client.query(
+        `INSERT INTO access_rules (resource_type, resource_id, user_id, created_by)
+         SELECT 'asset', $1, candidate, $3 FROM unnest($2::uuid[]) AS candidate
+         ON CONFLICT (resource_type, resource_id, user_id) DO NOTHING`,
+        [assetId, viewerIds, ownerId],
+      );
+    }
+    return viewerIds.filter((userId) => !existingIds.has(userId));
+  });
+}
+
+async function notifyViewers(
+  owner: Viewer,
+  assetId: string,
+  viewerIds: string[],
+): Promise<void> {
+  for (const userId of viewerIds) {
+    await notify({
+      userId,
+      actorId: owner.id,
+      type: 'system',
+      entityType: 'asset',
+      entityId: assetId,
+      messageKey: '{actor} sizinle seçili erişimle bir varlık paylaştı.',
+      messageParams: { actor: owner.displayName },
+    });
   }
 }
 
@@ -280,6 +358,14 @@ export async function assetRoutes(app: FastifyInstance): Promise<void> {
       throw new ApiError(422, 'INVALID_LOCATION', 'Enlem ve boylam birlikte girilmeli.');
     }
     if (body.coverMediaId) await assertCover(body.coverMediaId, viewer.id);
+    const viewerIds = await resolveViewerIds(viewer.id, body.viewerIds);
+    if (body.visibility === 'selected' && (viewerIds?.length ?? 0) === 0) {
+      throw new ApiError(
+        422,
+        'VIEWERS_REQUIRED',
+        'Seçili kişiler görünürlüğü için en az bir kişi seçin.',
+      );
+    }
 
     const created = await transaction(async (client) => {
       const inserted = await client.query<{ id: string }>(
@@ -308,6 +394,14 @@ export async function assetRoutes(app: FastifyInstance): Promise<void> {
           [inserted.rows[0]!.id, body.coverMediaId, viewer.id],
         );
       }
+      if (viewerIds && viewerIds.length > 0) {
+        await client.query(
+          `INSERT INTO access_rules (resource_type, resource_id, user_id, created_by)
+           SELECT 'asset', $1, candidate, $3 FROM unnest($2::uuid[]) AS candidate
+           ON CONFLICT (resource_type, resource_id, user_id) DO NOTHING`,
+          [inserted.rows[0]!.id, viewerIds, viewer.id],
+        );
+      }
       const entryId = await attachEntry(
         client,
         inserted.rows[0]!.id,
@@ -319,6 +413,9 @@ export async function assetRoutes(app: FastifyInstance): Promise<void> {
     });
 
     await audit(viewer.id, 'asset.created', 'asset', created.id, { typeId: body.typeId }, req.ip);
+    if (viewerIds && viewerIds.length > 0) {
+      await notifyViewers(viewer, created.id, viewerIds);
+    }
     const asset = await loadAsset(created.id, req.locale);
     return reply.status(201).send({ data: { asset } });
   });
@@ -347,7 +444,9 @@ export async function assetRoutes(app: FastifyInstance): Promise<void> {
       `a.owner_id <> $1`,
       `a.deleted_at IS NULL`,
       `a.status = 'active'`,
-      `((a.visibility = 'friends' AND ${friendExpr}) OR (a.visibility = 'selected' AND ar.id IS NOT NULL))`,
+      `((a.visibility = 'friends' AND ${friendExpr})
+        OR (a.visibility = 'public' AND ${friendExpr})
+        OR (a.visibility = 'selected' AND ar.id IS NOT NULL))`,
       `NOT EXISTS (
         SELECT 1 FROM blocks b
         WHERE (b.blocker_id = $1 AND b.blocked_id = a.owner_id)
@@ -377,7 +476,7 @@ export async function assetRoutes(app: FastifyInstance): Promise<void> {
        LEFT JOIN access_rules ar
          ON ar.resource_type = 'asset' AND ar.resource_id = a.id AND ar.user_id = $1
        WHERE ${clauses.join(' AND ')}
-       ORDER BY CASE WHEN a.visibility = 'friends' THEN a.updated_at ELSE ar.created_at END DESC,
+       ORDER BY CASE WHEN a.visibility = 'selected' THEN ar.created_at ELSE a.updated_at END DESC,
                 a.id DESC
        LIMIT $${index} OFFSET $${index + 1}`,
       [...params, filters.limit, offset],
@@ -396,7 +495,12 @@ export async function assetRoutes(app: FastifyInstance): Promise<void> {
         items: await Promise.all(
           rows.map(async (row) => ({
             ...(await mapAsset(row, req.locale)),
-            relation: row.visibility === 'friends' ? 'friends' : 'granted',
+            relation:
+              row.visibility === 'friends'
+                ? 'friends'
+                : row.visibility === 'public'
+                  ? 'public'
+                  : 'granted',
             sharedAt: iso(row.shared_at ?? row.updated_at),
             isFriend: Boolean(row.is_friend),
           })),
@@ -576,6 +680,26 @@ export async function assetRoutes(app: FastifyInstance): Promise<void> {
     }
 
     const current = await getAsset(id);
+    const viewerIds = await resolveViewerIds(viewer.id, body.viewerIds);
+    const nextVisibility = body.visibility ?? current.visibility;
+    if (body.viewerIds !== undefined && nextVisibility === 'selected' && viewerIds!.length === 0) {
+      throw new ApiError(
+        422,
+        'VIEWERS_REQUIRED',
+        'Seçili kişiler görünürlüğü için en az bir kişi seçin.',
+      );
+    }
+    if (
+      body.viewerIds === undefined &&
+      body.visibility === 'selected' &&
+      (await countAssetViewers(id)) === 0
+    ) {
+      throw new ApiError(
+        422,
+        'VIEWERS_REQUIRED',
+        'Seçili kişiler görünürlüğü için en az bir kişi seçin.',
+      );
+    }
     if (body.visibility && visibilityRank(body.visibility) < visibilityRank(current.visibility)) {
       await query(
         `UPDATE journal_entries
@@ -636,6 +760,11 @@ export async function assetRoutes(app: FastifyInstance): Promise<void> {
         body.coverMediaId,
         viewer.id,
       ]);
+    }
+
+    if (viewerIds) {
+      const added = await syncAssetViewers(id, viewer.id, viewerIds);
+      if (added.length > 0) await notifyViewers(viewer, id, added);
     }
 
     await audit(viewer.id, 'asset.updated', 'asset', id, { fields: Object.keys(body) }, req.ip);

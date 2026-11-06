@@ -55,4 +55,12 @@
     <string name="assets_location_permission_denied">Konum izni verilmedi. İzin olmadan anlık konum alınamaz.</string>
     <string name="assets_location_unavailable">Konum alınamadı. GPS\'in açık olduğunu kontrol edip yeniden dene.</string>
     <string name="assets_location_open_maps">Haritada aç</string>
+
+    <!-- Seçili kişiler -->
+    <string name="assets_viewers_title">Seçili kişiler</string>
+    <string name="assets_viewers_hint">Bu varlığı görebilecek kişileri seç. Birden çok kişi seçebilirsin.</string>
+    <string name="assets_viewers_count">%1$d seçili</string>
+    <string name="assets_viewers_loading">Kişiler yükleniyor…</string>
+    <string name="assets_viewers_empty">Arkadaş listende kişi yok. Önce arkadaş ekleyebilirsin.</string>
+    <string name="error_asset_viewers_required">Seçili kişiler görünürlüğü için en az bir kişi seçin.</string>
 </resources>

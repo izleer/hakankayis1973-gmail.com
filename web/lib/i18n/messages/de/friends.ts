@@ -44,10 +44,10 @@ const friends = {
   'Paylaşılan varlık ara': 'Geteilte Erinnerungsstücke suchen',
   'Arkadaş paylaşımı': 'Für Freunde freigegeben',
   'Paylaşılan bir varlık yok': 'Keine geteilten Erinnerungsstücke',
-  'Arkadaşların varlıklarını arkadaşlarına açtığında ya da sana özellikle izin verdiğinde burada görünür.':
-    'Erinnerungsstücke, die deine Freunde für Freunde freigeben oder dir gezielt erlauben, erscheinen hier.',
-  'Yalnızca arkadaşlarına açılmış varlıklar ve sana özellikle izin verilen parçalar burada listelenir. Özel varlıklar hiçbir zaman görünmez.':
-    'Hier erscheinen nur für Freunde freigegebene Erinnerungsstücke und Stücke, für die du ausdrücklich freigegeben bist. Private Stücke sind nie sichtbar.',
+  'Arkadaşların herkese açık bir varlık paylaştığında, varlıklarını arkadaşlarına açtığında ya da sana özellikle izin verdiğinde burada görünür.':
+    'Wenn deine Freunde ein öffentliches Objekt teilen, ein Objekt für Freunde freigeben oder dir gezielt Zugriff gewähren, erscheint es hier.',
+  'Arkadaşlarının herkese açık varlıkları, yalnızca arkadaşlarına açtıkları varlıklar ve sana özellikle izin verilen parçalar burada listelenir. Özel varlıklar hiçbir zaman görünmez.':
+    'Öffentliche Objekte deiner Freunde, Objekte, die sie für Freunde freigeben, und Stücke, die dir gezielt freigegeben wurden, werden hier angezeigt. Private Objekte sind nie sichtbar.',
 
   // Freundschaftsaktionen
   'Arkadaş ekle': 'Freund hinzufügen',
@@ -60,6 +60,7 @@ const friends = {
 
   // Freigabeetiketten und Sichtbarkeit
   'arkadaş paylaşımı': 'von Freunden geteilt',
+  'herkese açık': 'öffentlich',
   'seninle paylaşıldı': 'mit dir geteilt',
   'Yalnızca kabul edilmiş arkadaşlarınız görebilir.':
     'Nur bestätigte Freunde können es sehen.',

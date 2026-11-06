@@ -55,4 +55,12 @@
     <string name="assets_location_permission_denied">Location permission was not granted. Live location cannot be taken without it.</string>
     <string name="assets_location_unavailable">Could not get your location. Check that GPS is on and try again.</string>
     <string name="assets_location_open_maps">Open in Maps</string>
+
+    <!-- Seçili kişiler -->
+    <string name="assets_viewers_title">Selected people</string>
+    <string name="assets_viewers_hint">Choose who can see this asset. You can select more than one person.</string>
+    <string name="assets_viewers_count">%1$d selected</string>
+    <string name="assets_viewers_loading">Loading people…</string>
+    <string name="assets_viewers_empty">No one in your friends list yet. You can add friends first.</string>
+    <string name="error_asset_viewers_required">Choose at least one person for selected visibility.</string>
 </resources>

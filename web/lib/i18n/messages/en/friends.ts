@@ -44,10 +44,10 @@ const friends = {
   'Paylaşılan varlık ara': 'Search shared assets',
   'Arkadaş paylaşımı': 'Shared with friends',
   'Paylaşılan bir varlık yok': 'No shared assets',
-  'Arkadaşların varlıklarını arkadaşlarına açtığında ya da sana özellikle izin verdiğinde burada görünür.':
-    'Assets your friends open to friends, or grant to you specifically, appear here.',
-  'Yalnızca arkadaşlarına açılmış varlıklar ve sana özellikle izin verilen parçalar burada listelenir. Özel varlıklar hiçbir zaman görünmez.':
-    'Only assets opened to friends and pieces shared with you specifically are listed here. Private assets are never shown.',
+  'Arkadaşların herkese açık bir varlık paylaştığında, varlıklarını arkadaşlarına açtığında ya da sana özellikle izin verdiğinde burada görünür.':
+    'When your friends share a public asset, open an asset to friends, or grant you access specifically, it appears here.',
+  'Arkadaşlarının herkese açık varlıkları, yalnızca arkadaşlarına açtıkları varlıklar ve sana özellikle izin verilen parçalar burada listelenir. Özel varlıklar hiçbir zaman görünmez.':
+    'Your friends’ public assets, assets they open to friends, and pieces shared with you specifically are listed here. Private assets are never shown.',
 
   // Arkadaşlık eylemleri
   'Arkadaş ekle': 'Add friend',
@@ -60,6 +60,7 @@ const friends = {
 
   // Paylaşım etiketleri ve görünürlük
   'arkadaş paylaşımı': 'shared with friends',
+  'herkese açık': 'public',
   'seninle paylaşıldı': 'shared with you',
   'Yalnızca kabul edilmiş arkadaşlarınız görebilir.':
     'Only accepted friends can see it.',
