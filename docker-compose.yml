@@ -38,6 +38,8 @@ services:
     depends_on:
       db:
         condition: service_healthy
+        # Supabase gibi yönetilen PostgreSQL kullanılırken yerel db servisi atlanabilir.
+        required: false
     environment:
       NODE_ENV: production
       APP_ROOT: /app
@@ -45,8 +47,10 @@ services:
       PORT: 4000
       RUN_MIGRATIONS: ${RUN_MIGRATIONS:-true}
       PUBLIC_API_URL: https://${DOMAIN:-localhost}
-      DATABASE_URL: postgresql://${POSTGRES_USER:-vh_app}:${POSTGRES_PASSWORD}@db:5432/${POSTGRES_DB:-varlik_hafizasi}
+      DATABASE_URL: ${DATABASE_URL:-postgresql://${POSTGRES_USER:-vh_app}:${POSTGRES_PASSWORD}@db:5432/${POSTGRES_DB:-varlik_hafizasi}}
+      DATABASE_MIGRATION_URL: ${DATABASE_MIGRATION_URL:-}
       DATABASE_SSL: ${DATABASE_SSL:-false}
+      DATABASE_POOL_MAX: ${DATABASE_POOL_MAX:-10}
       CORS_ORIGINS: https://${DOMAIN:-localhost}
       SESSION_TTL_DAYS: ${SESSION_TTL_DAYS:-30}
       STORAGE_DRIVER: ${STORAGE_DRIVER:-local}
@@ -118,12 +122,15 @@ services:
     depends_on:
       db:
         condition: service_healthy
+        required: false
     environment:
       NODE_ENV: production
       APP_ROOT: /app
       RUN_MIGRATIONS: "true"
-      DATABASE_URL: postgresql://${POSTGRES_USER:-vh_app}:${POSTGRES_PASSWORD}@db:5432/${POSTGRES_DB:-varlik_hafizasi}
-      DATABASE_SSL: "false"
+      DATABASE_URL: ${DATABASE_URL:-postgresql://${POSTGRES_USER:-vh_app}:${POSTGRES_PASSWORD}@db:5432/${POSTGRES_DB:-varlik_hafizasi}}
+      DATABASE_MIGRATION_URL: ${DATABASE_MIGRATION_URL:-}
+      DATABASE_SSL: ${DATABASE_SSL:-false}
+      DATABASE_POOL_MAX: ${DATABASE_POOL_MAX:-1}
       STORAGE_DRIVER: ${STORAGE_DRIVER:-local}
       STORAGE_DIR: /app/storage
     volumes:

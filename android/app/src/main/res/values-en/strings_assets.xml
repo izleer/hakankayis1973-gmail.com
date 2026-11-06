@@ -27,6 +27,7 @@
     <string name="assets_visibility_label">Who can see it?</string>
     <string name="assets_visibility_selected_short">Selected</string>
     <string name="assets_visibility_public_hint">Visible in the Explore feed. You can change this later.</string>
+    <string name="assets_visibility_friends_hint">Visible to your accepted friends.</string>
     <string name="assets_visibility_selected_hint">Only the people you share it with can see it.</string>
     <string name="assets_visibility_private_hint">Only you can see it. This is the default.</string>
     <string name="assets_cover_label">Cover photo</string>
@@ -35,6 +36,13 @@
     <string name="assets_cover_pick">Choose a photo from your gallery</string>
     <string name="assets_error_type_required">Choose an asset type first.</string>
     <string name="assets_submit">Add to memory</string>
+
+    <!-- Edit asset -->
+    <string name="edit_asset_title">Edit asset</string>
+    <string name="edit_asset_kicker">UPDATE THE ASSET</string>
+    <string name="edit_asset_headline">What should we update?</string>
+    <string name="edit_asset_intro">Change the name, description, visibility or location; entries and files stay as they are.</string>
+    <string name="edit_asset_save">Save changes</string>
 
     <!-- Location -->
     <string name="assets_location_label">Location</string>

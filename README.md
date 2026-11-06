@@ -36,6 +36,16 @@ CREATE ROLE vh_app LOGIN PASSWORD 'guclu-bir-sifre';
 CREATE DATABASE varlik_hafizasi OWNER vh_app;
 ```
 
+Windows'ta sistem PostgreSQL yoksa proje, `%USERPROFILE%\.izleer-pg` altındaki kalıcı bir kümeyi kullanabilir. Küme `initdb` ile bir kez oluşturulur (`vh_app` kullanıcısı, `varlik_hafizasi` veritabanı) ve günlük kullanımda şu betikle yönetilir:
+
+```powershell
+powershell -ExecutionPolicy Bypass -File infra/scripts/local-pg.ps1 -Action start
+powershell -ExecutionPolicy Bypass -File infra/scripts/local-pg.ps1 -Action status
+powershell -ExecutionPolicy Bypass -File infra/scripts/local-pg.ps1 -Action stop
+```
+
+`api/.env` bu kümeye işaret eder; bağlantıyı `cd api && npm run db:check` doğrular.
+
 ### 2. API
 
 ```bash
@@ -49,6 +59,25 @@ npm run dev            # http://localhost:4000
 ```
 
 Sağlık kontrolü: `curl http://localhost:4000/health`
+
+### 2b. Supabase (yönetilen PostgreSQL) ile deneme
+
+Yerel PostgreSQL yerine Supabase projesini kullanmak için ayrı bir env dosyası tutun (`api/.env.supabase` hazır gelir; `.gitignore` içindeki `**/.env.*` sayesinde sürüm kontrolüne girmez):
+
+```bash
+cd api
+# Supabase > Project Settings > Database > Connection string:
+#   DATABASE_URL            = Transaction pooler (port 6543)
+#   DATABASE_MIGRATION_URL  = Session pooler (port 5432) veya doğrudan bağlantı
+#   DATABASE_SSL=true, DATABASE_POOL_MAX=5
+
+DOTENV_CONFIG_PATH=./.env.supabase npm run db:check    # hedef, TLS, tablo ve migration durumu
+DOTENV_CONFIG_PATH=./.env.supabase npm run db:migrate
+DOTENV_CONFIG_PATH=./.env.supabase npm run db:seed
+DOTENV_CONFIG_PATH=./.env.supabase npm run dev         # API yine http://localhost:4000
+```
+
+PowerShell'de aynı komutlar `$env:DOTENV_CONFIG_PATH='./.env.supabase'; npm run db:check` biçiminde çalışır. `db:check`, parola yazdırmadan hangi sunucuya/pooler'a bağlanıldığını, TLS'in etkin olup olmadığını, uygulanmış migration'ları ve `anon` rolünün tablolara erişemediğini doğrular. `DATABASE_URL` her zaman uygulama trafiği (6543), `DATABASE_MIGRATION_URL` ise migration/seed (5432) içindir; transaction pooler üzerinden migration reddedilir.
 
 ### 3. Web
 
@@ -109,6 +138,8 @@ docker compose --env-file .env.production up -d --build
 
 Terraform (SSH üzerinden Docker sağlayıcısı) alternatifi, DNS/TLS, yedekleme/geri yükleme, S3 geçişi ve güvenlik kontrol listesi: [`infra/README.md`](infra/README.md).
 
+Supabase (yönetilen PostgreSQL) kullanmak için `DATABASE_URL`'e transaction pooler, `DATABASE_MIGRATION_URL`'e doğrudan veya session pooler adresini verin; Supabase TLS zorunlu kıldığı için `DATABASE_SSL=true` ayarlanır. Yerel `db` servisi atlanır (`docker compose up -d api web caddy`). Kurulum adımları, Data API kilidi ve yedekleme notları: [`infra/README.md`](infra/README.md) → "Supabase (yönetilen PostgreSQL)".
+
 Yedekler:
 
 ```bash
@@ -118,7 +149,8 @@ Yedekler:
 
 ## Doğrulama durumu
 
-- API: `tsc --noEmit`, `tsup` derlemesi ve `vitest` (7 test) başarılı; uçtan uca giriş, okuma, yükleme, varlık/kayıt/ölçüm oluşturma ve silme curl ile doğrulandı. Migration'lar taze bir PostgreSQL 18 kümesinde uygulandı; `Accept-Language` ile varlık türü etiketleri, doğrulama/hata mesajları ve bildirimler tr/en/de/fr/es dillerinde doğrulandı.
+- API: `tsc --noEmit`, `tsup` derlemesi ve `vitest` (21 test) başarılı; uçtan uca giriş, okuma, yükleme, varlık/kayıt/ölçüm oluşturma ve silme curl ile doğrulandı. Migration'lar taze bir PostgreSQL 18 kümesinde uygulandı; `Accept-Language` ile varlık türü etiketleri, doğrulama/hata mesajları ve bildirimler tr/en/de/fr/es dillerinde doğrulandı.
+- Supabase: transaction/session pooler ve SSL algılama birim testleri geçti; transaction pooler üzerinden migration reddi, `anon`/`authenticated` rolleriyle Data API kilidi (25 tabloda RLS, tablo/sequence/fonksiyon yetkilerinin kaldırılması, yeni nesnelerde kapalı varsayılan yetkiler) taze PostgreSQL 18 kümesinde doğrulandı. Gerçek bir Supabase projesine bağlanılmadı; TLS el sıkışması ve pooler davranışı sağlayıcıda denenmedi.
 - Web: `tsc --noEmit` ve `next build` (17 rota) başarılı; standalone sunucu `/api/health` ile ayağa kalktı; giriş, panel, varlıklar, arşiv, keşfet, profil, bildirimler ve varlık detayı oturumlu olarak 200 döndü. Dil değişimi SSR'de (`<html lang>`) ve BFF üzerinden API yanıtlarında tr/en/de/fr/es için doğrulandı.
 - Altyapı: `docker compose config` ve `terraform validate` (Terraform 1.9.8, Docker sağlayıcısı 3.9.0) başarılı; Caddyfile `caddy validate` ile doğrulandı.
 - Android: Temurin JDK 17, Android SDK 35 (build-tools 35.0.0) ve Gradle 8.9 ile `assembleDebug` başarılı; debug APK emülatöre kuruldu, İngilizce ve Almanca arayüz, sistem dil değişimi ve uygulama içi dil seçici (TR→DE→EN→TR) görsel olarak doğrulandı; dil kaynaklarının beş dilde anahtar eşitliği kontrol edildi.

@@ -13,6 +13,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.outlined.List
 import androidx.compose.material.icons.outlined.Explore
+import androidx.compose.material.icons.outlined.Groups
 import androidx.compose.material.icons.outlined.Home
 import androidx.compose.material.icons.outlined.Person
 import androidx.compose.material.icons.outlined.PhotoLibrary
@@ -55,6 +56,9 @@ import app.varlikhafizasi.ui.screens.AssetDetailScreen
 import app.varlikhafizasi.ui.screens.ArchiveScreen
 import app.varlikhafizasi.ui.screens.AssetsScreen
 import app.varlikhafizasi.ui.screens.ExploreScreen
+import app.varlikhafizasi.ui.screens.FriendsScreen
+import app.varlikhafizasi.ui.screens.GroupDetailScreen
+import app.varlikhafizasi.ui.screens.GroupsScreen
 import app.varlikhafizasi.ui.screens.HomeScreen
 import app.varlikhafizasi.ui.screens.LoginScreen
 import app.varlikhafizasi.ui.screens.NewAssetScreen
@@ -72,14 +76,22 @@ private object Routes {
     const val ASSETS = "assets"
     const val ARCHIVE = "archive"
     const val EXPLORE = "explore"
+    const val GROUPS = "groups"
     const val PROFILE = "profile"
+    const val FRIENDS = "friends"
     const val NOTIFICATIONS = "notifications"
     const val NEW_ASSET = "newAsset"
     const val ASSET_DETAIL = "asset/{id}"
+    const val GROUP_DETAIL = "group/{slug}"
+    const val EDIT_ASSET = "editAsset/{id}"
     const val ADD_ENTRY = "addEntry/{assetId}"
+    const val EDIT_ENTRY = "editEntry/{assetId}/{entryId}"
 
     fun asset(id: String) = "asset/$id"
+    fun group(slug: String) = "group/$slug"
+    fun editAsset(id: String) = "editAsset/$id"
     fun addEntry(id: String) = "addEntry/$id"
+    fun editEntry(assetId: String, entryId: String) = "editEntry/$assetId/$entryId"
 }
 
 @Composable
@@ -155,6 +167,7 @@ private fun MainNavigator(vm: VhViewModel, viewer: User) {
         Routes.ASSETS,
         Routes.ARCHIVE,
         Routes.EXPLORE,
+        Routes.GROUPS,
         Routes.PROFILE,
     )
 
@@ -183,6 +196,7 @@ private fun MainNavigator(vm: VhViewModel, viewer: User) {
                     onOpenArchive = { nav.navigateTop(Routes.ARCHIVE) },
                     onOpenNotifications = { nav.navigate(Routes.NOTIFICATIONS) },
                     onNewAsset = { nav.navigate(Routes.NEW_ASSET) },
+                    onOpenFriends = { nav.navigate(Routes.FRIENDS) },
                 )
             }
             composable(Routes.ASSETS) {
@@ -201,16 +215,47 @@ private fun MainNavigator(vm: VhViewModel, viewer: User) {
                     onOpenAsset = { nav.navigate(Routes.asset(it)) },
                 )
             }
+            composable(Routes.GROUPS) {
+                GroupsScreen(
+                    vm = vm,
+                    onOpenGroup = { nav.navigate(Routes.group(it)) },
+                )
+            }
+            composable(
+                route = Routes.GROUP_DETAIL,
+                arguments = listOf(navArgument("slug") { type = NavType.StringType }),
+            ) { entry ->
+                val slug = entry.arguments?.getString("slug").orEmpty()
+                GroupDetailScreen(
+                    vm = vm,
+                    slug = slug,
+                    viewerId = viewer.id,
+                    onBack = { nav.popBackStack() },
+                    onOpenAsset = { nav.navigate(Routes.asset(it)) },
+                )
+            }
             composable(Routes.PROFILE) {
                 ProfileScreen(
                     vm = vm,
                     viewer = viewer,
                     onOpenAsset = { nav.navigate(Routes.asset(it)) },
                     onOpenNotifications = { nav.navigate(Routes.NOTIFICATIONS) },
+                    onOpenFriends = { nav.navigate(Routes.FRIENDS) },
+                )
+            }
+            composable(Routes.FRIENDS) {
+                FriendsScreen(
+                    vm = vm,
+                    onBack = { nav.popBackStack() },
+                    onOpenAsset = { nav.navigate(Routes.asset(it)) },
                 )
             }
             composable(Routes.NOTIFICATIONS) {
-                NotificationsScreen(vm, onBack = { nav.popBackStack() })
+                NotificationsScreen(
+                    vm = vm,
+                    onBack = { nav.popBackStack() },
+                    onOpenFriends = { nav.navigate(Routes.FRIENDS) },
+                )
             }
             composable(Routes.NEW_ASSET) {
                 NewAssetScreen(
@@ -233,7 +278,21 @@ private fun MainNavigator(vm: VhViewModel, viewer: User) {
                     viewer = viewer,
                     assetId = id,
                     onBack = { nav.popBackStack() },
+                    onEditAsset = { nav.navigate(Routes.editAsset(id)) },
                     onAddEntry = { nav.navigate(Routes.addEntry(id)) },
+                    onEditEntry = { entryId -> nav.navigate(Routes.editEntry(id, entryId)) },
+                )
+            }
+            composable(
+                route = Routes.EDIT_ASSET,
+                arguments = listOf(navArgument("id") { type = NavType.StringType }),
+            ) { entry ->
+                val id = entry.arguments?.getString("id").orEmpty()
+                NewAssetScreen(
+                    vm = vm,
+                    assetId = id,
+                    onBack = { nav.popBackStack() },
+                    onCreated = { nav.popBackStack() },
                 )
             }
             composable(
@@ -244,6 +303,23 @@ private fun MainNavigator(vm: VhViewModel, viewer: User) {
                 AddEntryScreen(
                     vm = vm,
                     assetId = assetId,
+                    onBack = { nav.popBackStack() },
+                    onSaved = { nav.popBackStack() },
+                )
+            }
+            composable(
+                route = Routes.EDIT_ENTRY,
+                arguments = listOf(
+                    navArgument("assetId") { type = NavType.StringType },
+                    navArgument("entryId") { type = NavType.StringType },
+                ),
+            ) { backStackEntry ->
+                val assetId = backStackEntry.arguments?.getString("assetId").orEmpty()
+                val entryId = backStackEntry.arguments?.getString("entryId").orEmpty()
+                AddEntryScreen(
+                    vm = vm,
+                    assetId = assetId,
+                    entryId = entryId,
                     onBack = { nav.popBackStack() },
                     onSaved = { nav.popBackStack() },
                 )
@@ -266,6 +342,7 @@ private val tabItems = listOf(
     TabItem(Routes.HOME, R.string.nav_home, Icons.Outlined.Home),
     TabItem(Routes.ASSETS, R.string.nav_assets, Icons.AutoMirrored.Outlined.List),
     TabItem(Routes.ARCHIVE, R.string.nav_archive, Icons.Outlined.PhotoLibrary),
+    TabItem(Routes.GROUPS, R.string.nav_groups, Icons.Outlined.Groups),
     TabItem(Routes.EXPLORE, R.string.nav_explore, Icons.Outlined.Explore),
     TabItem(Routes.PROFILE, R.string.nav_profile, Icons.Outlined.Person),
 )

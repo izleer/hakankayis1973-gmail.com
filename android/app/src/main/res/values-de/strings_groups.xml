@@ -1,0 +1,45 @@
+<resources>
+    <!-- Gruppen -->
+    <string name="groups_subtitle">Gemeinsam erinnern</string>
+    <string name="groups_mine_title">Deine Gruppen</string>
+    <string name="groups_mine_empty_title">Noch keine Gruppe</string>
+    <string name="groups_mine_empty_body">Tritt einer Community bei, die zu deinen Interessen passt, und wachst Erinnerungen gemeinsam.</string>
+    <string name="groups_discover_title">Communities zum Entdecken</string>
+    <string name="groups_discover_empty_title">Derzeit keine neuen Communities</string>
+    <string name="groups_discover_empty_body">Neue Communities erscheinen hier, sobald sie öffnen.</string>
+    <string name="groups_visibility_private">Private Gruppe</string>
+    <string name="groups_join_policy_approval">Beitritt mit Freigabe</string>
+    <string name="groups_join_policy_open">Offen für alle</string>
+    <string name="groups_role_owner">Gründer</string>
+    <string name="groups_role_admin">Administrator</string>
+    <string name="groups_role_moderator">Moderator</string>
+    <string name="groups_role_member">Mitglied</string>
+    <string name="groups_join">Gruppe beitreten</string>
+    <string name="groups_join_busy">Beitreten…</string>
+    <string name="groups_leave">Gruppe verlassen</string>
+    <string name="groups_pending">Warte auf Freigabe</string>
+    <string name="groups_pending_hint">Deine Beitrittsanfrage wartet auf die Freigabe eines Gruppenadministrators.</string>
+    <string name="groups_leave_confirm_title">Gruppe verlassen?</string>
+    <string name="groups_leave_confirm_body">Deine Objekte bleiben bei dir; die geteilten Inhalte der Gruppe siehst du nicht mehr.</string>
+    <string name="groups_leave_confirm">Verlassen</string>
+    <string name="groups_leave_cancel">Abbrechen</string>
+    <string name="groups_rules_title">Gruppenregeln</string>
+    <string name="groups_members_title">Mitglieder</string>
+    <string name="groups_assets_title">In der Gruppe geteilte Objekte</string>
+    <string name="groups_assets_empty">In dieser Gruppe wurden noch keine Objekte geteilt.</string>
+    <string name="groups_assets_locked">Tritt der Gruppe bei, um ihre Objekte zu sehen.</string>
+    <string name="groups_owner_by">Gründer: %1$s</string>
+    <string name="groups_stat_members">Mitglieder</string>
+    <string name="groups_stat_posts">Beiträge</string>
+    <string name="groups_stat_assets">Objekte</string>
+
+    <plurals name="groups_member_count">
+        <item quantity="one">%1$d Mitglied</item>
+        <item quantity="other">%1$d Mitglieder</item>
+    </plurals>
+
+    <!-- Hinweise -->
+    <string name="notice_group_joined">Du bist der Gruppe beigetreten.</string>
+    <string name="notice_group_pending">Deine Beitrittsanfrage wurde gesendet.</string>
+    <string name="notice_group_left">Du hast die Gruppe verlassen.</string>
+</resources>

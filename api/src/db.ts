@@ -1,14 +1,19 @@
 import pg, { type PoolClient, type QueryResultRow } from 'pg';
 import { env } from './env.js';
+import { inspectDatabaseUrl, sslOptionsFor, withoutSslMode } from './lib/db-config.js';
 
 const { Pool } = pg;
 
+export const databaseTarget = inspectDatabaseUrl(env.DATABASE_URL);
+export const databaseSsl = sslOptionsFor(databaseTarget, env.DATABASE_SSL);
+
 export const pool = new Pool({
-  connectionString: env.DATABASE_URL,
-  max: 12,
+  connectionString: withoutSslMode(env.DATABASE_URL),
+  max: env.DATABASE_POOL_MAX,
   idleTimeoutMillis: 30_000,
-  connectionTimeoutMillis: 5_000,
-  ssl: env.DATABASE_SSL ? { rejectUnauthorized: false } : undefined,
+  connectionTimeoutMillis: 10_000,
+  application_name: 'izleer-api',
+  ssl: databaseSsl,
 });
 
 pool.on('error', (error) => {

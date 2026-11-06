@@ -23,6 +23,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Add
 import androidx.compose.material.icons.outlined.Delete
+import androidx.compose.material.icons.outlined.Edit
 import androidx.compose.material.icons.outlined.Place
 import androidx.compose.material.icons.outlined.Share
 import androidx.compose.material3.AlertDialog
@@ -93,7 +94,9 @@ fun AssetDetailScreen(
     viewer: User,
     assetId: String,
     onBack: () -> Unit,
+    onEditAsset: () -> Unit,
     onAddEntry: () -> Unit,
+    onEditEntry: (String) -> Unit,
 ) {
     val state by vm.detail.collectAsStateWithLifecycle()
     val formError by vm.formError.collectAsStateWithLifecycle()
@@ -122,6 +125,13 @@ fun AssetDetailScreen(
                     subtitle = asset?.type?.label,
                     actions = {
                         if (data?.detail?.access?.isOwner == true) {
+                            IconButton(onClick = onEditAsset) {
+                                Icon(
+                                    Icons.Outlined.Edit,
+                                    contentDescription = stringResource(R.string.asset_detail_edit_asset),
+                                    tint = Forest,
+                                )
+                            }
                             IconButton(onClick = onAddEntry) {
                                 Icon(
                                     Icons.Outlined.Add,
@@ -315,9 +325,12 @@ fun AssetDetailScreen(
                             }
                         }
                         items(data.detail.entries, key = { it.id }) { entry ->
+                            val canManage = data.detail.access.isOwner || entry.author?.id == viewer.id
                             EntryCard(
                                 entry = entry,
-                                canDelete = data.detail.access.isOwner || entry.author?.id == viewer.id,
+                                canEdit = canManage,
+                                canDelete = canManage,
+                                onEdit = { onEditEntry(entry.id) },
                                 onDelete = { pendingDelete = entry.id },
                                 onOpenMedia = { lightboxUrl = it },
                             )
@@ -693,7 +706,9 @@ private fun MiniMeta(value: String, label: String, modifier: Modifier = Modifier
 @Composable
 private fun EntryCard(
     entry: Entry,
+    canEdit: Boolean,
     canDelete: Boolean,
+    onEdit: () -> Unit,
     onDelete: () -> Unit,
     onOpenMedia: (String?) -> Unit,
 ) {
@@ -719,6 +734,16 @@ private fun EntryCard(
                 style = MaterialTheme.typography.bodySmall,
                 color = Muted,
             )
+            if (canEdit) {
+                IconButton(onClick = onEdit, modifier = Modifier.size(32.dp)) {
+                    Icon(
+                        Icons.Outlined.Edit,
+                        contentDescription = stringResource(R.string.asset_detail_edit_entry),
+                        tint = Muted,
+                        modifier = Modifier.size(17.dp),
+                    )
+                }
+            }
             if (canDelete) {
                 IconButton(onClick = onDelete, modifier = Modifier.size(32.dp)) {
                     Icon(
@@ -745,6 +770,36 @@ private fun EntryCard(
                 style = MaterialTheme.typography.bodyMedium,
                 color = Forest.copy(alpha = 0.9f),
             )
+        }
+        if (!entry.locationName.isNullOrBlank() || entry.latitude != null) {
+            Spacer(Modifier.height(6.dp))
+            val context = LocalContext.current
+            val lat = entry.latitude
+            val lng = entry.longitude
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                modifier = Modifier.clickable(enabled = lat != null && lng != null) {
+                    if (lat != null && lng != null) {
+                        openInMaps(context, lat, lng, entry.locationName)
+                    }
+                },
+            ) {
+                Icon(
+                    Icons.Outlined.Place,
+                    contentDescription = null,
+                    tint = Clay,
+                    modifier = Modifier.size(14.dp),
+                )
+                Spacer(Modifier.width(5.dp))
+                Text(
+                    text = entry.locationName?.takeIf { it.isNotBlank() }
+                        ?: formatCoordinates(lat ?: 0.0, lng ?: 0.0),
+                    style = MaterialTheme.typography.bodySmall,
+                    color = Clay,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis,
+                )
+            }
         }
         if (entry.media.isNotEmpty()) {
             Spacer(Modifier.height(10.dp))

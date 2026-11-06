@@ -15,6 +15,7 @@
     <!-- Visibilidad -->
     <string name="visibility_public">Público</string>
     <string name="visibility_selected">Personas seleccionadas</string>
+    <string name="visibility_friends">Amigos</string>
     <string name="visibility_private">Privado</string>
 
     <!-- Tipo de medio -->
@@ -40,6 +41,7 @@
     <!-- Navegación -->
     <string name="nav_home">Panel</string>
     <string name="nav_assets">Bienes</string>
+    <string name="nav_groups">Grupos</string>
     <string name="nav_archive">Archivo</string>
     <string name="nav_explore">Explorar</string>
     <string name="nav_profile">Perfil</string>
@@ -91,13 +93,47 @@
     <string name="notice_asset_added">«%1$s» se añadió a tu memoria.</string>
     <string name="notice_entry_added">La entrada se añadió a la cronología.</string>
     <string name="notice_entry_deleted">La entrada se eliminó.</string>
+    <string name="notice_entry_updated">La entrada se actualizó.</string>
+    <string name="notice_asset_updated">«%1$s» se actualizó.</string>
     <string name="notice_access_granted">@%1$s ya puede ver este bien.</string>
     <string name="notice_access_removed">Acceso retirado.</string>
     <string name="notice_unfollowed">Has dejado de seguir a @%1$s.</string>
     <string name="notice_following">Ahora sigues a @%1$s.</string>
+    <string name="notice_friend_requested">Solicitud de amistad enviada a %1$s.</string>
+    <string name="notice_friend_accepted">%1$s ahora es tu amigo.</string>
+    <string name="notice_friend_declined">Solicitud de amistad rechazada.</string>
+    <string name="notice_friend_request_cancelled">Solicitud de amistad cancelada.</string>
+    <string name="notice_friend_removed">%1$s eliminado de tus amigos.</string>
 
     <!-- Acciones de medios -->
     <string name="media_pick_gallery">Elegir de la galería</string>
     <string name="media_take_photo">Hacer una foto</string>
     <string name="media_camera_unavailable">No se encontró ninguna aplicación de cámara.</string>
+    <!-- Foto de perfil y conexiones sociales -->
+    <string name="profile_photo_change">Cambiar foto de perfil</string>
+    <string name="profile_photo_remove">Quitar foto</string>
+    <string name="profile_social_title">Cuentas sociales</string>
+    <string name="profile_social_subtitle">Conexiones de Facebook e Instagram</string>
+    <string name="profile_social_not_configured">Las conexiones de Facebook e Instagram estarán disponibles cuando se configuren las credenciales de la app de Meta en el servidor.</string>
+    <string name="profile_social_connect">Conectar con Facebook</string>
+    <string name="profile_social_add">Añadir cuenta</string>
+    <string name="profile_social_disconnect">Quitar</string>
+    <string name="profile_social_not_connected">No conectado</string>
+    <string name="profile_social_share_title">Compartir en redes sociales</string>
+    <string name="profile_social_share_hint">Usa el icono de compartir en la lista de bienes para publicar en Facebook o Instagram.</string>
+    <string name="profile_social_share_action">Compartir</string>
+    <string name="profile_social_share_busy">Compartiendo…</string>
+    <string name="profile_social_provider">Cuenta</string>
+    <string name="profile_social_format">Formato de publicación</string>
+    <string name="profile_social_format_post">Publicación</string>
+    <string name="profile_social_format_story">Historia</string>
+    <string name="profile_social_format_reel">Reels</string>
+    <string name="profile_social_caption">Descripción</string>
+    <string name="profile_social_instagram_blocked">Instagram requiere que la dirección del medio sea HTTPS pública.</string>
+    <string name="error_avatar_upload">No se pudo subir la foto.</string>
+    <string name="error_browser_unavailable">No se pudo abrir el navegador.</string>
+    <string name="notice_avatar_updated">Tu foto de perfil se actualizó.</string>
+    <string name="notice_avatar_removed">Tu foto de perfil se quitó.</string>
+    <string name="notice_social_disconnected">La conexión social se quitó.</string>
+    <string name="notice_social_shared">Compartido en %1$s.</string>
 </resources>

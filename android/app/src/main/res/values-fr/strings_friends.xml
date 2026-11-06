@@ -1,0 +1,72 @@
+<resources>
+    <!-- Amis -->
+    <string name="friends_title">Amis</string>
+    <string name="friends_eyebrow">Des souvenirs qui grandissent ensemble</string>
+    <string name="friends_intro">Les personnes avec qui vous êtes ami partagent les objets qu\'elles ouvrent à leurs amis. Vous pouvez ouvrir vos propres objets de la même façon.</string>
+    <string name="friends_find">Trouver de nouveaux amis</string>
+    <string name="friends_mutual">Permission mutuelle</string>
+    <string name="friends_tab_friends">Mes amis</string>
+    <string name="friends_tab_requests">Demandes</string>
+    <string name="friends_tab_suggestions">Suggestions</string>
+    <string name="friends_tab_assets">Leurs objets</string>
+    <string name="friends_stat_friends">Ami</string>
+    <string name="friends_stat_requests">Demande</string>
+    <string name="friends_stat_shared">Partagé</string>
+
+    <!-- Liste d'amis -->
+    <string name="friends_empty_title">Pas encore d\'amis</string>
+    <string name="friends_empty_body">Envoyez une demande à une personne dans Suggestions pour créer votre premier lien.</string>
+    <string name="friends_empty_action">Voir les suggestions</string>
+    <string name="friends_since">Ami · %1$s</string>
+    <string name="friends_remove">Retirer</string>
+    <string name="friends_remove_title">Retirer cet ami ?</string>
+    <string name="friends_remove_body">%1$s sera retiré de vos amis.</string>
+    <string name="friends_cancel">Annuler</string>
+
+    <!-- Demandes -->
+    <string name="friends_incoming_title">Envoyées à vous</string>
+    <string name="friends_incoming_heading">Demandes reçues</string>
+    <string name="friends_incoming_empty">Aucune demande en attente.</string>
+    <string name="friends_outgoing_title">Ce que vous avez envoyé</string>
+    <string name="friends_outgoing_heading">Demandes envoyées</string>
+    <string name="friends_outgoing_empty">Vous n\'avez pas encore envoyé de demande.</string>
+    <string name="friends_accept">Accepter</string>
+    <string name="friends_decline">Refuser</string>
+    <string name="friends_pending">En attente</string>
+    <string name="friends_cancel_request">Annuler</string>
+
+    <!-- Suggestions -->
+    <string name="friends_suggestions_title">Personnes que vous pourriez connaître</string>
+    <string name="friends_suggestions_empty_title">Aucune nouvelle suggestion pour le moment</string>
+    <string name="friends_suggestions_empty_body">Vous pouvez explorer d\'autres souvenirs sur la page Explorer.</string>
+    <string name="friends_add">Ajouter un ami</string>
+    <string name="friends_are">Vous êtes amis</string>
+    <string name="friends_request_sent">Demande envoyée</string>
+    <string name="friends_accept_request">Accepter la demande</string>
+
+    <!-- Objets partagés -->
+    <string name="friends_assets_title">Les objets de vos amis</string>
+    <string name="friends_assets_search">Rechercher des objets partagés…</string>
+    <string name="friends_assets_filter_all">Tous</string>
+    <string name="friends_assets_filter_friends">Partagés avec des amis</string>
+    <string name="friends_assets_filter_granted">Partagés avec vous</string>
+    <string name="friends_assets_empty_title">Aucun objet partagé</string>
+    <string name="friends_assets_empty_body">Les objets que vos amis ouvrent à leurs amis, ou qu\'ils vous accordent spécifiquement, apparaissent ici.</string>
+    <string name="friends_assets_note">Seuls les objets ouverts aux amis et les éléments qui vous sont spécifiquement accordés sont listés ici. Les objets privés ne sont jamais affichés.</string>
+    <string name="friends_shared_by">Partagé par %1$s</string>
+    <string name="friends_relation_friends">partagé avec des amis</string>
+    <string name="friends_relation_granted">partagé avec vous</string>
+
+    <!-- Accueil et profil -->
+    <string name="home_friends_title">Amis</string>
+    <string name="home_friends_body">Gérez les demandes et voyez ce qu\'ils partagent.</string>
+
+    <plurals name="friends_count">
+        <item quantity="one">%1$d ami</item>
+        <item quantity="other">%1$d amis</item>
+    </plurals>
+    <plurals name="friends_pending_count">
+        <item quantity="one">%1$d demande en attente</item>
+        <item quantity="other">%1$d demandes en attente</item>
+    </plurals>
+</resources>

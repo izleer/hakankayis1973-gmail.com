@@ -5,6 +5,11 @@ plugins {
     id("org.jetbrains.kotlin.plugin.serialization")
 }
 
+// Emülatörde host makine 10.0.2.2'dir. Fiziksel cihaz için derlerken geçersiz kılın:
+//   gradle assembleDebug -PAPI_BASE_URL=http://127.0.0.1:4000/   (adb reverse ile)
+//   gradle assembleDebug -PAPI_BASE_URL=http://192.168.1.20:4000/ (aynı ağ)
+val apiBaseUrl = (findProperty("API_BASE_URL") as String?) ?: "http://10.0.2.2:4000/"
+
 android {
     namespace = "app.varlikhafizasi"
     compileSdk = 35
@@ -16,8 +21,7 @@ android {
         versionCode = 1
         versionName = "1.0.0"
 
-        // Emülatörde host makine 10.0.2.2'dir. Fiziksel cihaz için yerel IP kullanın.
-        buildConfigField("String", "API_BASE_URL", "\"http://10.0.2.2:4000/\"")
+        buildConfigField("String", "API_BASE_URL", "\"$apiBaseUrl\"")
     }
 
     buildTypes {

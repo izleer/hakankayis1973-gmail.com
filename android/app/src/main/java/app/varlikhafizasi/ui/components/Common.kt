@@ -103,6 +103,7 @@ fun entryTypeLabel(type: String): String = stringResource(
 fun visibilityLabel(visibility: String): String = stringResource(
     when (visibility) {
         "public" -> R.string.visibility_public
+        "friends" -> R.string.visibility_friends
         "selected" -> R.string.visibility_selected
         else -> R.string.visibility_private
     },
@@ -239,6 +240,7 @@ fun Pill(
 fun VisibilityTag(visibility: String) {
     val background = when (visibility) {
         "public" -> SageLight
+        "friends" -> Color(0xFFE6EEE4)
         "selected" -> Color(0xFFF0E6CF)
         else -> PaperDeep
     }
@@ -280,7 +282,12 @@ fun Avatar(name: String, url: String?, size: Dp = 38.dp) {
 }
 
 @Composable
-fun AssetRow(asset: Asset, onClick: () -> Unit, modifier: Modifier = Modifier) {
+fun AssetRow(
+    asset: Asset,
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier,
+    action: (@Composable () -> Unit)? = null,
+) {
     Surface(
         modifier = modifier.fillMaxWidth().clickable { onClick() },
         color = Ivory,
@@ -342,6 +349,9 @@ fun AssetRow(asset: Asset, onClick: () -> Unit, modifier: Modifier = Modifier) {
                     Spacer(Modifier.width(8.dp))
                     VisibilityTag(asset.visibility)
                 }
+            }
+            if (action != null) {
+                action()
             }
             Icon(
                 Icons.Outlined.ChevronRight,

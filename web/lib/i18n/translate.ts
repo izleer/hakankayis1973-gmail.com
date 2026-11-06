@@ -19,6 +19,8 @@ function rulesFor(locale: Locale): Intl.PluralRules {
 function lookup(locale: Locale, source: string): CatalogEntry | undefined {
   const entry = catalogs[locale]?.[source];
   if (entry !== undefined) return entry;
+  // Kaynak metinler Türkçedir: Türkçe için İngilizceye düşmek yanlış olur.
+  if (locale === 'tr') return undefined;
   if (locale !== 'en') return catalogs.en[source];
   return undefined;
 }

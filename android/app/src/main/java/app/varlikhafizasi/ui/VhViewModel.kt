@@ -13,11 +13,17 @@ import app.varlikhafizasi.data.ArchivePage
 import app.varlikhafizasi.data.Asset
 import app.varlikhafizasi.data.AssetDetail
 import app.varlikhafizasi.data.AssetType
+import app.varlikhafizasi.data.Entry
 import app.varlikhafizasi.data.FeedPost
+import app.varlikhafizasi.data.Friend
+import app.varlikhafizasi.data.FriendRequest
+import app.varlikhafizasi.data.Group
+import app.varlikhafizasi.data.GroupDetailPayload
 import app.varlikhafizasi.data.Measurement
 import app.varlikhafizasi.data.MeasurementInput
 import app.varlikhafizasi.data.NotificationPage
 import app.varlikhafizasi.data.ProfilePayload
+import app.varlikhafizasi.data.SocialConnectionsPayload
 import app.varlikhafizasi.data.Stats
 import app.varlikhafizasi.data.User
 import app.varlikhafizasi.data.UserMini
@@ -62,6 +68,24 @@ data class ProfileData(
     val posts: List<FeedPost>,
 )
 
+data class GroupsData(
+    val mine: List<Group>,
+    val discover: List<Group>,
+)
+
+data class GroupDetailData(
+    val payload: GroupDetailPayload,
+    val assets: List<Asset>,
+)
+
+data class FriendsData(
+    val friends: List<Friend>,
+    val incoming: List<FriendRequest>,
+    val outgoing: List<FriendRequest>,
+    val suggestions: List<User>,
+    val shared: List<Asset>,
+)
+
 class VhViewModel(
     private val repository: VhRepository,
     private val appContext: Context,
@@ -91,6 +115,12 @@ class VhViewModel(
     private val _detail = MutableStateFlow(Loadable<DetailData>())
     val detail: StateFlow<Loadable<DetailData>> = _detail.asStateFlow()
 
+    private val _entryDraft = MutableStateFlow(Loadable<Entry>())
+    val entryDraft: StateFlow<Loadable<Entry>> = _entryDraft.asStateFlow()
+
+    private val _assetDraft = MutableStateFlow(Loadable<Asset>())
+    val assetDraft: StateFlow<Loadable<Asset>> = _assetDraft.asStateFlow()
+
     private val _archive = MutableStateFlow(Loadable<ArchivePage>())
     val archive: StateFlow<Loadable<ArchivePage>> = _archive.asStateFlow()
 
@@ -102,6 +132,33 @@ class VhViewModel(
 
     private val _profile = MutableStateFlow(Loadable<ProfileData>())
     val profile: StateFlow<Loadable<ProfileData>> = _profile.asStateFlow()
+
+    private val _social = MutableStateFlow(Loadable<SocialConnectionsPayload>())
+    val social: StateFlow<Loadable<SocialConnectionsPayload>> = _social.asStateFlow()
+
+    private val _groups = MutableStateFlow(Loadable<GroupsData>())
+    val groups: StateFlow<Loadable<GroupsData>> = _groups.asStateFlow()
+
+    private val _group = MutableStateFlow(Loadable<GroupDetailData>())
+    val group: StateFlow<Loadable<GroupDetailData>> = _group.asStateFlow()
+
+    private val _friends = MutableStateFlow(Loadable<FriendsData>())
+    val friends: StateFlow<Loadable<FriendsData>> = _friends.asStateFlow()
+
+    private val _friendsBusy = MutableStateFlow(false)
+    val friendsBusy: StateFlow<Boolean> = _friendsBusy.asStateFlow()
+
+    private val _groupBusy = MutableStateFlow(false)
+    val groupBusy: StateFlow<Boolean> = _groupBusy.asStateFlow()
+
+    private val _socialBusy = MutableStateFlow(false)
+    val socialBusy: StateFlow<Boolean> = _socialBusy.asStateFlow()
+
+    private val _socialError = MutableStateFlow<String?>(null)
+    val socialError: StateFlow<String?> = _socialError.asStateFlow()
+
+    private val _avatarBusy = MutableStateFlow(false)
+    val avatarBusy: StateFlow<Boolean> = _avatarBusy.asStateFlow()
 
     private val _formBusy = MutableStateFlow(false)
     val formBusy: StateFlow<Boolean> = _formBusy.asStateFlow()
@@ -185,10 +242,17 @@ class VhViewModel(
             _home.value = Loadable()
             _assets.value = Loadable()
             _detail.value = Loadable()
+            _entryDraft.value = Loadable()
+            _assetDraft.value = Loadable()
             _archive.value = Loadable()
             _explore.value = Loadable()
             _notifications.value = Loadable()
             _profile.value = Loadable()
+            _social.value = Loadable()
+            _groups.value = Loadable()
+            _group.value = Loadable()
+            _friends.value = Loadable()
+            _friendsBusy.value = false
         }
     }
 
@@ -246,6 +310,38 @@ class VhViewModel(
         }
     }
 
+    /** Düzenleme ekranının ön dolgusu için tek kaydı getirir. */
+    fun loadEntry(id: String) {
+        viewModelScope.launch {
+            _entryDraft.value = Loadable(loading = true)
+            try {
+                _entryDraft.value = Loadable(data = repository.entry(id))
+            } catch (error: Throwable) {
+                _entryDraft.value = Loadable(error = messageOf(error))
+            }
+        }
+    }
+
+    fun clearEntryDraft() {
+        _entryDraft.value = Loadable()
+    }
+
+    /** Varlık düzenleme ekranının ön dolgusu için tek varlığı getirir. */
+    fun loadAssetDraft(id: String) {
+        viewModelScope.launch {
+            _assetDraft.value = Loadable(loading = true)
+            try {
+                _assetDraft.value = Loadable(data = repository.asset(id).asset)
+            } catch (error: Throwable) {
+                _assetDraft.value = Loadable(error = messageOf(error))
+            }
+        }
+    }
+
+    fun clearAssetDraft() {
+        _assetDraft.value = Loadable()
+    }
+
     fun loadArchive(kind: String? = null, query: String? = null) {
         viewModelScope.launch {
             _archive.value = Loadable(loading = true)
@@ -267,6 +363,41 @@ class VhViewModel(
                 _explore.value = Loadable(data = ExploreData(posts, people, publicAssets))
             } catch (error: Throwable) {
                 _explore.value = Loadable(error = messageOf(error))
+            }
+        }
+    }
+
+    fun loadFriends(
+        query: String? = null,
+        friendsOnly: Boolean = false,
+        showSpinner: Boolean = true,
+    ) {
+        viewModelScope.launch {
+            if (showSpinner) {
+                _friends.value = _friends.value.copy(loading = true, error = null)
+            }
+            try {
+                val friends = repository.friends()
+                val requests = repository.friendRequests()
+                val suggestions = runCatching { repository.friendSuggestions() }
+                    .getOrDefault(emptyList())
+                val shared = runCatching { repository.sharedAssets(query, friendsOnly).items }
+                    .getOrDefault(emptyList())
+                _friends.value = Loadable(
+                    data = FriendsData(
+                        friends = friends,
+                        incoming = requests.incoming,
+                        outgoing = requests.outgoing,
+                        suggestions = suggestions,
+                        shared = shared,
+                    ),
+                )
+            } catch (error: Throwable) {
+                if (_friends.value.data == null) {
+                    _friends.value = Loadable(error = messageOf(error))
+                } else {
+                    _notice.value = messageOf(error)
+                }
             }
         }
     }
@@ -301,6 +432,187 @@ class VhViewModel(
         loadAssets()
         loadArchive()
         loadNotifications()
+    }
+
+    fun loadSocial(showSpinner: Boolean = true) {
+        viewModelScope.launch {
+            if (showSpinner && _social.value.data == null) {
+                _social.value = _social.value.copy(loading = true)
+            }
+            try {
+                _social.value = Loadable(data = repository.socialConnections())
+            } catch (error: Throwable) {
+                if (_social.value.data == null) {
+                    _social.value = Loadable(error = messageOf(error))
+                }
+            }
+        }
+    }
+
+    fun loadGroups(showSpinner: Boolean = true) {
+        viewModelScope.launch {
+            if (showSpinner && _groups.value.data == null) {
+                _groups.value = _groups.value.copy(loading = true, error = null)
+            }
+            try {
+                val mine = repository.communities(mine = true).items
+                val discover = repository.communities().items
+                val mineIds = mine.map { it.id }.toSet()
+                _groups.value = Loadable(
+                    data = GroupsData(
+                        mine = mine,
+                        discover = discover.filter { it.id !in mineIds },
+                    ),
+                )
+            } catch (error: Throwable) {
+                if (_groups.value.data == null) {
+                    _groups.value = Loadable(error = messageOf(error))
+                }
+            }
+        }
+    }
+
+    fun loadGroup(slug: String) {
+        viewModelScope.launch {
+            _group.value = Loadable(loading = true)
+            try {
+                val payload = repository.community(slug)
+                val assets = if (payload.isMember) {
+                    runCatching { repository.groupAssets(slug) }.getOrDefault(emptyList())
+                } else {
+                    emptyList()
+                }
+                _group.value = Loadable(data = GroupDetailData(payload, assets))
+            } catch (error: Throwable) {
+                _group.value = Loadable(error = messageOf(error))
+            }
+        }
+    }
+
+    fun joinGroup(slug: String) {
+        if (_groupBusy.value) return
+        viewModelScope.launch {
+            _groupBusy.value = true
+            try {
+                val result = repository.joinGroup(slug)
+                _notice.value = str(
+                    if (result.pending) {
+                        R.string.notice_group_pending
+                    } else {
+                        R.string.notice_group_joined
+                    },
+                )
+                loadGroup(slug)
+                loadGroups(showSpinner = false)
+            } catch (error: Throwable) {
+                _notice.value = messageOf(error)
+            } finally {
+                _groupBusy.value = false
+            }
+        }
+    }
+
+    fun leaveGroup(slug: String) {
+        if (_groupBusy.value) return
+        viewModelScope.launch {
+            _groupBusy.value = true
+            try {
+                repository.leaveGroup(slug)
+                _notice.value = str(R.string.notice_group_left)
+                loadGroup(slug)
+                loadGroups(showSpinner = false)
+            } catch (error: Throwable) {
+                _notice.value = messageOf(error)
+            } finally {
+                _groupBusy.value = false
+            }
+        }
+    }
+
+    fun updateAvatar(uri: Uri?) {
+        if (_avatarBusy.value) return
+        viewModelScope.launch {
+            _avatarBusy.value = true
+            try {
+                val user = repository.updateAvatar(uri)
+                _session.update { current ->
+                    current.user?.let { current.copy(user = it.copy(avatarUrl = user.avatarUrl)) }
+                        ?: current
+                }
+                loadProfile()
+                _notice.value = str(
+                    if (uri == null) R.string.notice_avatar_removed else R.string.notice_avatar_updated,
+                )
+            } catch (error: Throwable) {
+                _notice.value = messageOf(error)
+            } finally {
+                _avatarBusy.value = false
+            }
+        }
+    }
+
+    /** Tarayıcıda açılacak Facebook giriş adresini üretir. */
+    fun startSocial(onUrl: (String) -> Unit) {
+        if (_socialBusy.value) return
+        viewModelScope.launch {
+            _socialBusy.value = true
+            _socialError.value = null
+            try {
+                onUrl(repository.socialStartUrl())
+            } catch (error: Throwable) {
+                _socialError.value = messageOf(error)
+            } finally {
+                _socialBusy.value = false
+            }
+        }
+    }
+
+    fun disconnectSocial(id: String) {
+        viewModelScope.launch {
+            try {
+                repository.disconnectSocial(id)
+                _social.update { current ->
+                    Loadable(
+                        data = current.data?.let { payload ->
+                            payload.copy(items = payload.items.filterNot { it.id == id })
+                        },
+                    )
+                }
+                _notice.value = str(R.string.notice_social_disconnected)
+            } catch (error: Throwable) {
+                _socialError.value = messageOf(error)
+            }
+        }
+    }
+
+    fun shareSocial(
+        assetId: String,
+        provider: String,
+        format: String,
+        caption: String?,
+        onShared: () -> Unit,
+    ) {
+        if (_socialBusy.value) return
+        viewModelScope.launch {
+            _socialBusy.value = true
+            _socialError.value = null
+            try {
+                repository.shareSocial(assetId, provider, format, null, caption)
+                _notice.value = str(
+                    R.string.notice_social_shared,
+                    if (provider == "instagram") "Instagram" else "Facebook",
+                )
+                onShared()
+            } catch (error: Throwable) {
+                _socialError.value = messageOf(error)
+            } finally {
+                _socialBusy.value = false
+            }
+        }
+    }
+
+    fun clearSocialError() {
+        _socialError.value = null
     }
 
     // -----------------------------------------------------------------------
@@ -349,6 +661,53 @@ class VhViewModel(
         }
     }
 
+    fun updateAsset(
+        assetId: String,
+        typeId: String,
+        title: String,
+        description: String?,
+        visibility: String,
+        coverUri: Uri?,
+        locationName: String? = null,
+        latitude: Double? = null,
+        longitude: Double? = null,
+        clearLocation: Boolean = false,
+        onSaved: (String) -> Unit,
+    ) {
+        if (typeId.isBlank() || title.isBlank()) {
+            _formError.value = str(R.string.error_asset_required)
+            return
+        }
+        viewModelScope.launch {
+            _formBusy.value = true
+            _formError.value = null
+            try {
+                val asset = repository.updateAsset(
+                    assetId = assetId,
+                    typeId = typeId,
+                    title = title,
+                    description = description,
+                    visibility = visibility,
+                    coverUri = coverUri,
+                    locationName = locationName,
+                    latitude = latitude,
+                    longitude = longitude,
+                    clearLocation = clearLocation,
+                )
+                loadDetail(assetId)
+                loadHome()
+                loadAssets()
+                loadArchive()
+                _notice.value = str(R.string.notice_asset_updated, asset.title)
+                onSaved(asset.id)
+            } catch (error: Throwable) {
+                _formError.value = messageOf(error)
+            } finally {
+                _formBusy.value = false
+            }
+        }
+    }
+
     fun addEntry(
         assetId: String,
         type: String,
@@ -358,6 +717,9 @@ class VhViewModel(
         occurredAt: String? = null,
         mediaUris: List<Uri>,
         measurement: MeasurementInput?,
+        locationName: String? = null,
+        latitude: Double? = null,
+        longitude: Double? = null,
         onSaved: () -> Unit,
     ) {
         if (title.isNullOrBlank() && body.isNullOrBlank()) {
@@ -368,11 +730,74 @@ class VhViewModel(
             _formBusy.value = true
             _formError.value = null
             try {
-                repository.addEntry(assetId, type, title, body, visibility, occurredAt, mediaUris, measurement)
+                repository.addEntry(
+                    assetId,
+                    type,
+                    title,
+                    body,
+                    visibility,
+                    occurredAt,
+                    mediaUris,
+                    measurement,
+                    locationName,
+                    latitude,
+                    longitude,
+                )
                 loadDetail(assetId)
                 loadHome()
                 loadArchive()
                 _notice.value = str(R.string.notice_entry_added)
+                onSaved()
+            } catch (error: Throwable) {
+                _formError.value = messageOf(error)
+            } finally {
+                _formBusy.value = false
+            }
+        }
+    }
+
+    fun updateEntry(
+        assetId: String,
+        entryId: String,
+        type: String,
+        title: String?,
+        body: String?,
+        visibility: String,
+        occurredAt: String? = null,
+        newMediaUris: List<Uri> = emptyList(),
+        measurement: MeasurementInput? = null,
+        locationName: String? = null,
+        latitude: Double? = null,
+        longitude: Double? = null,
+        clearLocation: Boolean = false,
+        onSaved: () -> Unit,
+    ) {
+        if (title.isNullOrBlank() && body.isNullOrBlank()) {
+            _formError.value = str(R.string.error_entry_text_required)
+            return
+        }
+        viewModelScope.launch {
+            _formBusy.value = true
+            _formError.value = null
+            try {
+                repository.updateEntry(
+                    entryId = entryId,
+                    type = type,
+                    title = title,
+                    body = body,
+                    visibility = visibility,
+                    occurredAt = occurredAt,
+                    newMediaUris = newMediaUris,
+                    measurement = measurement,
+                    locationName = locationName,
+                    latitude = latitude,
+                    longitude = longitude,
+                    clearLocation = clearLocation,
+                )
+                loadDetail(assetId)
+                loadHome()
+                loadArchive()
+                _notice.value = str(R.string.notice_entry_updated)
                 onSaved()
             } catch (error: Throwable) {
                 _formError.value = messageOf(error)
@@ -491,10 +916,67 @@ class VhViewModel(
         }
     }
 
+    fun requestFriend(username: String, displayName: String) {
+        friendAction(username) {
+            val status = repository.requestFriend(username)
+            _notice.value = str(
+                if (status == "pending_out") {
+                    R.string.notice_friend_requested
+                } else {
+                    R.string.notice_friend_accepted
+                },
+                displayName,
+            )
+        }
+    }
+
+    fun acceptFriend(username: String, displayName: String) {
+        friendAction(username) {
+            repository.acceptFriend(username)
+            _notice.value = str(R.string.notice_friend_accepted, displayName)
+        }
+    }
+
+    fun declineFriend(username: String) {
+        friendAction(username) {
+            repository.declineFriend(username)
+            _notice.value = str(R.string.notice_friend_declined)
+        }
+    }
+
+    fun cancelFriendRequest(username: String) {
+        friendAction(username) {
+            repository.removeFriend(username)
+            _notice.value = str(R.string.notice_friend_request_cancelled)
+        }
+    }
+
+    fun removeFriend(username: String, displayName: String) {
+        friendAction(username) {
+            repository.removeFriend(username)
+            _notice.value = str(R.string.notice_friend_removed, displayName)
+        }
+    }
+
+    private fun friendAction(username: String, block: suspend () -> Unit) {
+        if (_friendsBusy.value) return
+        viewModelScope.launch {
+            _friendsBusy.value = true
+            try {
+                block()
+                loadFriends(showSpinner = false)
+                loadExplore()
+            } catch (error: Throwable) {
+                _notice.value = messageOf(error)
+            } finally {
+                _friendsBusy.value = false
+            }
+        }
+    }
+
     fun clearFormError() {
         _formError.value = null
     }
-
     fun consumeNotice() {
         _notice.value = null
     }

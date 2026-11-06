@@ -15,6 +15,7 @@
     <!-- Visibility -->
     <string name="visibility_public">Public</string>
     <string name="visibility_selected">Selected people</string>
+    <string name="visibility_friends">Friends</string>
     <string name="visibility_private">Private</string>
 
     <!-- Media kind -->
@@ -40,6 +41,7 @@
     <!-- Navigation -->
     <string name="nav_home">Home</string>
     <string name="nav_assets">Assets</string>
+    <string name="nav_groups">Groups</string>
     <string name="nav_archive">Archive</string>
     <string name="nav_explore">Explore</string>
     <string name="nav_profile">Profile</string>
@@ -91,13 +93,47 @@
     <string name="notice_asset_added">“%1$s” was added to your memory.</string>
     <string name="notice_entry_added">The entry was added to the timeline.</string>
     <string name="notice_entry_deleted">The entry was deleted.</string>
+    <string name="notice_entry_updated">The entry was updated.</string>
+    <string name="notice_asset_updated">“%1$s” was updated.</string>
     <string name="notice_access_granted">@%1$s can now see this asset.</string>
     <string name="notice_access_removed">Access removed.</string>
     <string name="notice_unfollowed">Unfollowed @%1$s.</string>
     <string name="notice_following">Now following @%1$s.</string>
+    <string name="notice_friend_requested">Friend request sent to %1$s.</string>
+    <string name="notice_friend_accepted">%1$s is now your friend.</string>
+    <string name="notice_friend_declined">Friend request declined.</string>
+    <string name="notice_friend_request_cancelled">Friend request cancelled.</string>
+    <string name="notice_friend_removed">%1$s removed from your friends.</string>
 
     <!-- Media actions -->
     <string name="media_pick_gallery">Choose from gallery</string>
     <string name="media_take_photo">Take a photo</string>
     <string name="media_camera_unavailable">No camera app found.</string>
+    <!-- Profile photo and social connections -->
+    <string name="profile_photo_change">Change profile photo</string>
+    <string name="profile_photo_remove">Remove photo</string>
+    <string name="profile_social_title">Social accounts</string>
+    <string name="profile_social_subtitle">Facebook and Instagram connections</string>
+    <string name="profile_social_not_configured">Facebook and Instagram connections become available once the Meta app credentials are configured on the server.</string>
+    <string name="profile_social_connect">Connect with Facebook</string>
+    <string name="profile_social_add">Add account</string>
+    <string name="profile_social_disconnect">Remove</string>
+    <string name="profile_social_not_connected">Not connected</string>
+    <string name="profile_social_share_title">Share on social media</string>
+    <string name="profile_social_share_hint">Use the share icon in the asset list to post to Facebook or Instagram.</string>
+    <string name="profile_social_share_action">Share</string>
+    <string name="profile_social_share_busy">Sharing…</string>
+    <string name="profile_social_provider">Account</string>
+    <string name="profile_social_format">Post format</string>
+    <string name="profile_social_format_post">Post</string>
+    <string name="profile_social_format_story">Story</string>
+    <string name="profile_social_format_reel">Reels</string>
+    <string name="profile_social_caption">Caption</string>
+    <string name="profile_social_instagram_blocked">Instagram requires the media address to be public HTTPS.</string>
+    <string name="error_avatar_upload">The photo could not be uploaded.</string>
+    <string name="error_browser_unavailable">The browser could not be opened.</string>
+    <string name="notice_avatar_updated">Your profile photo was updated.</string>
+    <string name="notice_avatar_removed">Your profile photo was removed.</string>
+    <string name="notice_social_disconnected">The social connection was removed.</string>
+    <string name="notice_social_shared">Shared on %1$s.</string>
 </resources>

@@ -21,6 +21,31 @@ const profile = {
   'İlk varlığı ekle': 'Add your first asset',
   Paylaşımlar: 'Posts',
   'Hafızadan notlar': 'Notes from memory',
+  'Yalnızca fotoğraf yükleyebilirsin.': 'You can only upload a photo.',
+  'Dosya en fazla 10 MB olabilir.': 'The file can be at most 10 MB.',
+  'Fotoğraf yüklenemedi.': 'The photo could not be uploaded.',
+  'Profil fotoğrafı kaldırılsın mı?': 'Remove your profile photo?',
+  'Fotoğraf kaldırılamadı.': 'The photo could not be removed.',
+  'Profil fotoğrafını değiştir': 'Change profile photo',
+  'Fotoğrafı kaldır': 'Remove photo',
+  'SOSYAL HESAPLAR': 'SOCIAL ACCOUNTS',
+  'Facebook ve Instagram': 'Facebook and Instagram',
+  'Bağlantı yok': 'No connections',
+  'Sunucuda Meta uygulama bilgileri tanımlanınca Facebook ve Instagram bağlantısı açılır. Kurulum adımları sosyal ayarlarda.':
+    'Facebook and Instagram connections become available once the Meta app credentials are configured on the server. Setup steps are in social settings.',
+  'Henüz bağlı hesap yok. Facebook Sayfanı bağla; sayfaya bağlı Instagram Business hesabı varsa otomatik eklenir.':
+    'No connected accounts yet. Connect your Facebook Page; a linked Instagram Business account is added automatically.',
+  'Hesap ekle': 'Add account',
+  'Sosyal ayarlar': 'Social settings',
+  'Varlığını paylaş': 'Share an asset',
+  'Paylaşılacak varlık': 'Asset to share',
+  'Hazırlanıyor…': 'Preparing…',
+  'Paylaş': 'Share',
+  'Paylaşmak için önce bir varlık ekle.': 'Add an asset first to share it.',
+  'Instagram için medya adresinin herkese açık HTTPS olması gerekir.':
+    'Instagram requires the media address to be public HTTPS.',
+  '{name} bağlantısı kaldırıldı.': '{name} was disconnected.',
+  'Varlık yüklenemedi.': 'The asset could not be loaded.',
 } as const;
 
 export default profile;

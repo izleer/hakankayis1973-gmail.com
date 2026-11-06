@@ -24,6 +24,17 @@
     <string name="add_entry_section_visibility">¿Quién puede verlo?</string>
     <string name="add_entry_visibility_hint">Una entrada no puede ser más visible que su bien.</string>
 
+    <string name="add_entry_section_location">Ubicación (opcional)</string>
+    <string name="add_entry_location_hint">Vincula la entrada a un lugar si quieres; arrastra el marcador en el mapa para cambiarlo.</string>
+    <string name="add_entry_location_pick">Elegir en el mapa</string>
+    <string name="add_entry_location_clear">Quitar</string>
+    <string name="add_entry_location_dialog_title">Elegir ubicación</string>
+    <string name="add_entry_location_dialog_hint">Toca el mapa o arrastra el marcador. Tu ubicación actual aparece al abrir.</string>
+    <string name="add_entry_location_current">Ubicación actual</string>
+    <string name="add_entry_location_confirm">Usar este punto</string>
+    <string name="add_entry_location_cancel">Cancelar</string>
+    <string name="add_entry_location_locating">Obteniendo ubicación…</string>
+
     <string name="add_entry_section_files">Foto / documento</string>
     <string name="add_entry_add_file">Añadir archivo (%1$s, %2$d MB)</string>
     <string name="add_entry_remove_file">Quitar</string>
@@ -34,4 +45,13 @@
 
     <string name="add_entry_footer_hint">La entrada se añade a la cronología con la fecha y la hora que elijas; podrás editarla después.</string>
     <string name="add_entry_save">Añadir a la historia</string>
+
+    <!-- Editar entrada -->
+    <string name="edit_entry_title">Editar entrada</string>
+    <string name="edit_entry_eyebrow">EN LA CRONOLOGÍA</string>
+    <string name="edit_entry_headline">¿Qué quieres corregir?</string>
+    <string name="edit_entry_intro">Cambia la fecha, la nota o el lugar; las fotos y documentos existentes se conservan.</string>
+    <string name="edit_entry_save">Guardar cambios</string>
+    <string name="edit_entry_existing_files">Archivos actuales</string>
+    <string name="edit_entry_add_files_hint">Los archivos nuevos se añaden a los existentes; los actuales se conservan.</string>
 </resources>

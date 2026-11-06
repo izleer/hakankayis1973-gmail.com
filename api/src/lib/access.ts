@@ -2,7 +2,7 @@ import { query, queryOne } from '../db.js';
 import { forbidden, notFound } from './errors.js';
 import type { Viewer } from './session.js';
 
-export type Visibility = 'private' | 'selected' | 'public';
+export type Visibility = 'private' | 'selected' | 'friends' | 'public';
 
 export type AssetAccessRow = {
   id: string;
@@ -20,7 +20,7 @@ export type EntryAccessRow = {
   deleted_at: Date | null;
 };
 
-const rank: Record<Visibility, number> = { private: 0, selected: 1, public: 2 };
+const rank: Record<Visibility, number> = { private: 0, selected: 1, friends: 2, public: 3 };
 
 export function visibilityRank(value: Visibility): number {
   return rank[value];
@@ -48,6 +48,19 @@ export async function hasAccessRule(
   return Boolean(row);
 }
 
+export async function areFriends(a: string, b: string): Promise<boolean> {
+  if (a === b) return false;
+  const row = await queryOne<{ exists: boolean }>(
+    `SELECT true AS exists FROM friendships
+     WHERE status = 'accepted'
+       AND ((requester_id = $1 AND addressee_id = $2)
+         OR (requester_id = $2 AND addressee_id = $1))
+     LIMIT 1`,
+    [a, b],
+  );
+  return Boolean(row);
+}
+
 export async function canViewAsset(
   viewer: Viewer | null,
   asset: AssetAccessRow,
@@ -59,6 +72,10 @@ export async function canViewAsset(
   if (asset.visibility === 'public') return true;
   if (asset.visibility === 'selected') {
     return hasAccessRule(viewer.id, 'asset', asset.id);
+  }
+  if (asset.visibility === 'friends') {
+    if (await isBlocked(viewer.id, asset.owner_id)) return false;
+    return areFriends(viewer.id, asset.owner_id);
   }
   return false;
 }
@@ -75,6 +92,9 @@ export async function canViewEntry(
   if (!(await canViewAsset(viewer, asset))) return false;
 
   if (entry.visibility === 'public') return true;
+  if (entry.visibility === 'friends') {
+    return areFriends(viewer.id, asset.owner_id);
+  }
   if (entry.visibility === 'selected') {
     if (await hasAccessRule(viewer.id, 'entry', entry.id)) return true;
     return hasAccessRule(viewer.id, 'asset', asset.id);

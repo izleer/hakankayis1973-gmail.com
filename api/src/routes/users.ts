@@ -34,6 +34,7 @@ async function profileStats(userId: string, viewer: Viewer | null) {
     post_count: string;
     follower_count: string;
     following_count: string;
+    friend_count: string;
   }>(
     `SELECT
        (SELECT count(*) FROM assets a WHERE a.owner_id = $1 AND a.deleted_at IS NULL ${assetVisibility}) AS asset_count,
@@ -42,7 +43,10 @@ async function profileStats(userId: string, viewer: Viewer | null) {
         WHERE a.owner_id = $1 AND je.deleted_at IS NULL ${entryVisibility}) AS entry_count,
        (SELECT count(*) FROM posts p WHERE p.author_id = $1 AND ${postVisibility}) AS post_count,
        (SELECT count(*) FROM follows f WHERE f.following_id = $1) AS follower_count,
-       (SELECT count(*) FROM follows f WHERE f.follower_id = $1) AS following_count`,
+       (SELECT count(*) FROM follows f WHERE f.follower_id = $1) AS following_count,
+       (SELECT count(*) FROM friendships f
+        WHERE f.status = 'accepted'
+          AND (f.requester_id = $1 OR f.addressee_id = $1)) AS friend_count`,
     [userId],
   );
   return {
@@ -51,19 +55,66 @@ async function profileStats(userId: string, viewer: Viewer | null) {
     posts: Number(stats?.post_count ?? 0),
     followers: Number(stats?.follower_count ?? 0),
     following: Number(stats?.following_count ?? 0),
+    friends: Number(stats?.friend_count ?? 0),
   };
+}
+
+export type FriendStatus = 'none' | 'pending_out' | 'pending_in' | 'friends';
+
+export async function friendStatus(viewerId: string, targetId: string): Promise<FriendStatus> {
+  if (viewerId === targetId) return 'none';
+  const row = await queryOne<{ requester_id: string; status: string }>(
+    `SELECT requester_id, status FROM friendships
+     WHERE (requester_id = $1 AND addressee_id = $2)
+        OR (requester_id = $2 AND addressee_id = $1)
+     LIMIT 1`,
+    [viewerId, targetId],
+  );
+  if (!row) return 'none';
+  if (row.status === 'accepted') return 'friends';
+  if (row.status === 'pending') {
+    return row.requester_id === viewerId ? 'pending_out' : 'pending_in';
+  }
+  return 'none';
+}
+
+function friendStatusFromRow(row: Record<string, any>, viewerId: string): FriendStatus {
+  if (row.friendship_status === 'accepted') return 'friends';
+  if (row.friendship_status === 'pending') {
+    return row.friendship_requester === viewerId ? 'pending_out' : 'pending_in';
+  }
+  return 'none';
 }
 
 export async function userRoutes(app: FastifyInstance): Promise<void> {
   app.get('/users/suggestions', async (req) => {
     const viewer = await requireViewer(req);
+    const params = parseQuery(
+      z.object({ scope: z.enum(['default', 'friends']).default('default') }),
+      req.query,
+    );
+    const exclude = params.scope === 'friends'
+      ? `NOT EXISTS (
+           SELECT 1 FROM friendships f
+           WHERE (f.requester_id = $1 AND f.addressee_id = u.id)
+              OR (f.requester_id = u.id AND f.addressee_id = $1)
+         )`
+      : `NOT EXISTS (SELECT 1 FROM follows f WHERE f.follower_id = $1 AND f.following_id = u.id)`;
     const rows = await query<Record<string, any>>(
       `SELECT u.id, u.username, u.display_name, u.avatar_url, u.bio,
               (SELECT count(*) FROM follows f WHERE f.following_id = u.id) AS follower_count,
-              EXISTS (SELECT 1 FROM follows f WHERE f.follower_id = $1 AND f.following_id = u.id) AS is_following
+              EXISTS (SELECT 1 FROM follows f WHERE f.follower_id = $1 AND f.following_id = u.id) AS is_following,
+              (SELECT f.status FROM friendships f
+               WHERE (f.requester_id = $1 AND f.addressee_id = u.id)
+                  OR (f.requester_id = u.id AND f.addressee_id = $1)
+               LIMIT 1) AS friendship_status,
+              (SELECT f.requester_id FROM friendships f
+               WHERE (f.requester_id = $1 AND f.addressee_id = u.id)
+                  OR (f.requester_id = u.id AND f.addressee_id = $1)
+               LIMIT 1) AS friendship_requester
        FROM users u
        WHERE u.deleted_at IS NULL AND u.id <> $1
-         AND NOT EXISTS (SELECT 1 FROM follows f WHERE f.follower_id = $1 AND f.following_id = u.id)
+         AND ${exclude}
          AND NOT EXISTS (
            SELECT 1 FROM blocks b
            WHERE (b.blocker_id = $1 AND b.blocked_id = u.id)
@@ -80,6 +131,7 @@ export async function userRoutes(app: FastifyInstance): Promise<void> {
           bio: row.bio,
           followerCount: Number(row.follower_count),
           isFollowing: Boolean(row.is_following),
+          friendStatus: friendStatusFromRow(row, viewer.id),
         })),
       },
     };
@@ -116,6 +168,8 @@ export async function userRoutes(app: FastifyInstance): Promise<void> {
       ),
     ]);
 
+    const friend = viewer ? await friendStatus(viewer.id, row.id) : 'none';
+
     return {
       data: {
         user: {
@@ -123,6 +177,7 @@ export async function userRoutes(app: FastifyInstance): Promise<void> {
           email: isSelf ? row.email : undefined,
           stats,
           isFollowing: Boolean(following),
+          friendStatus: friend,
           isBlocked: blockedByMe,
           blockedBy: Boolean(blockedMe),
           isSelf,
@@ -225,6 +280,187 @@ export async function userRoutes(app: FastifyInstance): Promise<void> {
     return { data: { following: false } };
   });
 
+  app.get('/users/me/friends', async (req) => {
+    const viewer = await requireViewer(req);
+    const rows = await query<Record<string, any>>(
+      `SELECT u.id, u.username, u.display_name, u.avatar_url, f.created_at AS since
+       FROM friendships f
+       JOIN users u ON u.id = CASE
+         WHEN f.requester_id = $1 THEN f.addressee_id
+         ELSE f.requester_id
+       END AND u.deleted_at IS NULL
+       WHERE f.status = 'accepted'
+         AND (f.requester_id = $1 OR f.addressee_id = $1)
+       ORDER BY u.display_name ASC`,
+      [viewer.id],
+    );
+    return {
+      data: {
+        items: rows.map((row) => ({ ...mapUserMini(row), since: iso(row.since) })),
+      },
+    };
+  });
+
+  app.get('/users/me/friend-requests', async (req) => {
+    const viewer = await requireViewer(req);
+    const [incoming, outgoing] = await Promise.all([
+      query<Record<string, any>>(
+        `SELECT u.id, u.username, u.display_name, u.avatar_url, f.created_at
+         FROM friendships f
+         JOIN users u ON u.id = f.requester_id AND u.deleted_at IS NULL
+         WHERE f.addressee_id = $1 AND f.status = 'pending'
+         ORDER BY f.created_at DESC`,
+        [viewer.id],
+      ),
+      query<Record<string, any>>(
+        `SELECT u.id, u.username, u.display_name, u.avatar_url, f.created_at
+         FROM friendships f
+         JOIN users u ON u.id = f.addressee_id AND u.deleted_at IS NULL
+         WHERE f.requester_id = $1 AND f.status = 'pending'
+         ORDER BY f.created_at DESC`,
+        [viewer.id],
+      ),
+    ]);
+    return {
+      data: {
+        incoming: incoming.map((row) => ({
+          user: mapUserMini(row),
+          requestedAt: iso(row.created_at),
+        })),
+        outgoing: outgoing.map((row) => ({
+          user: mapUserMini(row),
+          requestedAt: iso(row.created_at),
+        })),
+      },
+    };
+  });
+
+  app.post('/users/:username/friend', async (req, reply) => {
+    const viewer = await requireViewer(req);
+    const { username } = usernameParam.parse(req.params);
+    const target = await findUser(username);
+    if (target.id === viewer.id) conflict('Kendinize arkadaşlık isteği gönderemezsiniz.');
+    await assertNotBlocked(viewer.id, target.id);
+
+    const existing = await queryOne<{ id: string; requester_id: string; status: string }>(
+      `SELECT id, requester_id, status FROM friendships
+       WHERE (requester_id = $1 AND addressee_id = $2)
+          OR (requester_id = $2 AND addressee_id = $1)
+       LIMIT 1`,
+      [viewer.id, target.id],
+    );
+
+    if (existing?.status === 'accepted') {
+      return reply.send({ data: { status: 'friends' } });
+    }
+
+    if (existing?.status === 'pending') {
+      if (existing.requester_id === viewer.id) {
+        return reply.send({ data: { status: 'pending_out' } });
+      }
+      await query(
+        `UPDATE friendships
+         SET status = 'accepted', responded_at = now()
+         WHERE id = $1`,
+        [existing.id],
+      );
+      await notify({
+        userId: target.id,
+        actorId: viewer.id,
+        type: 'friend_accept',
+        entityType: 'friend',
+        entityId: viewer.id,
+        messageKey: '{actor} arkadaşlık isteğini kabul etti.',
+        messageParams: { actor: viewer.displayName },
+      });
+      await audit(viewer.id, 'friend.accepted', 'user', target.id, {}, req.ip);
+      return reply.send({ data: { status: 'friends' } });
+    }
+
+    if (existing) {
+      await query(
+        `UPDATE friendships
+         SET requester_id = $2, addressee_id = $3, status = 'pending',
+             created_at = now(), responded_at = NULL
+         WHERE id = $1`,
+        [existing.id, viewer.id, target.id],
+      );
+    } else {
+      await query(
+        `INSERT INTO friendships (requester_id, addressee_id)
+         VALUES ($1, $2)`,
+        [viewer.id, target.id],
+      );
+    }
+
+    await notify({
+      userId: target.id,
+      actorId: viewer.id,
+      type: 'friend_request',
+      entityType: 'friend',
+      entityId: viewer.id,
+      messageKey: '{actor} sana arkadaşlık isteği gönderdi.',
+      messageParams: { actor: viewer.displayName },
+    });
+    await audit(viewer.id, 'friend.requested', 'user', target.id, {}, req.ip);
+    return reply.status(201).send({ data: { status: 'pending_out' } });
+  });
+
+  app.post('/users/:username/friend/accept', async (req) => {
+    const viewer = await requireViewer(req);
+    const { username } = usernameParam.parse(req.params);
+    const target = await findUser(username);
+    const updated = await query(
+      `UPDATE friendships
+       SET status = 'accepted', responded_at = now()
+       WHERE requester_id = $1 AND addressee_id = $2 AND status = 'pending'
+       RETURNING id`,
+      [target.id, viewer.id],
+    );
+    if (updated.length === 0) conflict('Bekleyen arkadaşlık isteği bulunamadı.');
+    await notify({
+      userId: target.id,
+      actorId: viewer.id,
+      type: 'friend_accept',
+      entityType: 'friend',
+      entityId: viewer.id,
+      messageKey: '{actor} arkadaşlık isteğini kabul etti.',
+      messageParams: { actor: viewer.displayName },
+    });
+    await audit(viewer.id, 'friend.accepted', 'user', target.id, {}, req.ip);
+    return { data: { status: 'friends' } };
+  });
+
+  app.post('/users/:username/friend/decline', async (req) => {
+    const viewer = await requireViewer(req);
+    const { username } = usernameParam.parse(req.params);
+    const target = await findUser(username);
+    const updated = await query(
+      `UPDATE friendships
+       SET status = 'declined', responded_at = now()
+       WHERE requester_id = $1 AND addressee_id = $2 AND status = 'pending'
+       RETURNING id`,
+      [target.id, viewer.id],
+    );
+    if (updated.length === 0) conflict('Bekleyen arkadaşlık isteği bulunamadı.');
+    await audit(viewer.id, 'friend.declined', 'user', target.id, {}, req.ip);
+    return { data: { status: 'none' } };
+  });
+
+  app.delete('/users/:username/friend', async (req) => {
+    const viewer = await requireViewer(req);
+    const { username } = usernameParam.parse(req.params);
+    const target = await findUser(username);
+    await query(
+      `DELETE FROM friendships
+       WHERE (requester_id = $1 AND addressee_id = $2)
+          OR (requester_id = $2 AND addressee_id = $1)`,
+      [viewer.id, target.id],
+    );
+    await audit(viewer.id, 'friend.removed', 'user', target.id, {}, req.ip);
+    return { data: { status: 'none' } };
+  });
+
   app.get('/users/:username/followers', async (req) => {
     const viewer = await optionalViewer(req);
     const { username } = usernameParam.parse(req.params);
@@ -315,7 +551,19 @@ export async function userRoutes(app: FastifyInstance): Promise<void> {
       z.object({
         displayName: z.string().trim().min(1).max(80).optional(),
         bio: z.string().trim().max(500).optional().nullable(),
-        avatarUrl: z.string().url().max(500).optional().nullable(),
+        // Yerel depolamada medya adresleri /files/... biçiminde göreli döner;
+        // boş dize avatarı kaldırmak için kullanılır.
+        avatarUrl: z
+          .string()
+          .trim()
+          .max(500)
+          .refine(
+            (value) =>
+              value === '' || /^https?:\/\//i.test(value) || /^\/files\//.test(value),
+            { message: 'Geçersiz avatar adresi.' },
+          )
+          .optional()
+          .nullable(),
         interests: z.array(z.string().trim().min(1).max(30)).max(12).optional(),
         onboarded: z.boolean().optional(),
       }),
@@ -335,7 +583,7 @@ export async function userRoutes(app: FastifyInstance): Promise<void> {
         body.bio !== undefined,
         body.bio ?? null,
         body.avatarUrl !== undefined,
-        body.avatarUrl ?? null,
+        body.avatarUrl ? body.avatarUrl : null,
         body.interests ? body.interests : null,
         body.onboarded ?? false,
       ],

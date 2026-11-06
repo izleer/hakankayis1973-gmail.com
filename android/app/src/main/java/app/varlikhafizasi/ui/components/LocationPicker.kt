@@ -13,6 +13,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.outlined.Map
 import androidx.compose.material.icons.outlined.MyLocation
 import androidx.compose.material.icons.outlined.Place
 import androidx.compose.material3.CircularProgressIndicator
@@ -41,6 +42,7 @@ import app.varlikhafizasi.ui.screens.formatCoordinates
 import app.varlikhafizasi.ui.screens.hasLocationPermission
 import app.varlikhafizasi.ui.screens.locationPermissions
 import app.varlikhafizasi.ui.screens.openInMaps
+import app.varlikhafizasi.ui.screens.reverseGeocodeLocation
 import app.varlikhafizasi.ui.theme.Danger
 import app.varlikhafizasi.ui.theme.Forest
 import app.varlikhafizasi.ui.theme.Line
@@ -62,6 +64,7 @@ fun LocationPicker(
     val scope = rememberCoroutineScope()
     var busy by remember { mutableStateOf(false) }
     var error by remember { mutableStateOf<String?>(null) }
+    var mapOpen by remember { mutableStateOf(false) }
 
     val deniedMessage = stringResource(R.string.assets_location_permission_denied)
     val unavailableMessage = stringResource(R.string.assets_location_unavailable)
@@ -112,45 +115,89 @@ fun LocationPicker(
             modifier = Modifier.fillMaxWidth(),
         )
         Spacer(Modifier.height(8.dp))
-        OutlinedButton(
-            onClick = { requestLocation() },
-            enabled = enabled && !busy,
-            shape = RoundedCornerShape(12.dp),
-            border = BorderStroke(1.dp, Line),
-            modifier = Modifier.fillMaxWidth(),
-        ) {
-            if (busy) {
-                CircularProgressIndicator(
-                    strokeWidth = 2.dp,
-                    color = Forest,
-                    modifier = Modifier.size(16.dp),
-                )
-                Spacer(Modifier.size(8.dp))
-                Text(
-                    stringResource(R.string.assets_location_fetching),
-                    color = Forest,
-                    style = MaterialTheme.typography.bodyMedium,
-                )
-            } else {
+        Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+            OutlinedButton(
+                onClick = { requestLocation() },
+                enabled = enabled && !busy,
+                shape = RoundedCornerShape(12.dp),
+                border = BorderStroke(1.dp, Line),
+                modifier = Modifier.weight(1f),
+            ) {
+                if (busy) {
+                    CircularProgressIndicator(
+                        strokeWidth = 2.dp,
+                        color = Forest,
+                        modifier = Modifier.size(16.dp),
+                    )
+                    Spacer(Modifier.size(8.dp))
+                    Text(
+                        stringResource(R.string.assets_location_fetching),
+                        color = Forest,
+                        style = MaterialTheme.typography.bodySmall,
+                    )
+                } else {
+                    Icon(
+                        Icons.Outlined.MyLocation,
+                        contentDescription = null,
+                        tint = Forest,
+                        modifier = Modifier.size(16.dp),
+                    )
+                    Spacer(Modifier.size(6.dp))
+                    Text(
+                        stringResource(
+                            if (latitude != null && longitude != null) {
+                                R.string.assets_location_update
+                            } else {
+                                R.string.assets_location_use
+                            },
+                        ),
+                        color = Forest,
+                        style = MaterialTheme.typography.bodySmall,
+                    )
+                }
+            }
+            OutlinedButton(
+                onClick = { mapOpen = true },
+                enabled = enabled && !busy,
+                shape = RoundedCornerShape(12.dp),
+                border = BorderStroke(1.dp, Line),
+                modifier = Modifier.weight(1f),
+            ) {
                 Icon(
-                    Icons.Outlined.MyLocation,
+                    Icons.Outlined.Map,
                     contentDescription = null,
                     tint = Forest,
-                    modifier = Modifier.size(18.dp),
+                    modifier = Modifier.size(16.dp),
                 )
-                Spacer(Modifier.size(8.dp))
+                Spacer(Modifier.size(6.dp))
                 Text(
-                    stringResource(
-                        if (latitude != null && longitude != null) {
-                            R.string.assets_location_update
-                        } else {
-                            R.string.assets_location_use
-                        },
-                    ),
+                    stringResource(R.string.add_entry_location_pick),
                     color = Forest,
-                    style = MaterialTheme.typography.bodyMedium,
+                    style = MaterialTheme.typography.bodySmall,
                 )
             }
+        }
+
+        if (mapOpen) {
+            LocationMapDialog(
+                initialLatitude = latitude,
+                initialLongitude = longitude,
+                onDismiss = { mapOpen = false },
+                onConfirm = { picked ->
+                    mapOpen = false
+                    onLocationPicked(PickedLocation(picked.latitude, picked.longitude, null))
+                    scope.launch {
+                        val name = reverseGeocodeLocation(
+                            context,
+                            picked.latitude,
+                            picked.longitude,
+                        )
+                        if (!name.isNullOrBlank()) {
+                            onLocationPicked(PickedLocation(picked.latitude, picked.longitude, name))
+                        }
+                    }
+                },
+            )
         }
 
         if (latitude != null && longitude != null) {

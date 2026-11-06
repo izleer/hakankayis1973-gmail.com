@@ -13,10 +13,17 @@ import { MediaImage } from './MediaImage';
 const visibilityIcons = {
   private: 'lock',
   selected: 'users',
+  friends: 'users',
   public: 'eye',
 } as const;
 
-export async function AssetCard({ asset }: { asset: Asset }) {
+export async function AssetCard({
+  asset,
+  shared = false,
+}: {
+  asset: Asset;
+  shared?: boolean;
+}) {
   const { t, locale } = await getI18n();
   const visibility = t(visibilityLabels[asset.visibility]);
 
@@ -48,6 +55,26 @@ export async function AssetCard({ asset }: { asset: Asset }) {
         </div>
         <h3>{asset.title}</h3>
         {asset.description ? <p>{asset.description}</p> : null}
+        {shared ? (
+          <div className="asset-card-owner">
+            <span className="avatar avatar-tiny">
+              {asset.owner.avatarUrl ? (
+                <img src={asset.owner.avatarUrl} alt="" />
+              ) : (
+                asset.owner.displayName.slice(0, 1)
+              )}
+            </span>
+            <span>
+              <strong>{asset.owner.displayName}</strong>
+              <small>
+                @{asset.owner.username}
+                {asset.relation === 'friends'
+                  ? ` · ${t('arkadaş paylaşımı')}`
+                  : ` · ${t('seninle paylaşıldı')}`}
+              </small>
+            </span>
+          </div>
+        ) : null}
         <div className="asset-card-foot">
           <span>
             {t('Son iz')} · {formatDate(asset.updatedAt, locale)}
@@ -61,11 +88,11 @@ export async function AssetCard({ asset }: { asset: Asset }) {
   );
 }
 
-export function AssetGrid({ assets }: { assets: Asset[] }) {
+export function AssetGrid({ assets, shared = false }: { assets: Asset[]; shared?: boolean }) {
   return (
     <div className="asset-grid">
       {assets.map((asset) => (
-        <AssetCard key={asset.id} asset={asset} />
+        <AssetCard key={asset.id} asset={asset} shared={shared} />
       ))}
     </div>
   );

@@ -15,6 +15,7 @@
     <!-- Visibilité -->
     <string name="visibility_public">Public</string>
     <string name="visibility_selected">Personnes sélectionnées</string>
+    <string name="visibility_friends">Amis</string>
     <string name="visibility_private">Privé</string>
 
     <!-- Type de média -->
@@ -40,6 +41,7 @@
     <!-- Navigation -->
     <string name="nav_home">Accueil</string>
     <string name="nav_assets">Biens</string>
+    <string name="nav_groups">Groupes</string>
     <string name="nav_archive">Archives</string>
     <string name="nav_explore">Explorer</string>
     <string name="nav_profile">Profil</string>
@@ -91,13 +93,47 @@
     <string name="notice_asset_added">« %1$s » a été ajouté à votre mémoire.</string>
     <string name="notice_entry_added">L\'entrée a été ajoutée à la chronologie.</string>
     <string name="notice_entry_deleted">L\'entrée a été supprimée.</string>
+    <string name="notice_entry_updated">L\'entrée a été mise à jour.</string>
+    <string name="notice_asset_updated">« %1$s » a été mis à jour.</string>
     <string name="notice_access_granted">@%1$s peut désormais voir ce bien.</string>
     <string name="notice_access_removed">Accès retiré.</string>
     <string name="notice_unfollowed">Vous ne suivez plus @%1$s.</string>
     <string name="notice_following">Vous suivez maintenant @%1$s.</string>
+    <string name="notice_friend_requested">Demande d\'ami envoyée à %1$s.</string>
+    <string name="notice_friend_accepted">%1$s est maintenant votre ami.</string>
+    <string name="notice_friend_declined">Demande d\'ami refusée.</string>
+    <string name="notice_friend_request_cancelled">Demande d\'ami annulée.</string>
+    <string name="notice_friend_removed">%1$s retiré de vos amis.</string>
 
     <!-- Actions média -->
     <string name="media_pick_gallery">Choisir dans la galerie</string>
     <string name="media_take_photo">Prendre une photo</string>
     <string name="media_camera_unavailable">Aucune application d\'appareil photo trouvée.</string>
+    <!-- Photo de profil et connexions sociales -->
+    <string name="profile_photo_change">Changer la photo de profil</string>
+    <string name="profile_photo_remove">Supprimer la photo</string>
+    <string name="profile_social_title">Comptes sociaux</string>
+    <string name="profile_social_subtitle">Connexions Facebook et Instagram</string>
+    <string name="profile_social_not_configured">Les connexions Facebook et Instagram seront disponibles dès que les identifiants de l’application Meta seront configurés sur le serveur.</string>
+    <string name="profile_social_connect">Se connecter avec Facebook</string>
+    <string name="profile_social_add">Ajouter un compte</string>
+    <string name="profile_social_disconnect">Supprimer</string>
+    <string name="profile_social_not_connected">Non connecté</string>
+    <string name="profile_social_share_title">Partager sur les réseaux sociaux</string>
+    <string name="profile_social_share_hint">Utilise l’icône de partage dans la liste des biens pour publier sur Facebook ou Instagram.</string>
+    <string name="profile_social_share_action">Partager</string>
+    <string name="profile_social_share_busy">Partage en cours…</string>
+    <string name="profile_social_provider">Compte</string>
+    <string name="profile_social_format">Format de publication</string>
+    <string name="profile_social_format_post">Publication</string>
+    <string name="profile_social_format_story">Story</string>
+    <string name="profile_social_format_reel">Reels</string>
+    <string name="profile_social_caption">Légende</string>
+    <string name="profile_social_instagram_blocked">Instagram exige que l’adresse du média soit en HTTPS public.</string>
+    <string name="error_avatar_upload">La photo n’a pas pu être téléversée.</string>
+    <string name="error_browser_unavailable">Le navigateur n’a pas pu être ouvert.</string>
+    <string name="notice_avatar_updated">Ta photo de profil a été mise à jour.</string>
+    <string name="notice_avatar_removed">Ta photo de profil a été supprimée.</string>
+    <string name="notice_social_disconnected">La connexion sociale a été supprimée.</string>
+    <string name="notice_social_shared">Partagé sur %1$s.</string>
 </resources>

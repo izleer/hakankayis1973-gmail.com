@@ -222,7 +222,7 @@ export function NewAssetForm({ types }: { types: AssetType[] }) {
           </div>
         </div>
         <div className="visibility-options">
-          {(['private', 'selected', 'public'] as Visibility[]).map((option) => (
+          {(['private', 'selected', 'friends', 'public'] as Visibility[]).map((option) => (
             <button
               type="button"
               key={option}

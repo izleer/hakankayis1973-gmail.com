@@ -5,7 +5,7 @@ import rateLimit from '@fastify/rate-limit';
 import fastifyStatic from '@fastify/static';
 import { ZodError } from 'zod';
 import { env } from './env.js';
-import { query } from './db.js';
+import { databaseSsl, databaseTarget, query } from './db.js';
 import { ApiError } from './lib/errors.js';
 import { translate } from './lib/i18n/index.js';
 import { negotiateLocale, type Locale } from './lib/locale.js';
@@ -159,6 +159,8 @@ export async function buildApp(): Promise<FastifyInstance> {
       return {
         status: 'ok',
         db: 'ok',
+        dbPooler: databaseTarget.pooler,
+        dbSsl: databaseSsl !== false,
         storage: env.STORAGE_DRIVER,
         uptime: Math.round(process.uptime()),
         now: new Date().toISOString(),

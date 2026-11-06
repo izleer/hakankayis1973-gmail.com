@@ -6,6 +6,7 @@
     <string name="asset_detail_tab_people">Personas</string>
 
     <!-- Acciones superiores -->
+    <string name="asset_detail_edit_asset">Editar el bien</string>
     <string name="asset_detail_add_entry">Añadir entrada</string>
     <string name="asset_detail_share_with_people">Compartir con personas</string>
 
@@ -42,6 +43,7 @@
 
     <!-- Eliminación y visor de imágenes -->
     <string name="asset_detail_delete">Eliminar</string>
+    <string name="asset_detail_edit_entry">Editar entrada</string>
     <string name="asset_detail_delete_title">¿Eliminar la entrada?</string>
     <string name="asset_detail_delete_body">Esta entrada y sus medios se quitarán de tu archivo. No se puede deshacer.</string>
     <string name="asset_detail_cancel">Cancelar</string>

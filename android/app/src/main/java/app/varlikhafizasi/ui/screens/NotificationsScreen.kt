@@ -21,6 +21,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.ChatBubbleOutline
 import androidx.compose.material.icons.outlined.DoneAll
 import androidx.compose.material.icons.outlined.FavoriteBorder
+import androidx.compose.material.icons.outlined.Groups
 import androidx.compose.material.icons.outlined.NotificationsNone
 import androidx.compose.material.icons.outlined.PersonAdd
 import androidx.compose.material3.Icon
@@ -55,7 +56,11 @@ import app.varlikhafizasi.ui.theme.SageLight
 import app.varlikhafizasi.ui.theme.Ivory
 
 @Composable
-fun NotificationsScreen(vm: VhViewModel, onBack: () -> Unit) {
+fun NotificationsScreen(
+    vm: VhViewModel,
+    onBack: () -> Unit,
+    onOpenFriends: () -> Unit,
+) {
     val state by vm.notifications.collectAsStateWithLifecycle()
 
     LaunchedEffect(Unit) { vm.loadNotifications() }
@@ -123,6 +128,7 @@ fun NotificationsScreen(vm: VhViewModel, onBack: () -> Unit) {
                     notification = notification,
                     onClick = {
                         if (notification.readAt == null) vm.markRead(notification.id)
+                        if (notification.entityType == "friend") onOpenFriends()
                     },
                 )
             }
@@ -165,7 +171,8 @@ private fun NotificationRow(notification: VhNotification, onClick: () -> Unit) {
             ) {
                 Icon(
                     imageVector = when (notification.type) {
-                        "follow" -> Icons.Outlined.PersonAdd
+                        "follow", "friend_request" -> Icons.Outlined.PersonAdd
+                        "friend_accept" -> Icons.Outlined.Groups
                         "like" -> Icons.Outlined.FavoriteBorder
                         "comment" -> Icons.Outlined.ChatBubbleOutline
                         else -> Icons.Outlined.NotificationsNone

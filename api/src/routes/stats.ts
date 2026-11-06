@@ -31,10 +31,25 @@ export async function statsRoutes(app: FastifyInstance): Promise<void> {
          (SELECT count(*) FROM media m
           JOIN assets a ON a.id = m.asset_id AND a.deleted_at IS NULL
           WHERE a.owner_id = $1 AND m.status = 'ready' AND m.kind = 'video') AS videos,
-         (SELECT count(*) FROM access_rules ar
-          JOIN assets a ON a.id = ar.resource_id
-          WHERE ar.user_id = $1 AND ar.resource_type = 'asset'
-            AND a.owner_id <> $1 AND a.deleted_at IS NULL) AS shared_with_me,
+         (SELECT count(*) FROM assets a
+          WHERE a.owner_id <> $1 AND a.deleted_at IS NULL AND a.status = 'active'
+            AND (
+              (a.visibility = 'selected' AND EXISTS (
+                SELECT 1 FROM access_rules ar
+                WHERE ar.resource_type = 'asset' AND ar.resource_id = a.id AND ar.user_id = $1
+              ))
+              OR (a.visibility = 'friends' AND EXISTS (
+                SELECT 1 FROM friendships f
+                WHERE f.status = 'accepted'
+                  AND ((f.requester_id = $1 AND f.addressee_id = a.owner_id)
+                    OR (f.requester_id = a.owner_id AND f.addressee_id = $1))
+              ))
+            )
+            AND NOT EXISTS (
+              SELECT 1 FROM blocks b
+              WHERE (b.blocker_id = $1 AND b.blocked_id = a.owner_id)
+                 OR (b.blocker_id = a.owner_id AND b.blocked_id = $1)
+            )) AS shared_with_me,
          (SELECT count(*) FROM follows f WHERE f.following_id = $1) AS followers,
          (SELECT count(*) FROM follows f WHERE f.follower_id = $1) AS following`,
       [viewer.id],

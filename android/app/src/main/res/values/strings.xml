@@ -15,6 +15,7 @@
     <!-- Görünürlük -->
     <string name="visibility_public">Herkese açık</string>
     <string name="visibility_selected">Seçili kişiler</string>
+    <string name="visibility_friends">Arkadaşlar</string>
     <string name="visibility_private">Özel</string>
 
     <!-- Medya türü -->
@@ -40,6 +41,7 @@
     <!-- Gezinme -->
     <string name="nav_home">Panel</string>
     <string name="nav_assets">Varlıklar</string>
+    <string name="nav_groups">Gruplar</string>
     <string name="nav_archive">Arşiv</string>
     <string name="nav_explore">Keşfet</string>
     <string name="nav_profile">Profil</string>
@@ -91,13 +93,47 @@
     <string name="notice_asset_added">“%1$s” hafızaya eklendi.</string>
     <string name="notice_entry_added">Kayıt zaman çizelgesine eklendi.</string>
     <string name="notice_entry_deleted">Kayıt silindi.</string>
+    <string name="notice_entry_updated">Kayıt güncellendi.</string>
+    <string name="notice_asset_updated">“%1$s” güncellendi.</string>
     <string name="notice_access_granted">@%1$s artık bu varlığı görebilir.</string>
     <string name="notice_access_removed">Erişim kaldırıldı.</string>
     <string name="notice_unfollowed">@%1$s takipten çıkarıldı.</string>
     <string name="notice_following">@%1$s takip ediliyor.</string>
+    <string name="notice_friend_requested">%1$s kullanıcısına arkadaşlık isteği gönderildi.</string>
+    <string name="notice_friend_accepted">%1$s artık arkadaşın.</string>
+    <string name="notice_friend_declined">Arkadaşlık isteği reddedildi.</string>
+    <string name="notice_friend_request_cancelled">Arkadaşlık isteği iptal edildi.</string>
+    <string name="notice_friend_removed">%1$s arkadaşlıktan çıkarıldı.</string>
 
     <!-- Medya eylemleri -->
     <string name="media_pick_gallery">Galeriden seç</string>
     <string name="media_take_photo">Fotoğraf çek</string>
     <string name="media_camera_unavailable">Kamera uygulaması bulunamadı.</string>
+    <!-- Profil fotoğrafı ve sosyal bağlantılar -->
+    <string name="profile_photo_change">Profil fotoğrafını değiştir</string>
+    <string name="profile_photo_remove">Fotoğrafı kaldır</string>
+    <string name="profile_social_title">Sosyal hesaplar</string>
+    <string name="profile_social_subtitle">Facebook ve Instagram bağlantıları</string>
+    <string name="profile_social_not_configured">Sunucuda Meta uygulama bilgileri tanımlanınca Facebook ve Instagram bağlantısı açılır.</string>
+    <string name="profile_social_connect">Facebook ile bağlan</string>
+    <string name="profile_social_add">Hesap ekle</string>
+    <string name="profile_social_disconnect">Kaldır</string>
+    <string name="profile_social_not_connected">Bağlı değil</string>
+    <string name="profile_social_share_title">Sosyal medyada paylaş</string>
+    <string name="profile_social_share_hint">Varlık listesindeki paylaş simgesiyle Facebook veya Instagram\'da paylaşabilirsin.</string>
+    <string name="profile_social_share_action">Paylaş</string>
+    <string name="profile_social_share_busy">Paylaşılıyor…</string>
+    <string name="profile_social_provider">Hesap</string>
+    <string name="profile_social_format">Paylaşım biçimi</string>
+    <string name="profile_social_format_post">Gönderi</string>
+    <string name="profile_social_format_story">Hikâye</string>
+    <string name="profile_social_format_reel">Reels</string>
+    <string name="profile_social_caption">Açıklama</string>
+    <string name="profile_social_instagram_blocked">Instagram için medya adresinin herkese açık HTTPS olması gerekir.</string>
+    <string name="error_avatar_upload">Fotoğraf yüklenemedi.</string>
+    <string name="error_browser_unavailable">Tarayıcı açılamadı.</string>
+    <string name="notice_avatar_updated">Profil fotoğrafın güncellendi.</string>
+    <string name="notice_avatar_removed">Profil fotoğrafın kaldırıldı.</string>
+    <string name="notice_social_disconnected">Sosyal bağlantı kaldırıldı.</string>
+    <string name="notice_social_shared">%1$s üzerinde paylaşıldı.</string>
 </resources>

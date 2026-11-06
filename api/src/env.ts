@@ -17,6 +17,9 @@ const schema = z.object({
   PORT: z.coerce.number().int().positive().default(4000),
   PUBLIC_API_URL: z.string().url().default('http://localhost:4000'),
   DATABASE_URL: z.string().min(1),
+  // Migration/seed DDL çalıştırır; Supabase'de doğrudan veya session pooler adresi verilmelidir.
+  DATABASE_MIGRATION_URL: optionalUrl,
+  DATABASE_POOL_MAX: z.coerce.number().int().positive().default(10),
   DATABASE_SSL: z
     .enum(['true', 'false'])
     .default('false')

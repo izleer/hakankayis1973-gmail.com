@@ -89,6 +89,16 @@ private suspend fun awaitLocation(
     }
 }
 
+/**
+ * Verilen koordinatları cihazın yerleşik Geocoder'ı ile okunabilir bir adrese
+ * çevirir. API anahtarı gerektirmez; sonuç bulunamazsa null döner.
+ */
+suspend fun reverseGeocodeLocation(
+    context: Context,
+    latitude: Double,
+    longitude: Double,
+): String? = withContext(Dispatchers.IO) { reverseGeocode(context, latitude, longitude) }
+
 private fun reverseGeocode(context: Context, latitude: Double, longitude: Double): String? {
     if (!Geocoder.isPresent()) return null
     return runCatching {

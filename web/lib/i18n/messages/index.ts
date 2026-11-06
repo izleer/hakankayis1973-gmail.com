@@ -54,6 +54,11 @@ import deSocial from './de/social';
 import frSocial from './fr/social';
 import esSocial from './es/social';
 
+import enFriends from './en/friends';
+import deFriends from './de/friends';
+import frFriends from './fr/friends';
+import esFriends from './es/friends';
+
 export type PluralForms = {
   one?: string;
   few?: string;
@@ -84,6 +89,7 @@ export const catalogs: Record<Locale, Catalog> = {
     ...enArchive,
     ...enNotifications,
     ...enSocial,
+    ...enFriends,
   },
   de: {
     ...deCommon,
@@ -97,6 +103,7 @@ export const catalogs: Record<Locale, Catalog> = {
     ...deArchive,
     ...deNotifications,
     ...deSocial,
+    ...deFriends,
   },
   fr: {
     ...frCommon,
@@ -110,6 +117,7 @@ export const catalogs: Record<Locale, Catalog> = {
     ...frArchive,
     ...frNotifications,
     ...frSocial,
+    ...frFriends,
   },
   es: {
     ...esCommon,
@@ -123,6 +131,7 @@ export const catalogs: Record<Locale, Catalog> = {
     ...esArchive,
     ...esNotifications,
     ...esSocial,
+    ...esFriends,
   },
 };
 

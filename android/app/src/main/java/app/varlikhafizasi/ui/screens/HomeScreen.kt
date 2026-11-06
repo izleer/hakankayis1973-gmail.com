@@ -13,12 +13,15 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.outlined.ArrowForward
+import androidx.compose.material.icons.outlined.ChevronRight
+import androidx.compose.material.icons.outlined.Groups
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
@@ -57,6 +60,7 @@ import app.varlikhafizasi.ui.theme.Paper
 import app.varlikhafizasi.ui.theme.PaperDeep
 import app.varlikhafizasi.ui.theme.Sage
 import app.varlikhafizasi.ui.theme.SageInk
+import app.varlikhafizasi.ui.theme.SageLight
 import app.varlikhafizasi.ui.theme.Ivory
 
 @Composable
@@ -68,6 +72,7 @@ fun HomeScreen(
     onOpenArchive: () -> Unit,
     onOpenNotifications: () -> Unit,
     onNewAsset: () -> Unit,
+    onOpenFriends: () -> Unit,
 ) {
     val home by vm.home.collectAsStateWithLifecycle()
     val notifications by vm.notifications.collectAsStateWithLifecycle()
@@ -219,6 +224,66 @@ fun HomeScreen(
                         color = Forest,
                         modifier = Modifier.padding(vertical = 12.dp),
                         textAlign = androidx.compose.ui.text.style.TextAlign.Center,
+                    )
+                }
+            }
+        }
+
+        item {
+            Surface(
+                color = Ivory,
+                shape = RoundedCornerShape(16.dp),
+                border = BorderStroke(1.dp, Line),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .clickable { onOpenFriends() },
+            ) {
+                Row(
+                    modifier = Modifier.padding(horizontal = 14.dp, vertical = 12.dp),
+                    verticalAlignment = Alignment.CenterVertically,
+                ) {
+                    Box(
+                        modifier = Modifier
+                            .size(38.dp)
+                            .background(SageLight, CircleShape),
+                        contentAlignment = Alignment.Center,
+                    ) {
+                        Icon(
+                            Icons.Outlined.Groups,
+                            contentDescription = null,
+                            tint = Forest,
+                            modifier = Modifier.size(19.dp),
+                        )
+                    }
+                    Spacer(Modifier.width(11.dp))
+                    Column(Modifier.weight(1f)) {
+                        Text(
+                            stringResource(R.string.home_friends_title),
+                            style = MaterialTheme.typography.titleMedium,
+                            color = Forest,
+                        )
+                        Text(
+                            stringResource(R.string.home_friends_body),
+                            style = MaterialTheme.typography.bodySmall,
+                            color = Muted,
+                            maxLines = 1,
+                            overflow = TextOverflow.Ellipsis,
+                        )
+                    }
+                    val friendCount = home.data?.stats?.friends ?: 0
+                    if (friendCount > 0) {
+                        Text(
+                            friendCount.toString(),
+                            style = MaterialTheme.typography.titleLarge,
+                            color = Clay,
+                        )
+                        Spacer(Modifier.width(2.dp))
+                    }
+                    Icon(
+                        Icons.Outlined.ChevronRight,
+                        contentDescription = null,
+                        tint = Muted,
+                        modifier = Modifier.size(18.dp),
                     )
                 }
             }

@@ -160,7 +160,12 @@ export default async function DashboardPage() {
             <strong>{formatNumber(stats.documents, locale)}</strong>
             <span>{t('Belge')}</span>
           </div>
-          <small>{t('{count} paylaşılan varlık', { count: stats.sharedWithMe })}</small>
+          <small>
+            <Link href="/arkadaslar?tab=assets" className="stat-link">
+              {t('{count} paylaşılan varlık', { count: stats.sharedWithMe })}
+              <Icon name="arrow-right" size={12} />
+            </Link>
+          </small>
         </div>
       </section>
 

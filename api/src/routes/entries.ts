@@ -32,7 +32,7 @@ const entryFields = {
   title: z.string().trim().max(140).optional().nullable(),
   body: z.string().trim().max(5000).optional().nullable(),
   occurredAt: isoDate.optional(),
-  visibility: z.enum(['private', 'selected', 'public']).default('private'),
+  visibility: z.enum(['private', 'selected', 'friends', 'public']).optional(),
   locationName: z.string().trim().max(160).optional().nullable(),
   latitude: z.number().min(-90).max(90).optional().nullable(),
   longitude: z.number().min(-180).max(180).optional().nullable(),
@@ -56,6 +56,7 @@ const updateBody = z
     locationName: entryFields.locationName,
     latitude: entryFields.latitude,
     longitude: entryFields.longitude,
+    clearLocation: z.boolean().optional(),
     attributes: entryFields.attributes.optional(),
     mediaIds: entryFields.mediaIds,
     measurements: entryFields.measurements,
@@ -118,7 +119,9 @@ export async function entryRoutes(app: FastifyInstance): Promise<void> {
     if ((body.latitude === undefined) !== (body.longitude === undefined)) {
       throw new ApiError(422, 'INVALID_LOCATION', 'Enlem ve boylam birlikte girilmeli.');
     }
-    await assertVisibilityAllowed(asset.visibility, body.visibility);
+    const entryVisibility =
+      body.visibility ?? (asset.visibility === 'friends' ? 'friends' : 'private');
+    await assertVisibilityAllowed(asset.visibility, entryVisibility);
 
     const entryId = await transaction(async (client) => {
       const inserted = await client.query<{ id: string }>(
@@ -134,7 +137,7 @@ export async function entryRoutes(app: FastifyInstance): Promise<void> {
           body.title?.trim() || null,
           body.body?.trim() || null,
           body.occurredAt ? new Date(body.occurredAt) : null,
-          body.visibility,
+          entryVisibility,
           body.locationName?.trim() || null,
           body.latitude ?? null,
           body.longitude ?? null,
@@ -194,7 +197,7 @@ export async function entryRoutes(app: FastifyInstance): Promise<void> {
       forbidden('Bu kaydı düzenleme yetkiniz yok.');
     }
     if (body.visibility) await assertVisibilityAllowed(asset.visibility, body.visibility);
-    if ((body.latitude === undefined) !== (body.longitude === undefined)) {
+    if (!body.clearLocation && (body.latitude === undefined) !== (body.longitude === undefined)) {
       throw new ApiError(422, 'INVALID_LOCATION', 'Enlem ve boylam birlikte girilmeli.');
     }
 
@@ -219,11 +222,11 @@ export async function entryRoutes(app: FastifyInstance): Promise<void> {
         body.body?.trim() || null,
         body.occurredAt ? new Date(body.occurredAt) : null,
         body.visibility ?? null,
-        body.locationName !== undefined || body.latitude !== undefined,
-        body.locationName ?? null,
-        body.latitude !== undefined,
-        body.latitude ?? null,
-        body.longitude ?? null,
+        Boolean(body.clearLocation) || body.locationName !== undefined || body.latitude !== undefined,
+        body.clearLocation ? null : (body.locationName?.trim() || null),
+        Boolean(body.clearLocation) || body.latitude !== undefined,
+        body.clearLocation ? null : (body.latitude ?? null),
+        body.clearLocation ? null : (body.longitude ?? null),
         body.attributes ? JSON.stringify(body.attributes) : null,
       ],
     );

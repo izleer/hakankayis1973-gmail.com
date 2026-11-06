@@ -34,6 +34,22 @@ export async function mapMedia(row: Row): Promise<MediaDto> {
   };
 }
 
+/**
+ * Satırları hedef kimliğine göre gruplar. Sıralı ilerler: aynı kayda ait
+ * medyalar paralel işlendiğinde her görev kendi boş listesini oluşturup
+ * öncekini eziyordu (fotoğraf + belge eklenince ilki kayboluyordu).
+ */
+async function groupMedia(rows: Row[], key: 'entry_id' | 'post_id'): Promise<Map<string, MediaDto[]>> {
+  const grouped = new Map<string, MediaDto[]>();
+  for (const row of rows) {
+    const id = row[key];
+    const list = grouped.get(id) ?? [];
+    list.push(await mapMedia(row));
+    grouped.set(id, list);
+  }
+  return grouped;
+}
+
 export async function mediaForEntries(entryIds: string[]): Promise<Map<string, MediaDto[]>> {
   if (entryIds.length === 0) return new Map();
   const rows = await query<Row>(
@@ -42,15 +58,7 @@ export async function mediaForEntries(entryIds: string[]): Promise<Map<string, M
      ORDER BY created_at ASC`,
     [entryIds],
   );
-  const grouped = new Map<string, MediaDto[]>();
-  await Promise.all(
-    rows.map(async (row) => {
-      const list = grouped.get(row.entry_id) ?? [];
-      list.push(await mapMedia(row));
-      grouped.set(row.entry_id, list);
-    }),
-  );
-  return grouped;
+  return groupMedia(rows, 'entry_id');
 }
 
 export async function mediaForPosts(postIds: string[]): Promise<Map<string, MediaDto[]>> {
@@ -61,15 +69,7 @@ export async function mediaForPosts(postIds: string[]): Promise<Map<string, Medi
      ORDER BY created_at ASC`,
     [postIds],
   );
-  const grouped = new Map<string, MediaDto[]>();
-  await Promise.all(
-    rows.map(async (row) => {
-      const list = grouped.get(row.post_id) ?? [];
-      list.push(await mapMedia(row));
-      grouped.set(row.post_id, list);
-    }),
-  );
-  return grouped;
+  return groupMedia(rows, 'post_id');
 }
 
 export function mapUserMini(row: Row, prefix = ''): {
@@ -114,7 +114,7 @@ export type AssetDto = {
   id: string;
   title: string;
   description: string | null;
-  visibility: 'private' | 'selected' | 'public';
+  visibility: 'private' | 'selected' | 'friends' | 'public';
   status: 'active' | 'archived';
   coverUrl: string | null;
   locationName: string | null;

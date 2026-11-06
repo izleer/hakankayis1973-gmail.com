@@ -13,6 +13,12 @@ export async function generateMetadata(): Promise<Metadata> {
 
 const links: { href: string; label: string; description: string; icon: IconName }[] = [
   {
+    href: '/arkadaslar',
+    label: 'Arkadaşlar',
+    description: 'Arkadaşlarınla bağlantı kur, istekleri yönet ve paylaştıkları varlıkları gör.',
+    icon: 'users',
+  },
+  {
     href: '/kesfet',
     label: 'Keşfet',
     description: 'Başka hafızalara, paylaşımlara ve topluluklara bak.',

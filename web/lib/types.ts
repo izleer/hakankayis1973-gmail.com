@@ -1,4 +1,4 @@
-export type Visibility = 'private' | 'selected' | 'public';
+export type Visibility = 'private' | 'selected' | 'friends' | 'public';
 export type AssetStatus = 'active' | 'archived';
 export type EntryType =
   | 'note'
@@ -30,10 +30,17 @@ export type User = UserMini & {
     posts: number;
     followers: number;
     following: number;
+    friends?: number;
   };
   isSelf?: boolean;
   isFollowing?: boolean;
+  friendStatus?: FriendStatus;
 };
+
+export type FriendStatus = 'none' | 'pending_out' | 'pending_in' | 'friends';
+
+export type Friend = UserMini & { since?: string };
+export type FriendRequest = { user: UserMini; requestedAt: string };
 
 export type AttributeField = {
   key: string;
@@ -69,6 +76,9 @@ export type Asset = {
   entryCount: number;
   createdAt: string;
   updatedAt: string;
+  relation?: 'friends' | 'granted';
+  sharedAt?: string;
+  isFriend?: boolean;
 };
 
 export type Media = {
@@ -115,6 +125,7 @@ export type Stats = {
   sharedWithMe: number;
   followers: number;
   following: number;
+  friends?: number;
   recentEntries: Entry[];
 };
 

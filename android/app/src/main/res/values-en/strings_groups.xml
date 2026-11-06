@@ -1,0 +1,45 @@
+<resources>
+    <!-- Groups -->
+    <string name="groups_subtitle">Remembering together</string>
+    <string name="groups_mine_title">Groups you belong to</string>
+    <string name="groups_mine_empty_title">No groups yet</string>
+    <string name="groups_mine_empty_body">Join a community that matches your interests and grow your memories together.</string>
+    <string name="groups_discover_title">Communities to discover</string>
+    <string name="groups_discover_empty_title">No new communities right now</string>
+    <string name="groups_discover_empty_body">New communities will appear here when they open.</string>
+    <string name="groups_visibility_private">Private group</string>
+    <string name="groups_join_policy_approval">Approval required</string>
+    <string name="groups_join_policy_open">Anyone can join</string>
+    <string name="groups_role_owner">Founder</string>
+    <string name="groups_role_admin">Admin</string>
+    <string name="groups_role_moderator">Moderator</string>
+    <string name="groups_role_member">Member</string>
+    <string name="groups_join">Join group</string>
+    <string name="groups_join_busy">Joining…</string>
+    <string name="groups_leave">Leave group</string>
+    <string name="groups_pending">Awaiting approval</string>
+    <string name="groups_pending_hint">Your join request is waiting for a group admin\'s approval.</string>
+    <string name="groups_leave_confirm_title">Leave the group?</string>
+    <string name="groups_leave_confirm_body">Your assets stay with you; you will no longer see the group\'s shared content.</string>
+    <string name="groups_leave_confirm">Leave</string>
+    <string name="groups_leave_cancel">Cancel</string>
+    <string name="groups_rules_title">Group rules</string>
+    <string name="groups_members_title">Members</string>
+    <string name="groups_assets_title">Assets shared in the group</string>
+    <string name="groups_assets_empty">No assets have been shared in this group yet.</string>
+    <string name="groups_assets_locked">Join the group to see its assets.</string>
+    <string name="groups_owner_by">Founder: %1$s</string>
+    <string name="groups_stat_members">Members</string>
+    <string name="groups_stat_posts">Posts</string>
+    <string name="groups_stat_assets">Assets</string>
+
+    <plurals name="groups_member_count">
+        <item quantity="one">%1$d member</item>
+        <item quantity="other">%1$d members</item>
+    </plurals>
+
+    <!-- Notices -->
+    <string name="notice_group_joined">You joined the group.</string>
+    <string name="notice_group_pending">Your join request has been sent.</string>
+    <string name="notice_group_left">You left the group.</string>
+</resources>

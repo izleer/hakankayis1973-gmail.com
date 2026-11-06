@@ -1,0 +1,72 @@
+<resources>
+    <!-- Arkadaşlar -->
+    <string name="friends_title">Arkadaşlar</string>
+    <string name="friends_eyebrow">Birlikte büyüyen hafızalar</string>
+    <string name="friends_intro">Arkadaş olduğun kişiler, yalnızca arkadaşlarına açtıkları varlıkları seninle paylaşır. Sen de kendi varlıklarını aynı şekilde açabilirsin.</string>
+    <string name="friends_find">Yeni arkadaş bul</string>
+    <string name="friends_mutual">Karşılıklı izin</string>
+    <string name="friends_tab_friends">Arkadaşlarım</string>
+    <string name="friends_tab_requests">İstekler</string>
+    <string name="friends_tab_suggestions">Öneriler</string>
+    <string name="friends_tab_assets">Varlıkları</string>
+    <string name="friends_stat_friends">Arkadaş</string>
+    <string name="friends_stat_requests">İstek</string>
+    <string name="friends_stat_shared">Paylaşım</string>
+
+    <!-- Arkadaş listesi -->
+    <string name="friends_empty_title">Henüz arkadaşın yok</string>
+    <string name="friends_empty_body">Önerilerden birine istek göndererek ilk bağlantını kur.</string>
+    <string name="friends_empty_action">Önerilere git</string>
+    <string name="friends_since">Arkadaş · %1$s</string>
+    <string name="friends_remove">Çıkar</string>
+    <string name="friends_remove_title">Arkadaşlıktan çıkarılsın mı?</string>
+    <string name="friends_remove_body">%1$s arkadaş listenden kaldırılacak.</string>
+    <string name="friends_cancel">Vazgeç</string>
+
+    <!-- İstekler -->
+    <string name="friends_incoming_title">Sana gelen</string>
+    <string name="friends_incoming_heading">Gelen istekler</string>
+    <string name="friends_incoming_empty">Bekleyen bir istek yok.</string>
+    <string name="friends_outgoing_title">Senin gönderdiklerin</string>
+    <string name="friends_outgoing_heading">Gönderdiğin istekler</string>
+    <string name="friends_outgoing_empty">Henüz bir istek göndermedin.</string>
+    <string name="friends_accept">Kabul et</string>
+    <string name="friends_decline">Reddet</string>
+    <string name="friends_pending">Bekliyor</string>
+    <string name="friends_cancel_request">İptal</string>
+
+    <!-- Öneriler -->
+    <string name="friends_suggestions_title">Arkadaş olabileceklerin</string>
+    <string name="friends_suggestions_empty_title">Şimdilik yeni bir öneri yok</string>
+    <string name="friends_suggestions_empty_body">Keşfet sayfasında başka hafızalara göz atabilirsin.</string>
+    <string name="friends_add">Arkadaş ekle</string>
+    <string name="friends_are">Arkadaşsınız</string>
+    <string name="friends_request_sent">İstek gönderildi</string>
+    <string name="friends_accept_request">İsteği kabul et</string>
+
+    <!-- Paylaşılan varlıklar -->
+    <string name="friends_assets_title">Arkadaşlarının varlıkları</string>
+    <string name="friends_assets_search">Paylaşılan varlıklarda ara…</string>
+    <string name="friends_assets_filter_all">Tümü</string>
+    <string name="friends_assets_filter_friends">Arkadaş paylaşımı</string>
+    <string name="friends_assets_filter_granted">Seninle paylaşılan</string>
+    <string name="friends_assets_empty_title">Paylaşılan bir varlık yok</string>
+    <string name="friends_assets_empty_body">Arkadaşların varlıklarını arkadaşlarına açtığında ya da sana özellikle izin verdiğinde burada görünür.</string>
+    <string name="friends_assets_note">Yalnızca arkadaşlarına açılmış varlıklar ve sana özellikle izin verilen parçalar burada listelenir. Özel varlıklar hiçbir zaman görünmez.</string>
+    <string name="friends_shared_by">%1$s paylaştı</string>
+    <string name="friends_relation_friends">arkadaş paylaşımı</string>
+    <string name="friends_relation_granted">seninle paylaşıldı</string>
+
+    <!-- Ana ekran ve profil -->
+    <string name="home_friends_title">Arkadaşlar</string>
+    <string name="home_friends_body">İsteklerini yönet, paylaştıkları varlıkları gör.</string>
+
+    <plurals name="friends_count">
+        <item quantity="one">%1$d arkadaş</item>
+        <item quantity="other">%1$d arkadaş</item>
+    </plurals>
+    <plurals name="friends_pending_count">
+        <item quantity="one">%1$d bekleyen istek</item>
+        <item quantity="other">%1$d bekleyen istek</item>
+    </plurals>
+</resources>

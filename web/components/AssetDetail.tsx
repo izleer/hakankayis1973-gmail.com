@@ -53,7 +53,7 @@ const entryIcons: Record<EntryType, IconName> = {
 };
 
 const entryTypes = Object.keys(entryTypeLabels) as EntryType[];
-const visibilityOrder: Visibility[] = ['private', 'selected', 'public'];
+const visibilityOrder: Visibility[] = ['private', 'selected', 'friends', 'public'];
 
 function nowLocalInput(): string {
   const date = new Date();
@@ -160,9 +160,9 @@ export function AssetDetail({
                 name={
                   asset.visibility === 'private'
                     ? 'lock'
-                    : asset.visibility === 'selected'
-                      ? 'users'
-                      : 'eye'
+                    : asset.visibility === 'public'
+                      ? 'eye'
+                      : 'users'
                 }
                 size={13}
               />
@@ -1318,12 +1318,28 @@ function EntryEditModal({
           ) : null}
 
           {entry.media.length > 0 ? (
-            <p className="muted-note">
-              {t(
-                'Bu kayda bağlı {count} dosya korunur; metin ve tarih düzenlemesi dosyaları etkilemez.',
-                { count: entry.media.length },
-              )}
-            </p>
+            <>
+              <div className="entry-media">
+                {entry.media
+                  .filter((item) => item.kind === 'image')
+                  .map((item) => (
+                    <div className="entry-photo" key={item.id}>
+                      <MediaImage src={mediaSrc(item.url)} alt={entry.title ?? ''} />
+                    </div>
+                  ))}
+                {entry.media
+                  .filter((item) => item.kind === 'document')
+                  .map((item) => (
+                    <DocumentChip key={item.id} media={item} />
+                  ))}
+              </div>
+              <p className="muted-note">
+                {t(
+                  'Bu kayda bağlı {count} dosya korunur; metin ve tarih düzenlemesi dosyaları etkilemez.',
+                  { count: entry.media.length },
+                )}
+              </p>
+            </>
           ) : null}
 
           {error ? <div className="form-error">{error}</div> : null}

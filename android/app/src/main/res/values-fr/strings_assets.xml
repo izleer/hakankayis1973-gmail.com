@@ -27,6 +27,7 @@
     <string name="assets_visibility_label">Qui peut le voir ?</string>
     <string name="assets_visibility_selected_short">Sélection</string>
     <string name="assets_visibility_public_hint">Visible dans le fil Explorer. Vous pouvez le modifier plus tard.</string>
+    <string name="assets_visibility_friends_hint">Visible par vos amis acceptés.</string>
     <string name="assets_visibility_selected_hint">Seules les personnes avec qui vous le partagez peuvent le voir.</string>
     <string name="assets_visibility_private_hint">Vous seul pouvez le voir. C\'est la valeur par défaut.</string>
     <string name="assets_cover_label">Photo de couverture</string>
@@ -35,6 +36,13 @@
     <string name="assets_cover_pick">Choisissez une photo dans votre galerie</string>
     <string name="assets_error_type_required">Choisissez d\'abord un type de bien.</string>
     <string name="assets_submit">Ajouter à la mémoire</string>
+
+    <!-- Modifier le bien -->
+    <string name="edit_asset_title">Modifier le bien</string>
+    <string name="edit_asset_kicker">METTRE À JOUR LE BIEN</string>
+    <string name="edit_asset_headline">Que faut-il mettre à jour ?</string>
+    <string name="edit_asset_intro">Modifiez le nom, la description, la visibilité ou l\'emplacement ; les entrées et fichiers restent inchangés.</string>
+    <string name="edit_asset_save">Enregistrer les modifications</string>
 
     <!-- Emplacement -->
     <string name="assets_location_label">Emplacement</string>

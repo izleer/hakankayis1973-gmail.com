@@ -27,6 +27,7 @@
     <string name="assets_visibility_label">¿Quién puede verlo?</string>
     <string name="assets_visibility_selected_short">Seleccionados</string>
     <string name="assets_visibility_public_hint">Aparece en el feed de Explorar. Puedes cambiarlo más tarde.</string>
+    <string name="assets_visibility_friends_hint">Visible para tus amigos aceptados.</string>
     <string name="assets_visibility_selected_hint">Solo lo ven las personas con las que lo compartes.</string>
     <string name="assets_visibility_private_hint">Solo lo ves tú. Es la opción predeterminada.</string>
     <string name="assets_cover_label">Foto de portada</string>
@@ -35,6 +36,13 @@
     <string name="assets_cover_pick">Elige una foto de tu galería</string>
     <string name="assets_error_type_required">Primero elige un tipo de bien.</string>
     <string name="assets_submit">Añadir a la memoria</string>
+
+    <!-- Editar el bien -->
+    <string name="edit_asset_title">Editar el bien</string>
+    <string name="edit_asset_kicker">ACTUALIZAR EL BIEN</string>
+    <string name="edit_asset_headline">¿Qué quieres actualizar?</string>
+    <string name="edit_asset_intro">Cambia el nombre, la descripción, la visibilidad o la ubicación; las entradas y los archivos se mantienen.</string>
+    <string name="edit_asset_save">Guardar cambios</string>
 
     <!-- Ubicación -->
     <string name="assets_location_label">Ubicación</string>

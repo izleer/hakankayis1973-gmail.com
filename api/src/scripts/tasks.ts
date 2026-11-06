@@ -4,6 +4,7 @@ import { readdir, readFile } from 'node:fs/promises';
 import path from 'node:path';
 import pg from 'pg';
 import { env } from '../env.js';
+import { inspectDatabaseUrl, resolveMigrationUrl, sslOptionsFor, withoutSslMode } from '../lib/db-config.js';
 import { saveBuffer } from '../lib/storage.js';
 
 const { Client } = pg;
@@ -19,9 +20,13 @@ const seedFile = path.join(projectRoot, 'db', 'seed.sql');
 const MIGRATION_LOCK = 582017;
 
 function createClient(): pg.Client {
+  // Supabase transaction pooler'ı DDL ve advisory lock için uygun değildir.
+  const connectionString = resolveMigrationUrl(env.DATABASE_URL, env.DATABASE_MIGRATION_URL);
+  const ssl = sslOptionsFor(inspectDatabaseUrl(connectionString), env.DATABASE_SSL);
   return new Client({
-    connectionString: env.DATABASE_URL,
-    ssl: env.DATABASE_SSL ? { rejectUnauthorized: false } : undefined,
+    connectionString: withoutSslMode(connectionString),
+    application_name: 'izleer-migrate',
+    ssl,
   });
 }
 

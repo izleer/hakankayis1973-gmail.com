@@ -1,0 +1,45 @@
+<resources>
+    <!-- Gruplar -->
+    <string name="groups_subtitle">Birlikte hatırlamak</string>
+    <string name="groups_mine_title">Üyesi olduğun gruplar</string>
+    <string name="groups_mine_empty_title">Henüz bir grubun yok</string>
+    <string name="groups_mine_empty_body">İlgi alanına uyan bir topluluğa katıl; seçtiğin anıları birlikte büyüt.</string>
+    <string name="groups_discover_title">Keşfedilecek topluluklar</string>
+    <string name="groups_discover_empty_title">Şu an yeni topluluk yok</string>
+    <string name="groups_discover_empty_body">Yeni topluluklar açıldığında burada görünecek.</string>
+    <string name="groups_visibility_private">Özel grup</string>
+    <string name="groups_join_policy_approval">Onaylı katılım</string>
+    <string name="groups_join_policy_open">Herkes katılabilir</string>
+    <string name="groups_role_owner">Kurucu</string>
+    <string name="groups_role_admin">Yönetici</string>
+    <string name="groups_role_moderator">Moderatör</string>
+    <string name="groups_role_member">Üye</string>
+    <string name="groups_join">Gruba katıl</string>
+    <string name="groups_join_busy">Katılınıyor…</string>
+    <string name="groups_leave">Gruptan ayrıl</string>
+    <string name="groups_pending">Onay bekliyor</string>
+    <string name="groups_pending_hint">Katılım isteğin grup yöneticisinin onayını bekliyor.</string>
+    <string name="groups_leave_confirm_title">Gruptan ayrıl?</string>
+    <string name="groups_leave_confirm_body">Varlıkların sende kalır; grubun paylaşılan içeriğini artık göremezsin.</string>
+    <string name="groups_leave_confirm">Ayrıl</string>
+    <string name="groups_leave_cancel">Vazgeç</string>
+    <string name="groups_rules_title">Grup kuralları</string>
+    <string name="groups_members_title">Üyeler</string>
+    <string name="groups_assets_title">Grupta paylaşılan varlıklar</string>
+    <string name="groups_assets_empty">Bu grupta henüz varlık paylaşılmadı.</string>
+    <string name="groups_assets_locked">Grup varlıklarını görmek için üye ol.</string>
+    <string name="groups_owner_by">Kurucu: %1$s</string>
+    <string name="groups_stat_members">Üye</string>
+    <string name="groups_stat_posts">Gönderi</string>
+    <string name="groups_stat_assets">Varlık</string>
+
+    <plurals name="groups_member_count">
+        <item quantity="one">%1$d üye</item>
+        <item quantity="other">%1$d üye</item>
+    </plurals>
+
+    <!-- Bildirimler -->
+    <string name="notice_group_joined">Gruba katıldın.</string>
+    <string name="notice_group_pending">Katılım isteğin gönderildi.</string>
+    <string name="notice_group_left">Gruptan ayrıldın.</string>
+</resources>

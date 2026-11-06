@@ -24,6 +24,17 @@
     <string name="add_entry_section_visibility">Kimler görebilir?</string>
     <string name="add_entry_visibility_hint">Kayıt, varlıktan daha geniş görünürlükte olamaz.</string>
 
+    <string name="add_entry_section_location">Konum (isteğe bağlı)</string>
+    <string name="add_entry_location_hint">İstersen kaydı bir yere bağla; haritada iğneyi sürükleyerek konumu değiştirebilirsin.</string>
+    <string name="add_entry_location_pick">Haritada seç</string>
+    <string name="add_entry_location_clear">Kaldır</string>
+    <string name="add_entry_location_dialog_title">Konumu seç</string>
+    <string name="add_entry_location_dialog_hint">Haritaya dokun veya iğneyi sürükle. Pencere açılınca mevcut konumun gelir.</string>
+    <string name="add_entry_location_current">Mevcut konum</string>
+    <string name="add_entry_location_confirm">Bu noktayı kullan</string>
+    <string name="add_entry_location_cancel">Vazgeç</string>
+    <string name="add_entry_location_locating">Konum alınıyor…</string>
+
     <string name="add_entry_section_files">Fotoğraf / belge</string>
     <string name="add_entry_add_file">Dosya ekle (%1$s, %2$d MB)</string>
     <string name="add_entry_remove_file">Kaldır</string>
@@ -34,4 +45,13 @@
 
     <string name="add_entry_footer_hint">Kayıt, seçtiğin tarih ve saatle zaman çizelgesine işlenir; sonradan düzenleyebilirsin.</string>
     <string name="add_entry_save">Hikâyeye ekle</string>
+
+    <!-- Kayıt düzenle ekranı -->
+    <string name="edit_entry_title">Kaydı düzelt</string>
+    <string name="edit_entry_eyebrow">ZAMAN ÇİZELGESİNDE</string>
+    <string name="edit_entry_headline">Neyi düzeltelim?</string>
+    <string name="edit_entry_intro">Tarihi, notu veya konumu değiştir; mevcut fotoğraf ve belgeler olduğu gibi kalır.</string>
+    <string name="edit_entry_save">Değişiklikleri kaydet</string>
+    <string name="edit_entry_existing_files">Mevcut dosyalar</string>
+    <string name="edit_entry_add_files_hint">Yeni dosyalar mevcut olanlara eklenir; mevcut dosyalar korunur.</string>
 </resources>

@@ -6,6 +6,7 @@
     <string name="asset_detail_tab_people">Personnes</string>
 
     <!-- Actions principales -->
+    <string name="asset_detail_edit_asset">Modifier le bien</string>
     <string name="asset_detail_add_entry">Ajouter une entrée</string>
     <string name="asset_detail_share_with_people">Partager avec des personnes</string>
 
@@ -42,6 +43,7 @@
 
     <!-- Suppression et visionneuse -->
     <string name="asset_detail_delete">Supprimer</string>
+    <string name="asset_detail_edit_entry">Modifier l\'entrée</string>
     <string name="asset_detail_delete_title">Supprimer cette entrée ?</string>
     <string name="asset_detail_delete_body">Cette entrée et ses médias seront retirés de votre archive. Cette action est irréversible.</string>
     <string name="asset_detail_cancel">Annuler</string>

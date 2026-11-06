@@ -5,6 +5,7 @@ import retrofit2.Response
 import retrofit2.http.Body
 import retrofit2.http.DELETE
 import retrofit2.http.GET
+import retrofit2.http.PATCH
 import retrofit2.http.POST
 import retrofit2.http.Path
 import retrofit2.http.Query
@@ -40,6 +41,13 @@ interface VhApi {
         @Query("limit") limit: Int = 24,
     ): Envelope<AssetPage>
 
+    @GET("v1/assets/shared")
+    suspend fun sharedAssets(
+        @Query("q") q: String? = null,
+        @Query("friends") friends: String? = null,
+        @Query("limit") limit: Int = 48,
+    ): Envelope<AssetPage>
+
     @GET("v1/assets/{id}")
     suspend fun asset(@Path("id") id: String): Envelope<AssetDetail>
 
@@ -55,10 +63,25 @@ interface VhApi {
     @POST("v1/assets")
     suspend fun createAsset(@Body body: CreateAssetRequest): Envelope<AssetPayload>
 
+    @PATCH("v1/assets/{id}")
+    suspend fun updateAsset(
+        @Path("id") id: String,
+        @Body body: UpdateAssetRequest,
+    ): Envelope<AssetPayload>
+
     @POST("v1/assets/{id}/entries")
     suspend fun createEntry(
         @Path("id") id: String,
         @Body body: CreateEntryRequest,
+    ): Envelope<EntryPayload>
+
+    @GET("v1/entries/{id}")
+    suspend fun entry(@Path("id") id: String): Envelope<EntryPayload>
+
+    @PATCH("v1/entries/{id}")
+    suspend fun updateEntry(
+        @Path("id") id: String,
+        @Body body: UpdateEntryRequest,
     ): Envelope<EntryPayload>
 
     @DELETE("v1/entries/{id}")
@@ -117,13 +140,66 @@ interface VhApi {
     suspend fun profile(@Path("username") username: String): Envelope<ProfilePayload>
 
     @GET("v1/users/suggestions")
-    suspend fun suggestions(): Envelope<UserListPayload>
+    suspend fun suggestions(
+        @Query("scope") scope: String? = null,
+    ): Envelope<UserListPayload>
+
+    @GET("v1/users/me/friends")
+    suspend fun friends(): Envelope<FriendsPayload>
+
+    @GET("v1/users/me/friend-requests")
+    suspend fun friendRequests(): Envelope<FriendRequestsPayload>
+
+    @POST("v1/users/{username}/friend")
+    suspend fun requestFriend(@Path("username") username: String): Envelope<FriendActionResult>
+
+    @POST("v1/users/{username}/friend/accept")
+    suspend fun acceptFriend(@Path("username") username: String): Envelope<FriendActionResult>
+
+    @POST("v1/users/{username}/friend/decline")
+    suspend fun declineFriend(@Path("username") username: String): Envelope<FriendActionResult>
+
+    @DELETE("v1/users/{username}/friend")
+    suspend fun removeFriend(@Path("username") username: String): Envelope<FriendActionResult>
 
     @POST("v1/users/{username}/follow")
     suspend fun follow(@Path("username") username: String): Envelope<FollowResult>
 
     @DELETE("v1/users/{username}/follow")
     suspend fun unfollow(@Path("username") username: String): Envelope<FollowResult>
+
+    @PATCH("v1/me")
+    suspend fun updateProfile(@Body body: UpdateProfileRequest): Envelope<UserPayload>
+
+    @GET("v1/social/connections")
+    suspend fun socialConnections(): Envelope<SocialConnectionsPayload>
+
+    @GET("v1/social/facebook/start")
+    suspend fun socialStart(): Envelope<SocialStartPayload>
+
+    @DELETE("v1/social/connections/{id}")
+    suspend fun deleteSocialConnection(@Path("id") id: String): Envelope<OkResponse>
+
+    @POST("v1/social/share")
+    suspend fun socialShare(@Body body: SocialShareRequest): Envelope<SocialSharePayload>
+
+    @GET("v1/communities")
+    suspend fun communities(
+        @Query("mine") mine: String? = null,
+        @Query("limit") limit: Int = 48,
+    ): Envelope<GroupPage>
+
+    @GET("v1/communities/{slug}")
+    suspend fun community(@Path("slug") slug: String): Envelope<GroupDetailPayload>
+
+    @POST("v1/communities/{slug}/join")
+    suspend fun joinCommunity(@Path("slug") slug: String): Envelope<GroupJoinResult>
+
+    @DELETE("v1/communities/{slug}/join")
+    suspend fun leaveCommunity(@Path("slug") slug: String)
+
+    @GET("v1/communities/{slug}/assets")
+    suspend fun groupAssets(@Path("slug") slug: String): Envelope<GroupAssetsPayload>
 }
 
 @kotlinx.serialization.Serializable

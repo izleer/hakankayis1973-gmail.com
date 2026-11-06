@@ -10,6 +10,8 @@ type NotificationType =
   | 'community_invite'
   | 'community_request'
   | 'community_approved'
+  | 'friend_request'
+  | 'friend_accept'
   | 'system';
 
 export async function notify(input: {

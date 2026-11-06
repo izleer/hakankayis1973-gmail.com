@@ -27,6 +27,7 @@
     <string name="assets_visibility_label">Kimler görebilir?</string>
     <string name="assets_visibility_selected_short">Seçili</string>
     <string name="assets_visibility_public_hint">Keşfet akışında görünür. Sonradan değiştirebilirsin.</string>
+    <string name="assets_visibility_friends_hint">Kabul edilmiş arkadaşların görebilir.</string>
     <string name="assets_visibility_selected_hint">Yalnızca paylaştığın kişiler görebilir.</string>
     <string name="assets_visibility_private_hint">Yalnızca sen görürsün. Varsayılan budur.</string>
     <string name="assets_cover_label">Kapak fotoğrafı</string>
@@ -35,6 +36,13 @@
     <string name="assets_cover_pick">Galeriden bir fotoğraf seç</string>
     <string name="assets_error_type_required">Önce bir varlık türü seçin.</string>
     <string name="assets_submit">Hafızaya ekle</string>
+
+    <!-- Varlık düzenleme -->
+    <string name="edit_asset_title">Varlığı düzelt</string>
+    <string name="edit_asset_kicker">VARLIĞI GÜNCELLE</string>
+    <string name="edit_asset_headline">Neyi güncelleyelim?</string>
+    <string name="edit_asset_intro">Adı, açıklamayı, görünürlüğü veya konumu değiştir; kayıtlar ve dosyalar olduğu gibi kalır.</string>
+    <string name="edit_asset_save">Değişiklikleri kaydet</string>
 
     <!-- Konum -->
     <string name="assets_location_label">Konum</string>

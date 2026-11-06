@@ -78,10 +78,56 @@ Mevcut komutları kısaltmak için: `alias vh='docker compose --env-file /opt/va
 | `IMAGE_TAG` | Uygulama imaj sürümü |
 | `STORAGE_DRIVER` | `local` (birim) veya `s3` |
 | `S3_*` | S3 uyumlu depolama; `S3_ENDPOINT` boşsa AWS kullanılır |
-| `DATABASE_SSL` | Yönetilen PostgreSQL'de `true` |
+| `DATABASE_SSL` | Yönetilen PostgreSQL'de `true` (Supabase zorunlu kılar) |
+| `DATABASE_MIGRATION_URL` | Migration/seed için ayrı adres; boşsa `DATABASE_URL` kullanılır |
+| `DATABASE_POOL_MAX` | Bağlantı havuzu boyutu (varsayılan 10) |
 | `MAX_UPLOAD_MB` | Dosya başına sınır (varsayılan 10) |
 
 `POSTGRES_PASSWORD` içinde `@ : / ? #` gibi karakterler `DATABASE_URL`'i bozabilir; `openssl rand -hex 24` gibi URL-güvenli değer kullanın.
+
+### Supabase (yönetilen PostgreSQL)
+
+Yerel `db` servisi yerine Supabase kullanılabilir; `web`, `api` ve `caddy` aynı kalır.
+
+1. Supabase projesinde **Project Settings → Database → Connection string** bölümünden iki adres alın:
+   - **Transaction pooler** (port 6543): API'nin çalışma zamanı bağlantısı.
+   - **Direct connection** (`db.<proje>.supabase.co:5432`) veya **session pooler** (5432): migration ve seed için. Transaction pooler DDL ve oturum düzeyinde advisory lock desteklemez.
+2. `.env.production` içinde bağlantı bilgilerini girin:
+
+```bash
+DATABASE_URL=postgresql://postgres.<proje>:<sifre>@aws-0-<bolge>.pooler.supabase.com:6543/postgres?sslmode=require
+DATABASE_MIGRATION_URL=postgresql://postgres.<proje>:<sifre>@db.<proje>.supabase.co:5432/postgres?sslmode=require
+DATABASE_SSL=true
+DATABASE_POOL_MAX=10
+```
+
+Parolada `@ : / ? # %` varsa URL-encode edin. Doğrudan bağlantı adresi yalnız IPv6 ise migration için session pooler (5432) kullanın.
+
+Servisleri başlatmadan önce bağlantıyı doğrulayabilirsiniz (parola yazdırmaz):
+
+```bash
+cd api && DOTENV_CONFIG_PATH=../.env.production npm run db:check
+```
+
+`db:check` hedef sunucuyu/pooler'ı, TLS'in etkin olduğunu, `schema_migrations` durumunu ve `anon` rolünün tablolara erişip erişemediğini raporlar. Migration uygulanmamışsa `schema_migrations yok` yazar; bu normaldir.
+
+3. Yerel veritabanı atlanarak servisleri başlatın (Compose ≥ 2.20 gerekir):
+
+```bash
+docker compose --env-file .env.production up -d --build api web caddy
+```
+
+`api` açılışta migration'ları uygular (`RUN_MIGRATIONS=true`). Elle çalıştırmak için:
+
+```bash
+docker compose --env-file .env.production run --rm -e RUN_MIGRATIONS=false api node dist/scripts/migrate.js
+```
+
+Demo verisi isteniyorsa `seed` servisi de aynı `DATABASE_MIGRATION_URL` ile çalışır (üretimde önerilmez).
+
+4. `005_supabase_rls.sql`, Supabase Data API'sinin public şemayı `anon` / `authenticated` rollerine açmasını engeller: mevcut tablolarda RLS'i açar, yetkileri ve varsayılan yetkileri kaldırır. API tabloların sahibi rolle bağlandığı için etkilenmez. Data API'yi kullanmayacaksanız Supabase panelinden ayrıca kapatabilirsiniz.
+5. Doğrulama: `curl -fsS https://SIZIN-ALAN-ADINIZ/health` yanıtında `"db":"ok"`, `"dbPooler":"transaction-pooler"`, `"dbSsl":true` görünür.
+6. Yedekleme: Supabase'in otomatik yedeklerini/PITR'i kullanın; `infra/scripts/backup.sh` yalnızca yerel Docker `db` servisi içindir. Gerektiğinde `pg_dump "$DATABASE_MIGRATION_URL"` ile dışa aktarın.
 
 ## 3. Terraform ile kurulum
 

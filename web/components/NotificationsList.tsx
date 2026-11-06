@@ -13,12 +13,15 @@ const meta: Record<string, { label: string; icon: IconName }> = {
   like: { label: 'Beğeni', icon: 'heart' },
   comment: { label: 'Yorum', icon: 'message' },
   follow: { label: 'Takip', icon: 'user' },
+  friend_request: { label: 'Arkadaşlık', icon: 'users' },
+  friend_accept: { label: 'Arkadaşlık', icon: 'users' },
   community_join: { label: 'Topluluk', icon: 'users' },
   community_post: { label: 'Topluluk', icon: 'users' },
   system: { label: 'Sistem', icon: 'bell' },
 };
 
 function linkFor(item: Notification): string {
+  if (item.entityType === 'friend') return '/arkadaslar?tab=requests';
   if (item.entityType === 'user' && item.actor) return `/profil/${item.actor.username}`;
   if (item.entityType === 'asset' && item.entityId) return `/varliklar/${item.entityId}`;
   if (item.entityType === 'post') return '/kesfet';

@@ -1,0 +1,72 @@
+<resources>
+    <!-- Friends -->
+    <string name="friends_title">Friends</string>
+    <string name="friends_eyebrow">Memories that grow together</string>
+    <string name="friends_intro">People you befriend share the assets they open to friends only. You can open your own assets the same way.</string>
+    <string name="friends_find">Find new friends</string>
+    <string name="friends_mutual">Mutual permission</string>
+    <string name="friends_tab_friends">My friends</string>
+    <string name="friends_tab_requests">Requests</string>
+    <string name="friends_tab_suggestions">Suggestions</string>
+    <string name="friends_tab_assets">Their assets</string>
+    <string name="friends_stat_friends">Friend</string>
+    <string name="friends_stat_requests">Request</string>
+    <string name="friends_stat_shared">Shared</string>
+
+    <!-- Friend list -->
+    <string name="friends_empty_title">No friends yet</string>
+    <string name="friends_empty_body">Send a request to someone in Suggestions to make your first connection.</string>
+    <string name="friends_empty_action">Go to suggestions</string>
+    <string name="friends_since">Friend · %1$s</string>
+    <string name="friends_remove">Remove</string>
+    <string name="friends_remove_title">Remove this friendship?</string>
+    <string name="friends_remove_body">%1$s will be removed from your friends.</string>
+    <string name="friends_cancel">Cancel</string>
+
+    <!-- Requests -->
+    <string name="friends_incoming_title">Sent to you</string>
+    <string name="friends_incoming_heading">Incoming requests</string>
+    <string name="friends_incoming_empty">No pending requests.</string>
+    <string name="friends_outgoing_title">What you sent</string>
+    <string name="friends_outgoing_heading">Sent requests</string>
+    <string name="friends_outgoing_empty">You haven\'t sent a request yet.</string>
+    <string name="friends_accept">Accept</string>
+    <string name="friends_decline">Decline</string>
+    <string name="friends_pending">Pending</string>
+    <string name="friends_cancel_request">Cancel</string>
+
+    <!-- Suggestions -->
+    <string name="friends_suggestions_title">People you could befriend</string>
+    <string name="friends_suggestions_empty_title">No new suggestions for now</string>
+    <string name="friends_suggestions_empty_body">You can explore other memories on the Discover page.</string>
+    <string name="friends_add">Add friend</string>
+    <string name="friends_are">You are friends</string>
+    <string name="friends_request_sent">Request sent</string>
+    <string name="friends_accept_request">Accept request</string>
+
+    <!-- Shared assets -->
+    <string name="friends_assets_title">Your friends\' assets</string>
+    <string name="friends_assets_search">Search shared assets…</string>
+    <string name="friends_assets_filter_all">All</string>
+    <string name="friends_assets_filter_friends">Shared with friends</string>
+    <string name="friends_assets_filter_granted">Shared with you</string>
+    <string name="friends_assets_empty_title">No shared assets</string>
+    <string name="friends_assets_empty_body">Assets your friends open to friends, or grant to you specifically, appear here.</string>
+    <string name="friends_assets_note">Only assets opened to friends and pieces shared with you specifically are listed here. Private assets are never shown.</string>
+    <string name="friends_shared_by">Shared by %1$s</string>
+    <string name="friends_relation_friends">shared with friends</string>
+    <string name="friends_relation_granted">shared with you</string>
+
+    <!-- Home and profile -->
+    <string name="home_friends_title">Friends</string>
+    <string name="home_friends_body">Manage requests and see what they share.</string>
+
+    <plurals name="friends_count">
+        <item quantity="one">%1$d friend</item>
+        <item quantity="other">%1$d friends</item>
+    </plurals>
+    <plurals name="friends_pending_count">
+        <item quantity="one">%1$d pending request</item>
+        <item quantity="other">%1$d pending requests</item>
+    </plurals>
+</resources>

@@ -9,6 +9,8 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.ExperimentalLayoutApi
+import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -23,6 +25,7 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.AddPhotoAlternate
 import androidx.compose.material.icons.outlined.ArrowDropDown
+import androidx.compose.material.icons.outlined.Close
 import androidx.compose.material.icons.outlined.PhotoCamera
 import androidx.compose.material.icons.outlined.PhotoLibrary
 import androidx.compose.material3.Button
@@ -37,6 +40,7 @@ import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -54,8 +58,11 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import app.varlikhafizasi.R
 import app.varlikhafizasi.data.AssetType
+import app.varlikhafizasi.data.MediaUrl
 import app.varlikhafizasi.ui.VhViewModel
+import app.varlikhafizasi.ui.components.ErrorBox
 import app.varlikhafizasi.ui.components.GoldRule
+import app.varlikhafizasi.ui.components.LoadingBox
 import app.varlikhafizasi.ui.components.LocationPicker
 import app.varlikhafizasi.ui.components.Pill
 import app.varlikhafizasi.ui.components.SectionLabel
@@ -87,15 +94,21 @@ private fun flattenTypes(types: List<AssetType>): List<TypeOption> =
         }
     }
 
+@OptIn(ExperimentalLayoutApi::class)
 @Composable
 fun NewAssetScreen(
     vm: VhViewModel,
+    assetId: String? = null,
     onBack: () -> Unit,
     onCreated: (String) -> Unit,
 ) {
     val types by vm.assetTypes.collectAsStateWithLifecycle()
+    val assetState by vm.assetDraft.collectAsStateWithLifecycle()
     val busy by vm.formBusy.collectAsStateWithLifecycle()
     val error by vm.formError.collectAsStateWithLifecycle()
+
+    val editing = assetId != null
+    val draft = if (editing) assetState.data else null
 
     var title by rememberSaveable { mutableStateOf("") }
     var description by rememberSaveable { mutableStateOf("") }
@@ -107,6 +120,8 @@ fun NewAssetScreen(
     var locationName by rememberSaveable { mutableStateOf("") }
     var latitude by rememberSaveable { mutableStateOf<Double?>(null) }
     var longitude by rememberSaveable { mutableStateOf<Double?>(null) }
+    var clearLocation by rememberSaveable { mutableStateOf(false) }
+    var seeded by rememberSaveable(assetId) { mutableStateOf(false) }
     val context = LocalContext.current
     val cameraUnavailable = stringResource(R.string.media_camera_unavailable)
 
@@ -114,9 +129,33 @@ fun NewAssetScreen(
     val selected = options.firstOrNull { it.id == selectedId }
     val typeRequiredNotice = stringResource(R.string.assets_error_type_required)
 
-    LaunchedEffect(Unit) {
+    LaunchedEffect(assetId) {
         vm.ensureAssetTypes()
         vm.clearFormError()
+        if (assetId != null) vm.loadAssetDraft(assetId) else vm.clearAssetDraft()
+    }
+
+    // Ekrandan çıkarken taslağı bırak; aynı varlığı yeniden düzenlerken
+    // önceki oturumun eski alanlarıyla dolmasını engeller.
+    DisposableEffect(assetId) {
+        onDispose {
+            if (editing) vm.clearAssetDraft()
+        }
+    }
+
+    // Düzenlemede alanları mevcut varlıktan bir kez doldur.
+    LaunchedEffect(draft?.id) {
+        val asset = draft ?: return@LaunchedEffect
+        if (seeded) return@LaunchedEffect
+        selectedId = asset.type?.id
+        title = asset.title
+        description = asset.description.orEmpty()
+        visibility = asset.visibility
+        locationName = asset.locationName.orEmpty()
+        latitude = asset.latitude
+        longitude = asset.longitude
+        clearLocation = false
+        seeded = true
     }
 
     val picker = rememberLauncherForActivityResult(ActivityResultContracts.GetContent()) { uri ->
@@ -152,17 +191,38 @@ fun NewAssetScreen(
                 .verticalScroll(rememberScrollState())
                 .imePadding(),
         ) {
-            VhTopBar(title = stringResource(R.string.assets_new_title), onBack = onBack)
+            VhTopBar(
+                title = stringResource(
+                    if (editing) R.string.edit_asset_title else R.string.assets_new_title,
+                ),
+                onBack = onBack,
+            )
+
+            if (editing && assetState.loading) {
+                LoadingBox()
+            }
+            if (editing && assetState.error != null) {
+                Box(Modifier.padding(horizontal = 20.dp, vertical = 8.dp)) {
+                    ErrorBox(
+                        assetState.error ?: "",
+                        onRetry = { assetId?.let(vm::loadAssetDraft) },
+                    )
+                }
+            }
 
         Column(Modifier.padding(horizontal = 20.dp)) {
             Text(
-                stringResource(R.string.assets_new_kicker),
+                stringResource(
+                    if (editing) R.string.edit_asset_kicker else R.string.assets_new_kicker,
+                ),
                 style = MaterialTheme.typography.labelSmall,
                 color = Clay,
             )
             Spacer(Modifier.height(4.dp))
             Text(
-                stringResource(R.string.assets_new_headline),
+                stringResource(
+                    if (editing) R.string.edit_asset_headline else R.string.assets_new_headline,
+                ),
                 style = MaterialTheme.typography.displayMedium,
                 color = Forest,
             )
@@ -170,7 +230,9 @@ fun NewAssetScreen(
             GoldRule()
             Spacer(Modifier.height(12.dp))
             Text(
-                stringResource(R.string.assets_new_body),
+                stringResource(
+                    if (editing) R.string.edit_asset_intro else R.string.assets_new_body,
+                ),
                 style = MaterialTheme.typography.bodyMedium,
                 color = Muted,
             )
@@ -249,7 +311,7 @@ fun NewAssetScreen(
 
             Spacer(Modifier.height(20.dp))
             SectionLabel(stringResource(R.string.assets_visibility_label))
-            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+            FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                 Pill(
                     stringResource(R.string.visibility_private),
                     visibility == "private",
@@ -261,6 +323,11 @@ fun NewAssetScreen(
                     onClick = { visibility = "selected" },
                 )
                 Pill(
+                    stringResource(R.string.visibility_friends),
+                    visibility == "friends",
+                    onClick = { visibility = "friends" },
+                )
+                Pill(
                     stringResource(R.string.visibility_public),
                     visibility == "public",
                     onClick = { visibility = "public" },
@@ -270,6 +337,7 @@ fun NewAssetScreen(
             Text(
                 text = when (visibility) {
                     "public" -> stringResource(R.string.assets_visibility_public_hint)
+                    "friends" -> stringResource(R.string.assets_visibility_friends_hint)
                     "selected" -> stringResource(R.string.assets_visibility_selected_hint)
                     else -> stringResource(R.string.assets_visibility_private_hint)
                 },
@@ -286,15 +354,47 @@ fun NewAssetScreen(
                 onLocationPicked = { picked ->
                     latitude = picked.latitude
                     longitude = picked.longitude
-                    if (locationName.isBlank() && !picked.name.isNullOrBlank()) {
+                    clearLocation = false
+                    // Haritada veya mevcut konumda seçilen noktanın adı yazılır;
+                    // kullanıcı alanı sonrasında elle düzenleyebilir.
+                    if (!picked.name.isNullOrBlank()) {
                         locationName = picked.name
                     }
                 },
                 enabled = !busy,
             )
 
+            if (editing && (latitude != null || longitude != null || locationName.isNotBlank())) {
+                Spacer(Modifier.height(8.dp))
+                OutlinedButton(
+                    onClick = {
+                        latitude = null
+                        longitude = null
+                        locationName = ""
+                        clearLocation = true
+                    },
+                    enabled = !busy,
+                    shape = RoundedCornerShape(12.dp),
+                    border = BorderStroke(1.dp, Line),
+                ) {
+                    Icon(
+                        Icons.Outlined.Close,
+                        contentDescription = null,
+                        tint = Muted,
+                        modifier = Modifier.size(14.dp),
+                    )
+                    Spacer(Modifier.size(4.dp))
+                    Text(
+                        stringResource(R.string.add_entry_location_clear),
+                        style = MaterialTheme.typography.labelMedium,
+                        color = Muted,
+                    )
+                }
+            }
+
             Spacer(Modifier.height(20.dp))
             SectionLabel(stringResource(R.string.assets_cover_label))
+            val coverModel: Any? = coverUri ?: MediaUrl.resolve(draft?.coverUrl)
             Surface(
                 color = PaperDeep,
                 shape = RoundedCornerShape(16.dp),
@@ -304,10 +404,10 @@ fun NewAssetScreen(
                     .height(190.dp)
                     .clickable { picker.launch("image/*") },
             ) {
-                if (coverUri != null) {
+                if (coverModel != null) {
                     Box(Modifier.fillMaxSize()) {
                         AsyncImage(
-                            model = coverUri,
+                            model = coverModel,
                             contentDescription = stringResource(R.string.assets_cover_preview),
                             contentScale = ContentScale.Crop,
                             modifier = Modifier.fillMaxSize(),
@@ -411,17 +511,33 @@ fun NewAssetScreen(
                         vm.setNotice(typeRequiredNotice)
                         return@Button
                     }
-                    vm.createAsset(
-                        typeId = typeId,
-                        title = title,
-                        description = description,
-                        visibility = visibility,
-                        coverUri = coverUri,
-                        locationName = locationName,
-                        latitude = latitude,
-                        longitude = longitude,
-                        onCreated = onCreated,
-                    )
+                    if (assetId != null) {
+                        vm.updateAsset(
+                            assetId = assetId,
+                            typeId = typeId,
+                            title = title,
+                            description = description,
+                            visibility = visibility,
+                            coverUri = coverUri,
+                            locationName = locationName,
+                            latitude = latitude,
+                            longitude = longitude,
+                            clearLocation = clearLocation,
+                            onSaved = onCreated,
+                        )
+                    } else {
+                        vm.createAsset(
+                            typeId = typeId,
+                            title = title,
+                            description = description,
+                            visibility = visibility,
+                            coverUri = coverUri,
+                            locationName = locationName,
+                            latitude = latitude,
+                            longitude = longitude,
+                            onCreated = onCreated,
+                        )
+                    }
                 },
                 enabled = !busy,
                 colors = ButtonDefaults.buttonColors(
@@ -442,7 +558,12 @@ fun NewAssetScreen(
                         modifier = Modifier.size(20.dp),
                     )
                 } else {
-                    Text(stringResource(R.string.assets_submit), style = MaterialTheme.typography.labelLarge)
+                    Text(
+                        stringResource(
+                            if (editing) R.string.edit_asset_save else R.string.assets_submit,
+                        ),
+                        style = MaterialTheme.typography.labelLarge,
+                    )
                 }
             }
         }

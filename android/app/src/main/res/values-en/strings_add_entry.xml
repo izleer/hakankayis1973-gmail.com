@@ -24,6 +24,17 @@
     <string name="add_entry_section_visibility">Who can see it?</string>
     <string name="add_entry_visibility_hint">An entry cannot be more visible than its asset.</string>
 
+    <string name="add_entry_section_location">Location (optional)</string>
+    <string name="add_entry_location_hint">Link this entry to a place if you like; drag the pin on the map to change it.</string>
+    <string name="add_entry_location_pick">Pick on map</string>
+    <string name="add_entry_location_clear">Remove</string>
+    <string name="add_entry_location_dialog_title">Choose location</string>
+    <string name="add_entry_location_dialog_hint">Tap the map or drag the pin. Your current location appears when the window opens.</string>
+    <string name="add_entry_location_current">Current location</string>
+    <string name="add_entry_location_confirm">Use this point</string>
+    <string name="add_entry_location_cancel">Cancel</string>
+    <string name="add_entry_location_locating">Getting location…</string>
+
     <string name="add_entry_section_files">Photo / document</string>
     <string name="add_entry_add_file">Add a file (%1$s, %2$d MB)</string>
     <string name="add_entry_remove_file">Remove</string>
@@ -34,4 +45,13 @@
 
     <string name="add_entry_footer_hint">The entry is added to the timeline with the date and time you choose; you can edit it later.</string>
     <string name="add_entry_save">Add to story</string>
+
+    <!-- Edit entry screen -->
+    <string name="edit_entry_title">Edit entry</string>
+    <string name="edit_entry_eyebrow">IN THE TIMELINE</string>
+    <string name="edit_entry_headline">What should we fix?</string>
+    <string name="edit_entry_intro">Change the date, note or location; existing photos and documents stay as they are.</string>
+    <string name="edit_entry_save">Save changes</string>
+    <string name="edit_entry_existing_files">Existing files</string>
+    <string name="edit_entry_add_files_hint">New files are added alongside existing ones; existing files are kept.</string>
 </resources>

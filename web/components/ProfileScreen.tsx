@@ -3,19 +3,24 @@ import { AssetGrid } from './AssetCard';
 import { EmptyState } from './EmptyState';
 import { FeedCard } from './FeedCard';
 import { FollowButton } from './FollowButton';
+import { FriendButton } from './FriendButton';
 import { Icon } from './Icons';
+import { ProfileAvatarEditor } from './ProfileAvatarEditor';
+import { ProfileSocial } from './ProfileSocial';
 import { formatDate, formatNumber, initials } from '@/lib/format';
 import { getI18n } from '@/lib/i18n/server';
-import type { Asset, FeedPost, User } from '@/lib/types';
+import type { Asset, FeedPost, SocialConnectionsResponse, User } from '@/lib/types';
 
 export async function ProfileScreen({
   user,
   assets,
   posts,
+  social = null,
 }: {
   user: User;
   assets: Asset[];
   posts: FeedPost[];
+  social?: SocialConnectionsResponse | null;
 }) {
   const { t, locale } = await getI18n();
   const stats = user.stats ?? {
@@ -24,18 +29,23 @@ export async function ProfileScreen({
     posts: 0,
     followers: 0,
     following: 0,
+    friends: 0,
   };
 
   return (
     <main className="page">
       <header className="profile-head">
-        <span className="profile-avatar">
-          {user.avatarUrl ? (
-            <img src={user.avatarUrl} alt={user.displayName} />
-          ) : (
-            initials(user.displayName, locale)
-          )}
-        </span>
+        {user.isSelf ? (
+          <ProfileAvatarEditor user={user} />
+        ) : (
+          <span className="profile-avatar">
+            {user.avatarUrl ? (
+              <img src={user.avatarUrl} alt={user.displayName} />
+            ) : (
+              initials(user.displayName, locale)
+            )}
+          </span>
+        )}
         <div className="profile-copy">
           <span className="eyebrow">
             {user.isSelf ? t('Senin hafızan') : t('Bir başka hafıza')}
@@ -70,9 +80,17 @@ export async function ProfileScreen({
                 {t('Arşivim')}
               </Link>
             </>
-          ) : user.isFollowing !== undefined ? (
-            <FollowButton username={user.username} initial={user.isFollowing} />
-          ) : null}
+          ) : (
+            <div className="profile-actions">
+              <FriendButton
+                username={user.username}
+                initial={user.friendStatus ?? 'none'}
+              />
+              {user.isFollowing !== undefined ? (
+                <FollowButton username={user.username} initial={user.isFollowing} />
+              ) : null}
+            </div>
+          )}
         </div>
       </header>
 
@@ -90,6 +108,10 @@ export async function ProfileScreen({
           <span>{t('Gönderi')}</span>
         </div>
         <div>
+          <strong>{formatNumber(stats.friends ?? 0, locale)}</strong>
+          <span>{t('Arkadaş')}</span>
+        </div>
+        <div>
           <strong>{formatNumber(stats.followers, locale)}</strong>
           <span>{t('Takipçi')}</span>
         </div>
@@ -98,6 +120,8 @@ export async function ProfileScreen({
           <span>{t('Takip edilen')}</span>
         </div>
       </section>
+
+      {user.isSelf ? <ProfileSocial assets={assets} initial={social} /> : null}
 
       <section className="section">
         <div className="section-head">

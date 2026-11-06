@@ -1,0 +1,902 @@
+{
+  "base": "http://127.0.0.1:4100",
+  "run": "2ih412",
+  "startedAt": "2026-11-04T19:30:11.136Z",
+  "total": 81,
+  "passed": 81,
+  "failed": 0,
+  "byArea": {
+    "Sistem": {
+      "total": 1,
+      "passed": 1,
+      "failed": 0
+    },
+    "Kimlik": {
+      "total": 10,
+      "passed": 10,
+      "failed": 0
+    },
+    "Varlık türleri": {
+      "total": 2,
+      "passed": 2,
+      "failed": 0
+    },
+    "Varlık": {
+      "total": 14,
+      "passed": 14,
+      "failed": 0
+    },
+    "Kayıt": {
+      "total": 7,
+      "passed": 7,
+      "failed": 0
+    },
+    "Medya": {
+      "total": 4,
+      "passed": 4,
+      "failed": 0
+    },
+    "Kullanıcı": {
+      "total": 9,
+      "passed": 9,
+      "failed": 0
+    },
+    "Gönderi": {
+      "total": 9,
+      "passed": 9,
+      "failed": 0
+    },
+    "Akış": {
+      "total": 1,
+      "passed": 1,
+      "failed": 0
+    },
+    "Topluluk": {
+      "total": 10,
+      "passed": 10,
+      "failed": 0
+    },
+    "Arama": {
+      "total": 3,
+      "passed": 3,
+      "failed": 0
+    },
+    "Bildirim": {
+      "total": 1,
+      "passed": 1,
+      "failed": 0
+    },
+    "İstatistik": {
+      "total": 1,
+      "passed": 1,
+      "failed": 0
+    },
+    "Güvenlik": {
+      "total": 3,
+      "passed": 3,
+      "failed": 0
+    },
+    "Moderasyon": {
+      "total": 2,
+      "passed": 2,
+      "failed": 0
+    },
+    "Sosyal": {
+      "total": 4,
+      "passed": 4,
+      "failed": 0
+    }
+  },
+  "results": [
+    {
+      "id": "FT-01",
+      "area": "Sistem",
+      "title": "Sağlık ucu veritabanıyla birlikte OK döner",
+      "status": "PASS",
+      "expected": "200 {status:ok, db:ok}",
+      "actual": "ok/ok",
+      "note": "",
+      "ms": 52
+    },
+    {
+      "id": "FT-02",
+      "area": "Kimlik",
+      "title": "Yeni kullanıcı kaydı token ve kullanıcı döner",
+      "status": "PASS",
+      "expected": "201 + token",
+      "actual": "201, kullanıcı fta_2ih412",
+      "note": "",
+      "ms": 79
+    },
+    {
+      "id": "FT-03",
+      "area": "Kimlik",
+      "title": "İkinci kullanıcı kaydı başarılı",
+      "status": "PASS",
+      "expected": "201",
+      "actual": "201",
+      "note": "",
+      "ms": 86
+    },
+    {
+      "id": "FT-04",
+      "area": "Kimlik",
+      "title": "Üçüncü kullanıcı kaydı başarılı",
+      "status": "PASS",
+      "expected": "201",
+      "actual": "201",
+      "note": "",
+      "ms": 89
+    },
+    {
+      "id": "FT-05",
+      "area": "Kimlik",
+      "title": "Aynı e-posta ile kayıt 409 döner",
+      "status": "PASS",
+      "expected": "409 CONFLICT",
+      "actual": "CONFLICT",
+      "note": "",
+      "ms": 8
+    },
+    {
+      "id": "FT-06",
+      "area": "Kimlik",
+      "title": "Zayıf şifre 422 ile reddedilir",
+      "status": "PASS",
+      "expected": "422 VALIDATION_ERROR",
+      "actual": "VALIDATION_ERROR",
+      "note": "",
+      "ms": 13
+    },
+    {
+      "id": "FT-07",
+      "area": "Kimlik",
+      "title": "E-posta ile giriş başarılı",
+      "status": "PASS",
+      "expected": "200 + token",
+      "actual": "200",
+      "note": "",
+      "ms": 85
+    },
+    {
+      "id": "FT-08",
+      "area": "Kimlik",
+      "title": "Kullanıcı adı ile giriş başarılı",
+      "status": "PASS",
+      "expected": "200",
+      "actual": "200",
+      "note": "",
+      "ms": 82
+    },
+    {
+      "id": "FT-09",
+      "area": "Kimlik",
+      "title": "Hatalı şifre 401 döner",
+      "status": "PASS",
+      "expected": "401 UNAUTHORIZED",
+      "actual": "UNAUTHORIZED",
+      "note": "",
+      "ms": 74
+    },
+    {
+      "id": "FT-10",
+      "area": "Kimlik",
+      "title": "Oturum ucu token ile 200, tokensiz 401 döner",
+      "status": "PASS",
+      "expected": "200 / 401",
+      "actual": "200 / 401",
+      "note": "",
+      "ms": 28
+    },
+    {
+      "id": "FT-11",
+      "area": "Kimlik",
+      "title": "Çıkış sonrası eski token geçersizleşir",
+      "status": "PASS",
+      "expected": "200 sonra 401",
+      "actual": "çıkış 200, eski token 401",
+      "note": "",
+      "ms": 97
+    },
+    {
+      "id": "FT-12",
+      "area": "Varlık türleri",
+      "title": "Tür ağacı kök ve alt kategorilerle döner",
+      "status": "PASS",
+      "expected": "200 + ağaç",
+      "actual": "5 kök, yaprak=canli-bitki",
+      "note": "",
+      "ms": 11
+    },
+    {
+      "id": "FT-13",
+      "area": "Varlık türleri",
+      "title": "Kök türle varlık oluşturma 422 INVALID_TYPE döner",
+      "status": "PASS",
+      "expected": "422 INVALID_TYPE",
+      "actual": "422 INVALID_TYPE",
+      "note": "",
+      "ms": 16
+    },
+    {
+      "id": "FT-14",
+      "area": "Varlık",
+      "title": "Özel varlık ilk kaydıyla oluşturulur",
+      "status": "PASS",
+      "expected": "201",
+      "actual": "201, varlık a529dc60-d2f0-48bc-a554-c5e3ba797305",
+      "note": "",
+      "ms": 20
+    },
+    {
+      "id": "FT-15",
+      "area": "Varlık",
+      "title": "Herkese açık varlık ve kayıt oluşturulur",
+      "status": "PASS",
+      "expected": "201",
+      "actual": "201, varlık 5ff95e4a-6f66-468e-ba91-eff2187c0a03",
+      "note": "",
+      "ms": 12
+    },
+    {
+      "id": "FT-16",
+      "area": "Varlık",
+      "title": "Seçili erişimli varlık oluşturulur",
+      "status": "PASS",
+      "expected": "201",
+      "actual": "201",
+      "note": "",
+      "ms": 14
+    },
+    {
+      "id": "FT-17",
+      "area": "Varlık",
+      "title": "Kendi varlık listesi oluşturulanları içerir",
+      "status": "PASS",
+      "expected": "200 + varlıklar",
+      "actual": "3 varlık",
+      "note": "",
+      "ms": 14
+    },
+    {
+      "id": "FT-18",
+      "area": "Varlık",
+      "title": "Sahip özel varlığı görüntüler",
+      "status": "PASS",
+      "expected": "200",
+      "actual": "200",
+      "note": "",
+      "ms": 23
+    },
+    {
+      "id": "FT-19",
+      "area": "Varlık",
+      "title": "Anonim kullanıcı özel varlığa erişemez",
+      "status": "PASS",
+      "expected": "403 FORBIDDEN",
+      "actual": "403",
+      "note": "",
+      "ms": 5
+    },
+    {
+      "id": "FT-20",
+      "area": "Varlık",
+      "title": "Keşfet yalnızca kamu varlığını gösterir",
+      "status": "PASS",
+      "expected": "kamu var, özel yok",
+      "actual": "1 sonuç",
+      "note": "",
+      "ms": 18
+    },
+    {
+      "id": "FT-21",
+      "area": "Varlık",
+      "title": "Varlık başlığı ve açıklaması güncellenir",
+      "status": "PASS",
+      "expected": "200 + yeni başlık",
+      "actual": "200",
+      "note": "",
+      "ms": 17
+    },
+    {
+      "id": "FT-22",
+      "area": "Varlık",
+      "title": "Bayrakla erişim verilen kullanıcı varlığı görür",
+      "status": "PASS",
+      "expected": "201 + 200",
+      "actual": "erişim verildi ve görüntülendi",
+      "note": "",
+      "ms": 28
+    },
+    {
+      "id": "FT-23",
+      "area": "Varlık",
+      "title": "Kendine erişim verme 409 döner",
+      "status": "PASS",
+      "expected": "409",
+      "actual": "409",
+      "note": "",
+      "ms": 16
+    },
+    {
+      "id": "FT-24",
+      "area": "Varlık",
+      "title": "Varlıktan geniş görünürlüklü kayıt 422 döner",
+      "status": "PASS",
+      "expected": "422 VISIBILITY_TOO_BROAD",
+      "actual": "422",
+      "note": "",
+      "ms": 16
+    },
+    {
+      "id": "FT-25",
+      "area": "Varlık",
+      "title": "Boş başlıklı varlık 422 döner",
+      "status": "PASS",
+      "expected": "422",
+      "actual": "422",
+      "note": "",
+      "ms": 14
+    },
+    {
+      "id": "FT-26",
+      "area": "Varlık",
+      "title": "Silinen varlık sonrası görüntüleme 404 döner",
+      "status": "PASS",
+      "expected": "204 sonra 404",
+      "actual": "204 → 404",
+      "note": "",
+      "ms": 47
+    },
+    {
+      "id": "FT-27",
+      "area": "Varlık",
+      "title": "Varlık arşivlenir ve arşiv filtresinde listelenir",
+      "status": "PASS",
+      "expected": "200 + listede",
+      "actual": "arşivlendi",
+      "note": "",
+      "ms": 33
+    },
+    {
+      "id": "FT-28",
+      "area": "Kayıt",
+      "title": "Varlığa günlük kaydı eklenir",
+      "status": "PASS",
+      "expected": "201",
+      "actual": "201",
+      "note": "",
+      "ms": 16
+    },
+    {
+      "id": "FT-29",
+      "area": "Kayıt",
+      "title": "Sahip olmayan kullanıcı kayıt ekleyemez",
+      "status": "PASS",
+      "expected": "403",
+      "actual": "403",
+      "note": "",
+      "ms": 12
+    },
+    {
+      "id": "FT-30",
+      "area": "Kayıt",
+      "title": "Başlıksız ve metinsiz kayıt 422 döner",
+      "status": "PASS",
+      "expected": "422",
+      "actual": "422",
+      "note": "",
+      "ms": 15
+    },
+    {
+      "id": "FT-31",
+      "area": "Kayıt",
+      "title": "Kayıt başlığı güncellenir",
+      "status": "PASS",
+      "expected": "200",
+      "actual": "200",
+      "note": "",
+      "ms": 22
+    },
+    {
+      "id": "FT-32",
+      "area": "Kayıt",
+      "title": "Ölçümlü kayıt ölçüm listesine yansır",
+      "status": "PASS",
+      "expected": "201 + ölçüm",
+      "actual": "32.5 psi listelendi",
+      "note": "",
+      "ms": 26
+    },
+    {
+      "id": "FT-33",
+      "area": "Kayıt",
+      "title": "Kayda medya bağlanır ve medya ucu listeler",
+      "status": "PASS",
+      "expected": "201 + bağlama + listeleme",
+      "actual": "medya bağlandı",
+      "note": "",
+      "ms": 46
+    },
+    {
+      "id": "FT-34",
+      "area": "Kayıt",
+      "title": "Kayıt silinince görüntüleme 404 döner",
+      "status": "PASS",
+      "expected": "204 → 404",
+      "actual": "204 → 404",
+      "note": "",
+      "ms": 29
+    },
+    {
+      "id": "FT-35",
+      "area": "Medya",
+      "title": "PNG yüklemesi 201 ve ready durumu döner",
+      "status": "PASS",
+      "expected": "201 ready/image",
+      "actual": "201 ready/image",
+      "note": "",
+      "ms": 19
+    },
+    {
+      "id": "FT-36",
+      "area": "Medya",
+      "title": "Desteklenmeyen dosya türü 422 döner",
+      "status": "PASS",
+      "expected": "422 UNSUPPORTED_MEDIA",
+      "actual": "422",
+      "note": "",
+      "ms": 11
+    },
+    {
+      "id": "FT-37",
+      "area": "Medya",
+      "title": "Yerel depolamada presign 409 döner",
+      "status": "PASS",
+      "expected": "409 DIRECT_UPLOAD_REQUIRED",
+      "actual": "409",
+      "note": "",
+      "ms": 15
+    },
+    {
+      "id": "FT-38",
+      "area": "Medya",
+      "title": "Medya ucu sahibine 200, anonime 401 döner",
+      "status": "PASS",
+      "expected": "200 / 401",
+      "actual": "200 / 401",
+      "note": "",
+      "ms": 30
+    },
+    {
+      "id": "FT-39",
+      "area": "Kullanıcı",
+      "title": "Kullanıcı profili 200 döner",
+      "status": "PASS",
+      "expected": "200",
+      "actual": "200, @mert",
+      "note": "",
+      "ms": 18
+    },
+    {
+      "id": "FT-40",
+      "area": "Kullanıcı",
+      "title": "Profil bilgileri güncellenir",
+      "status": "PASS",
+      "expected": "200",
+      "actual": "200",
+      "note": "",
+      "ms": 12
+    },
+    {
+      "id": "FT-41",
+      "area": "Kullanıcı",
+      "title": "Onboarding tercihleri kaydedilir",
+      "status": "PASS",
+      "expected": "200 + 2 ilgi alanı",
+      "actual": "200",
+      "note": "",
+      "ms": 15
+    },
+    {
+      "id": "FT-42",
+      "area": "Kullanıcı",
+      "title": "Takip başlar ve takipçi listesinde görünür",
+      "status": "PASS",
+      "expected": "201 + listede",
+      "actual": "takip edildi",
+      "note": "",
+      "ms": 36
+    },
+    {
+      "id": "FT-43",
+      "area": "Kullanıcı",
+      "title": "Kendini takip etme 409 döner",
+      "status": "PASS",
+      "expected": "409",
+      "actual": "409",
+      "note": "",
+      "ms": 11
+    },
+    {
+      "id": "FT-44",
+      "area": "Kullanıcı",
+      "title": "Takibi bırakma 200 ve following=false döner",
+      "status": "PASS",
+      "expected": "200 following:false",
+      "actual": "200",
+      "note": "",
+      "ms": 16
+    },
+    {
+      "id": "FT-45",
+      "area": "Kullanıcı",
+      "title": "Özet ucu istatistik ve okunmamış sayısı döner",
+      "status": "PASS",
+      "expected": "200 + stats",
+      "actual": "assets=3",
+      "note": "",
+      "ms": 9
+    },
+    {
+      "id": "FT-46",
+      "area": "Kullanıcı",
+      "title": "Veri dışa aktarımı profil ve koleksiyonları içerir",
+      "status": "PASS",
+      "expected": "200 + export",
+      "actual": "4 varlık",
+      "note": "",
+      "ms": 17
+    },
+    {
+      "id": "FT-47",
+      "area": "Kullanıcı",
+      "title": "Kullanıcı önerileri listelenir",
+      "status": "PASS",
+      "expected": "200 + items",
+      "actual": "8 öneri",
+      "note": "",
+      "ms": 5
+    },
+    {
+      "id": "FT-48",
+      "area": "Gönderi",
+      "title": "Metin gönderisi oluşturulur",
+      "status": "PASS",
+      "expected": "201",
+      "actual": "201",
+      "note": "",
+      "ms": 30
+    },
+    {
+      "id": "FT-49",
+      "area": "Gönderi",
+      "title": "Boş gönderi 422 döner",
+      "status": "PASS",
+      "expected": "422",
+      "actual": "422",
+      "note": "",
+      "ms": 16
+    },
+    {
+      "id": "FT-50",
+      "area": "Gönderi",
+      "title": "Gönderi kimliğiyle okunur",
+      "status": "PASS",
+      "expected": "200",
+      "actual": "200",
+      "note": "",
+      "ms": 42
+    },
+    {
+      "id": "FT-51",
+      "area": "Gönderi",
+      "title": "Beğeni eklenir, tekrar beğeni sayıyı artırmaz, geri alınır",
+      "status": "PASS",
+      "expected": "tek beğeni",
+      "actual": "likeCount=1, geri alındı",
+      "note": "",
+      "ms": 69
+    },
+    {
+      "id": "FT-52",
+      "area": "Gönderi",
+      "title": "Yorum eklenir, listelenir ve yanıtlanır",
+      "status": "PASS",
+      "expected": "201 + 2 yorum + 204",
+      "actual": "yorum ve yanıt oluştu",
+      "note": "",
+      "ms": 63
+    },
+    {
+      "id": "FT-53",
+      "area": "Gönderi",
+      "title": "Gönderi gövdesi güncellenir",
+      "status": "PASS",
+      "expected": "200",
+      "actual": "200",
+      "note": "",
+      "ms": 24
+    },
+    {
+      "id": "FT-54",
+      "area": "Akış",
+      "title": "Keşfet akışı kamu gönderisini içerir",
+      "status": "PASS",
+      "expected": "200 + gönderi",
+      "actual": "8 öğe",
+      "note": "",
+      "ms": 15
+    },
+    {
+      "id": "FT-55",
+      "area": "Gönderi",
+      "title": "Özel varlık gönderiye eklenemez (422)",
+      "status": "PASS",
+      "expected": "422 ASSET_NOT_SHARED",
+      "actual": "422",
+      "note": "",
+      "ms": 11
+    },
+    {
+      "id": "FT-56",
+      "area": "Topluluk",
+      "title": "Açık topluluk oluşturulur, sahibi üye olur",
+      "status": "PASS",
+      "expected": "201 üye=1",
+      "actual": "ft-acik-grup-2ih412",
+      "note": "",
+      "ms": 17
+    },
+    {
+      "id": "FT-57",
+      "area": "Topluluk",
+      "title": "Topluluk detayı sahip bilgisiyle döner",
+      "status": "PASS",
+      "expected": "200 isOwner",
+      "actual": "200",
+      "note": "",
+      "ms": 20
+    },
+    {
+      "id": "FT-58",
+      "area": "Topluluk",
+      "title": "Başka kullanıcı açık topluluğa katılır",
+      "status": "PASS",
+      "expected": "201 + aktif üyelik",
+      "actual": "katıldı",
+      "note": "",
+      "ms": 18
+    },
+    {
+      "id": "FT-59",
+      "area": "Topluluk",
+      "title": "Varlık topluluğa paylaşılır ve üye listesinde görünür",
+      "status": "PASS",
+      "expected": "201 + listede",
+      "actual": "paylaşıldı",
+      "note": "",
+      "ms": 29
+    },
+    {
+      "id": "FT-60",
+      "area": "Topluluk",
+      "title": "Üye topluluk gönderisi oluşturur ve grup akışında görünür",
+      "status": "PASS",
+      "expected": "201 + akışta",
+      "actual": "paylaşıldı",
+      "note": "",
+      "ms": 52
+    },
+    {
+      "id": "FT-61",
+      "area": "Topluluk",
+      "title": "Üye olmayan grup akışını görmez",
+      "status": "PASS",
+      "expected": "200 boş liste",
+      "actual": "boş",
+      "note": "",
+      "ms": 13
+    },
+    {
+      "id": "FT-62",
+      "area": "Topluluk",
+      "title": "Onaylı katılım isteği sahibi tarafından onaylanır",
+      "status": "PASS",
+      "expected": "pending → onay → üye",
+      "actual": "onaylandı",
+      "note": "",
+      "ms": 71
+    },
+    {
+      "id": "FT-63",
+      "area": "Topluluk",
+      "title": "Davet gönderilir ve davetli kabul eder",
+      "status": "PASS",
+      "expected": "201 → kabul → üye",
+      "actual": "kabul edildi",
+      "note": "",
+      "ms": 66
+    },
+    {
+      "id": "FT-64",
+      "area": "Topluluk",
+      "title": "Özel topluluğa üye olmayan erişemez",
+      "status": "PASS",
+      "expected": "200 / 403",
+      "actual": "200 / 403",
+      "note": "",
+      "ms": 32
+    },
+    {
+      "id": "FT-65",
+      "area": "Topluluk",
+      "title": "Üye olmayan varlık paylaşamaz",
+      "status": "PASS",
+      "expected": "403",
+      "actual": "403",
+      "note": "",
+      "ms": 9
+    },
+    {
+      "id": "FT-66",
+      "area": "Arama",
+      "title": "Arama kullanıcı, varlık ve gönderi bölümleri döner",
+      "status": "PASS",
+      "expected": "200 + varlık sonucu",
+      "actual": "1 varlık",
+      "note": "",
+      "ms": 22
+    },
+    {
+      "id": "FT-67",
+      "area": "Arama",
+      "title": "Kısa arama terimi 422 döner",
+      "status": "PASS",
+      "expected": "422",
+      "actual": "422",
+      "note": "",
+      "ms": 6
+    },
+    {
+      "id": "FT-68",
+      "area": "Arama",
+      "title": "Anonim arama 401 döner",
+      "status": "PASS",
+      "expected": "401",
+      "actual": "401",
+      "note": "",
+      "ms": 1
+    },
+    {
+      "id": "FT-69",
+      "area": "Bildirim",
+      "title": "Bildirimler listelenir ve tümü okundu işaretlenir",
+      "status": "PASS",
+      "expected": "okundu → unreadCount 0",
+      "actual": "0",
+      "note": "",
+      "ms": 58
+    },
+    {
+      "id": "FT-70",
+      "area": "İstatistik",
+      "title": "Kişisel istatistik ucu sayıları döner",
+      "status": "PASS",
+      "expected": "200 + sayaçlar",
+      "actual": "assets=3",
+      "note": "",
+      "ms": 13
+    },
+    {
+      "id": "FT-71",
+      "area": "Güvenlik",
+      "title": "Kullanıcı engellenir ve engel listesinde görünür",
+      "status": "PASS",
+      "expected": "201 + listede + 204",
+      "actual": "engellendi ve kaldırıldı",
+      "note": "",
+      "ms": 32
+    },
+    {
+      "id": "FT-72",
+      "area": "Güvenlik",
+      "title": "Gönderi şikâyeti oluşturulur, tekrarı 409 döner",
+      "status": "PASS",
+      "expected": "201 → 409",
+      "actual": "şikâyet açıldı",
+      "note": "",
+      "ms": 41
+    },
+    {
+      "id": "FT-73",
+      "area": "Güvenlik",
+      "title": "Kendi hesabını şikâyet etme 403 döner",
+      "status": "PASS",
+      "expected": "403",
+      "actual": "403",
+      "note": "",
+      "ms": 15
+    },
+    {
+      "id": "FT-74",
+      "area": "Moderasyon",
+      "title": "Moderatör yönetim istatistiklerini görür, normal kullanıcı göremez",
+      "status": "PASS",
+      "expected": "200 / 403",
+      "actual": "200 / 403",
+      "note": "",
+      "ms": 105
+    },
+    {
+      "id": "FT-75",
+      "area": "Moderasyon",
+      "title": "Moderatör şikâyeti çözer ve hedef gönderiyi gizler",
+      "status": "PASS",
+      "expected": "resolved + akışta yok",
+      "actual": "çözüldü, gizlendi",
+      "note": "",
+      "ms": 52
+    },
+    {
+      "id": "FT-76",
+      "area": "Gönderi",
+      "title": "Gönderi silinir ve akıştan düşer",
+      "status": "PASS",
+      "expected": "204 + akışta yok",
+      "actual": "204",
+      "note": "",
+      "ms": 47
+    },
+    {
+      "id": "FT-81",
+      "area": "Gönderi",
+      "title": "Sahip, moderasyon tarafından gizlenen gönderisini silemez (gözlem)",
+      "status": "PASS",
+      "expected": "Gözlem: gizlenen gönderi sahibine de 403",
+      "actual": "sahip gönderiyi ne görebiliyor ne silebiliyor",
+      "note": "Ürün kararı gereği sahibinin gizlenen içeriği silmesine izin verilmeli; raporda bulgu olarak listelendi.",
+      "ms": 28
+    },
+    {
+      "id": "FT-77",
+      "area": "Sosyal",
+      "title": "Yapılandırma ucu eksik anahtarları bildirir",
+      "status": "PASS",
+      "expected": "200 configured:false",
+      "actual": "eksik: META_APP_ID,META_APP_SECRET,SOCIAL_TOKEN_KEY",
+      "note": "",
+      "ms": 12
+    },
+    {
+      "id": "FT-78",
+      "area": "Sosyal",
+      "title": "Bağlantı listesi boş döner",
+      "status": "PASS",
+      "expected": "200 items:[]",
+      "actual": "boş",
+      "note": "",
+      "ms": 18
+    },
+    {
+      "id": "FT-79",
+      "area": "Sosyal",
+      "title": "Yapılandırılmamışken paylaşım 503 döner",
+      "status": "PASS",
+      "expected": "503 SOCIAL_NOT_CONFIGURED",
+      "actual": "503",
+      "note": "",
+      "ms": 16
+    },
+    {
+      "id": "FT-80",
+      "area": "Sosyal",
+      "title": "Yapılandırılmamışken OAuth başlatma 503 döner",
+      "status": "PASS",
+      "expected": "503",
+      "actual": "503",
+      "note": "",
+      "ms": 14
+    }
+  ]
+}

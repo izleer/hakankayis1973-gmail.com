@@ -24,6 +24,17 @@
     <string name="add_entry_section_visibility">Wer darf es sehen?</string>
     <string name="add_entry_visibility_hint">Ein Eintrag kann nicht sichtbarer sein als sein Objekt.</string>
 
+    <string name="add_entry_section_location">Standort (optional)</string>
+    <string name="add_entry_location_hint">Verknüpfe den Eintrag bei Bedarf mit einem Ort; ziehe die Nadel auf der Karte, um ihn zu ändern.</string>
+    <string name="add_entry_location_pick">Auf Karte wählen</string>
+    <string name="add_entry_location_clear">Entfernen</string>
+    <string name="add_entry_location_dialog_title">Standort wählen</string>
+    <string name="add_entry_location_dialog_hint">Tippe auf die Karte oder ziehe die Nadel. Beim Öffnen erscheint dein aktueller Standort.</string>
+    <string name="add_entry_location_current">Aktueller Standort</string>
+    <string name="add_entry_location_confirm">Diesen Punkt verwenden</string>
+    <string name="add_entry_location_cancel">Abbrechen</string>
+    <string name="add_entry_location_locating">Standort wird ermittelt…</string>
+
     <string name="add_entry_section_files">Foto / Dokument</string>
     <string name="add_entry_add_file">Datei hinzufügen (%1$s, %2$d MB)</string>
     <string name="add_entry_remove_file">Entfernen</string>
@@ -34,4 +45,13 @@
 
     <string name="add_entry_footer_hint">Der Eintrag wird mit dem gewählten Datum und der Uhrzeit in die Zeitleiste übernommen; du kannst ihn später bearbeiten.</string>
     <string name="add_entry_save">Zur Geschichte hinzufügen</string>
+
+    <!-- Eintrag bearbeiten -->
+    <string name="edit_entry_title">Eintrag bearbeiten</string>
+    <string name="edit_entry_eyebrow">IN DER ZEITLEISTE</string>
+    <string name="edit_entry_headline">Was möchtest du ändern?</string>
+    <string name="edit_entry_intro">Ändere Datum, Notiz oder Ort; vorhandene Fotos und Dokumente bleiben erhalten.</string>
+    <string name="edit_entry_save">Änderungen speichern</string>
+    <string name="edit_entry_existing_files">Vorhandene Dateien</string>
+    <string name="edit_entry_add_files_hint">Neue Dateien werden zu den vorhandenen hinzugefügt; vorhandene Dateien bleiben erhalten.</string>
 </resources>

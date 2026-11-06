@@ -3,19 +3,25 @@ import Link from 'next/link';
 import { EmptyState } from '@/components/EmptyState';
 import { FeedCard } from '@/components/FeedCard';
 import { FollowButton } from '@/components/FollowButton';
+import { FriendButton } from '@/components/FriendButton';
 import { Icon } from '@/components/Icons';
 import { MediaImage } from '@/components/MediaImage';
 import { api, requireViewer } from '@/lib/api';
 import { initials, typeIconName } from '@/lib/format';
 import { getI18n, getT } from '@/lib/i18n/server';
-import type { Asset, CursorPage, FeedPost, Paged, UserMini } from '@/lib/types';
+import type { Asset, CursorPage, FeedPost, FriendStatus, Paged, UserMini } from '@/lib/types';
 
 export async function generateMetadata(): Promise<Metadata> {
   const t = await getT();
   return { title: t('Keşfet') };
 }
 
-type Suggestion = UserMini & { bio: string | null; followerCount: number; isFollowing: boolean };
+type Suggestion = UserMini & {
+  bio: string | null;
+  followerCount: number;
+  isFollowing: boolean;
+  friendStatus: FriendStatus;
+};
 
 export default async function ExplorePage() {
   const { t, locale } = await getI18n();
@@ -127,11 +133,18 @@ export default async function ExplorePage() {
                         </small>
                       </span>
                     </Link>
-                    <FollowButton
-                      username={person.username}
-                      initial={person.isFollowing}
-                      compact
-                    />
+                    <span className="person-actions">
+                      <FriendButton
+                        username={person.username}
+                        initial={person.friendStatus}
+                        compact
+                      />
+                      <FollowButton
+                        username={person.username}
+                        initial={person.isFollowing}
+                        compact
+                      />
+                    </span>
                   </div>
                 ))}
               </div>

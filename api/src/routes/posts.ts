@@ -95,7 +95,7 @@ export async function postRoutes(app: FastifyInstance): Promise<void> {
     if (body.entryId) {
       const entry = await queryOne<{
         asset_id: string;
-        visibility: 'private' | 'selected' | 'public';
+        visibility: 'private' | 'selected' | 'friends' | 'public';
         deleted_at: Date | null;
       }>(`SELECT asset_id, visibility, deleted_at FROM journal_entries WHERE id = $1`, [
         body.entryId,

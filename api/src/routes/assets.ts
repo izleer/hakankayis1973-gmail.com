@@ -12,7 +12,7 @@ import {
   type Visibility,
 } from '../lib/access.js';
 import { audit } from '../lib/audit.js';
-import { assetSelect } from '../lib/asset-select.js';
+import { assetSelect, buildAssetSelect } from '../lib/asset-select.js';
 import { ApiError, conflict, forbidden, notFound } from '../lib/errors.js';
 import {
   decodeCursor,
@@ -30,7 +30,7 @@ import { mapAsset, mapEntry, mapUserMini, mediaForEntries } from '../lib/seriali
 const listQuery = z.object({
   q: z.string().trim().max(120).optional(),
   type: z.string().trim().max(60).optional(),
-  visibility: z.enum(['private', 'selected', 'public']).optional(),
+  visibility: z.enum(['private', 'selected', 'friends', 'public']).optional(),
   status: z.enum(['active', 'archived']).optional(),
   sort: z.enum(['recent', 'updated', 'title']).default('recent'),
   page: z.coerce.number().int().min(1).default(1),
@@ -50,7 +50,7 @@ const createBody = z.object({
   typeId: z.string().trim().min(1).max(60),
   title: z.string().trim().min(1).max(120),
   description: z.string().trim().max(2000).optional().nullable(),
-  visibility: z.enum(['private', 'selected', 'public']).default('private'),
+  visibility: z.enum(['private', 'selected', 'friends', 'public']).default('private'),
   attributes: z.record(z.unknown()).default({}),
   locationName: z.string().trim().max(160).optional().nullable(),
   latitude: z.number().min(-90).max(90).optional().nullable(),
@@ -65,7 +65,7 @@ const createBody = z.object({
       title: z.string().trim().max(140).optional().nullable(),
       body: z.string().trim().max(5000).optional().nullable(),
       occurredAt: isoDate.optional(),
-      visibility: z.enum(['private', 'selected', 'public']).optional(),
+      visibility: z.enum(['private', 'selected', 'friends', 'public']).optional(),
     })
     .optional()
     .nullable(),
@@ -75,7 +75,7 @@ const updateBody = z.object({
   typeId: z.string().trim().min(1).max(60).optional(),
   title: z.string().trim().min(1).max(120).optional(),
   description: z.string().trim().max(2000).optional().nullable(),
-  visibility: z.enum(['private', 'selected', 'public']).optional(),
+  visibility: z.enum(['private', 'selected', 'friends', 'public']).optional(),
   status: z.enum(['active', 'archived']).optional(),
   attributes: z.record(z.unknown()).optional(),
   locationName: z.string().trim().max(160).optional().nullable(),
@@ -84,6 +84,8 @@ const updateBody = z.object({
   acquiredAt: dateOnly.optional().nullable(),
   coverMediaId: uuid.optional().nullable(),
   removeCover: z.boolean().optional(),
+  // Konumu tamamen kaldırmak için; yalnızca null alanlar istemcide düşürülür.
+  clearLocation: z.boolean().optional(),
 });
 
 const accessBody = z.object({
@@ -128,7 +130,8 @@ async function attachEntry(
 ): Promise<string | null> {
   if (!input) return null;
   if (!input.body?.trim() && !input.title?.trim()) return null;
-  const requested = input.visibility ?? 'private';
+  const requested =
+    input.visibility ?? (assetVisibility === 'friends' ? 'friends' : 'private');
   if (visibilityRank(requested) > visibilityRank(assetVisibility)) {
     throw new ApiError(
       422,
@@ -320,6 +323,91 @@ export async function assetRoutes(app: FastifyInstance): Promise<void> {
     return reply.status(201).send({ data: { asset } });
   });
 
+  const sharedQuery = listQuery.pick({ q: true, type: true, page: true, limit: true }).extend({
+    friends: z
+      .string()
+      .optional()
+      .transform((value) => value === '1' || value === 'true'),
+  });
+
+  app.get('/shared', async (req) => {
+    const viewer = await requireViewer(req);
+    const filters = parseQuery(sharedQuery, req.query);
+    const offset = (filters.page - 1) * filters.limit;
+    const params: unknown[] = [viewer.id];
+    let index = 2;
+
+    const friendExpr = `EXISTS (
+      SELECT 1 FROM friendships f
+      WHERE f.status = 'accepted'
+        AND ((f.requester_id = $1 AND f.addressee_id = a.owner_id)
+          OR (f.requester_id = a.owner_id AND f.addressee_id = $1))
+    )`;
+    const clauses = [
+      `a.owner_id <> $1`,
+      `a.deleted_at IS NULL`,
+      `a.status = 'active'`,
+      `((a.visibility = 'friends' AND ${friendExpr}) OR (a.visibility = 'selected' AND ar.id IS NOT NULL))`,
+      `NOT EXISTS (
+        SELECT 1 FROM blocks b
+        WHERE (b.blocker_id = $1 AND b.blocked_id = a.owner_id)
+           OR (b.blocker_id = a.owner_id AND b.blocked_id = $1)
+      )`,
+    ];
+
+    if (filters.friends) {
+      clauses.push(`a.visibility = 'friends' AND ${friendExpr}`);
+    }
+    if (filters.q) {
+      clauses.push(`(a.title ILIKE $${index} OR a.description ILIKE $${index})`);
+      params.push(`%${filters.q}%`);
+      index += 1;
+    }
+    if (filters.type) {
+      clauses.push(`(a.type_id = $${index} OR t.parent_id = $${index})`);
+      params.push(filters.type);
+      index += 1;
+    }
+
+    const select = buildAssetSelect(
+      `ar.created_at AS shared_at, ${friendExpr} AS is_friend,`,
+    );
+    const rows = await query<Record<string, any>>(
+      `${select}
+       LEFT JOIN access_rules ar
+         ON ar.resource_type = 'asset' AND ar.resource_id = a.id AND ar.user_id = $1
+       WHERE ${clauses.join(' AND ')}
+       ORDER BY CASE WHEN a.visibility = 'friends' THEN a.updated_at ELSE ar.created_at END DESC,
+                a.id DESC
+       LIMIT $${index} OFFSET $${index + 1}`,
+      [...params, filters.limit, offset],
+    );
+    const totalRow = await queryOne<{ count: string }>(
+      `SELECT count(*) FROM assets a
+       JOIN asset_types t ON t.id = a.type_id
+       LEFT JOIN access_rules ar
+         ON ar.resource_type = 'asset' AND ar.resource_id = a.id AND ar.user_id = $1
+       WHERE ${clauses.join(' AND ')}`,
+      params,
+    );
+
+    return {
+      data: {
+        items: await Promise.all(
+          rows.map(async (row) => ({
+            ...(await mapAsset(row, req.locale)),
+            relation: row.visibility === 'friends' ? 'friends' : 'granted',
+            sharedAt: iso(row.shared_at ?? row.updated_at),
+            isFriend: Boolean(row.is_friend),
+          })),
+        ),
+        page: filters.page,
+        pageSize: filters.limit,
+        total: Number(totalRow?.count ?? 0),
+      },
+    };
+  });
+
   app.get('/:id', async (req) => {
     const viewer = await optionalViewer(req);
     const { id } = z.object({ id: uuid }).parse(req.params);
@@ -382,7 +470,8 @@ export async function assetRoutes(app: FastifyInstance): Promise<void> {
 
     const isShared =
       viewer && !isOwner && !staff
-        ? Boolean(
+        ? assetRow.visibility === 'friends' ||
+          Boolean(
             await queryOne(
               `SELECT 1 FROM access_rules WHERE resource_type = 'asset' AND resource_id = $1 AND user_id = $2`,
               [id, viewer.id],
@@ -491,8 +580,9 @@ export async function assetRoutes(app: FastifyInstance): Promise<void> {
       await query(
         `UPDATE journal_entries
          SET visibility = CASE
-           WHEN $1 = 'private' THEN 'private'::visibility
-           WHEN visibility = 'public' THEN 'selected'::visibility
+           WHEN visibility = 'public' AND $1 <> 'public' THEN $1::visibility
+           WHEN visibility = 'friends' AND $1 IN ('private', 'selected') THEN $1::visibility
+           WHEN visibility = 'selected' AND $1 = 'private' THEN 'private'::visibility
            ELSE visibility
          END
          WHERE asset_id = $2 AND visibility <> 'private'`,
@@ -508,9 +598,13 @@ export async function assetRoutes(app: FastifyInstance): Promise<void> {
          visibility = COALESCE($6, visibility),
          status = COALESCE($7, status),
          attributes = COALESCE($8::jsonb, attributes),
-         location_name = CASE WHEN $9::boolean THEN $10 ELSE location_name END,
-         latitude = CASE WHEN $11::boolean THEN $12 ELSE latitude END,
-         longitude = CASE WHEN $11::boolean THEN $13 ELSE longitude END,
+         location_name = CASE
+           WHEN $18::boolean THEN NULL
+           WHEN $9::boolean THEN $10
+           ELSE location_name
+         END,
+         latitude = CASE WHEN $18::boolean THEN NULL WHEN $11::boolean THEN $12 ELSE latitude END,
+         longitude = CASE WHEN $18::boolean THEN NULL WHEN $11::boolean THEN $13 ELSE longitude END,
          acquired_at = CASE WHEN $14::boolean THEN $15::date ELSE acquired_at END,
          cover_media_id = CASE WHEN $16::boolean THEN NULL WHEN $17::uuid IS NOT NULL THEN $17 ELSE cover_media_id END
        WHERE id = $1`,
@@ -532,6 +626,7 @@ export async function assetRoutes(app: FastifyInstance): Promise<void> {
         body.acquiredAt ?? null,
         Boolean(body.removeCover),
         body.coverMediaId ?? null,
+        Boolean(body.clearLocation),
       ],
     );
 

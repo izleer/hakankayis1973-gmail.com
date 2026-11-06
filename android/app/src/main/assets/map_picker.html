@@ -1,0 +1,68 @@
+<!doctype html>
+<html lang="tr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <link rel="stylesheet" href="leaflet/leaflet.css">
+  <style>
+    /* Yüzde tabanlı yükseklik Android WebView'de 0'a çözülebiliyor; sabit
+       konumlanan harita doğrudan görünüm alanını doldurur. */
+    html, body { margin: 0; padding: 0; background: #efece3; }
+    #map { position: fixed; top: 0; right: 0; bottom: 0; left: 0; background: #efece3; }
+    .leaflet-control-attribution { font-size: 10px; }
+  </style>
+</head>
+<body>
+<div id="map"></div>
+<script src="leaflet/leaflet.js"></script>
+<script>
+(function () {
+  var params = new URLSearchParams(location.search);
+  var lat = parseFloat(params.get('lat'));
+  var lng = parseFloat(params.get('lng'));
+  if (!isFinite(lat) || !isFinite(lng)) { lat = 41.0369; lng = 28.9857; }
+  var zoom = parseInt(params.get('z') || '16', 10) || 16;
+
+  var map = L.map('map', { zoomControl: true, attributionControl: true }).setView([lat, lng], zoom);
+  L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
+    maxZoom: 19,
+    attribution: '&copy; OpenStreetMap'
+  }).addTo(map);
+
+  var marker = L.marker([lat, lng], { draggable: true }).addTo(map);
+
+  function report() {
+    var p = marker.getLatLng();
+    try { AndroidMap.report(p.lat, p.lng); } catch (e) {}
+  }
+
+  map.on('click', function (e) {
+    marker.setLatLng(e.latlng);
+    report();
+  });
+  marker.on('dragend', report);
+
+  // Programatik konumlandırma kullanıcı hareketi sayılmaz; raporlanmaz.
+  window.setMarker = function (la, ln, z) {
+    marker.setLatLng([la, ln]);
+    map.setView([la, ln], z || map.getZoom(), { animate: true });
+  };
+  window.getMarker = function () {
+    var p = marker.getLatLng();
+    return p.lat + ',' + p.lng;
+  };
+
+  // Görünüm alanı kesinleştikten sonra boyutu tazele; ilk yerleşimde
+  // oluşan boş döşeme alanını kapatır.
+  function refresh() {
+    map.invalidateSize();
+    var p = marker.getLatLng();
+    map.setView([p.lat, p.lng], map.getZoom());
+  }
+  setTimeout(refresh, 60);
+  setTimeout(refresh, 350);
+  window.addEventListener('resize', function () { map.invalidateSize(); });
+})();
+</script>
+</body>
+</html>

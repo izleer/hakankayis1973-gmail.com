@@ -6,6 +6,7 @@
     <string name="asset_detail_tab_people">Personen</string>
 
     <!-- Obere Aktionen -->
+    <string name="asset_detail_edit_asset">Objekt bearbeiten</string>
     <string name="asset_detail_add_entry">Eintrag hinzufügen</string>
     <string name="asset_detail_share_with_people">Mit Personen teilen</string>
 
@@ -42,6 +43,7 @@
 
     <!-- Löschen und Bildansicht -->
     <string name="asset_detail_delete">Löschen</string>
+    <string name="asset_detail_edit_entry">Eintrag bearbeiten</string>
     <string name="asset_detail_delete_title">Eintrag löschen?</string>
     <string name="asset_detail_delete_body">Dieser Eintrag und die zugehörigen Medien werden aus deinem Archiv entfernt. Das lässt sich nicht rückgängig machen.</string>
     <string name="asset_detail_cancel">Abbrechen</string>

@@ -3,11 +3,14 @@ import { stricterVisibility, visibilityRank } from '../src/lib/access.js';
 import { hashPassword, passwordIssues, verifyPassword } from '../src/lib/password.js';
 
 describe('görünürlük kuralları', () => {
-  it('özel < seçili < herkese açık sırasını korur', () => {
+  it('özel < seçili < arkadaşlar < herkese açık sırasını korur', () => {
     expect(visibilityRank('private')).toBeLessThan(visibilityRank('selected'));
-    expect(visibilityRank('selected')).toBeLessThan(visibilityRank('public'));
+    expect(visibilityRank('selected')).toBeLessThan(visibilityRank('friends'));
+    expect(visibilityRank('friends')).toBeLessThan(visibilityRank('public'));
     expect(stricterVisibility('public', 'selected')).toBe('selected');
     expect(stricterVisibility('private', 'public')).toBe('private');
+    expect(stricterVisibility('friends', 'selected')).toBe('selected');
+    expect(stricterVisibility('public', 'friends')).toBe('friends');
   });
 });
 

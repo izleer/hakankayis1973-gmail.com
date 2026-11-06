@@ -163,12 +163,14 @@ export const entryTypeDescriptions: Record<EntryType, string> = {
 export const visibilityLabels: Record<Visibility, string> = {
   private: 'Yalnızca ben',
   selected: 'Seçili kişiler',
+  friends: 'Arkadaşlar',
   public: 'Herkese açık',
 };
 
 export const visibilityHints: Record<Visibility, string> = {
   private: 'Bu varlık ve kayıtları yalnızca sizin hafızanızda kalır.',
   selected: 'Yalnızca erişim verdiğiniz kişiler görebilir.',
+  friends: 'Yalnızca kabul edilmiş arkadaşlarınız görebilir.',
   public: 'Profilinizde ve keşfet akışında görünür.',
 };
 

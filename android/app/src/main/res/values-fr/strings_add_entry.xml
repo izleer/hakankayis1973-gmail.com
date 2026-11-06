@@ -24,6 +24,17 @@
     <string name="add_entry_section_visibility">Qui peut le voir ?</string>
     <string name="add_entry_visibility_hint">Une entrée ne peut pas être plus visible que son bien.</string>
 
+    <string name="add_entry_section_location">Lieu (facultatif)</string>
+    <string name="add_entry_location_hint">Associez l’entrée à un lieu si vous le souhaitez ; faites glisser l’épingle sur la carte pour le modifier.</string>
+    <string name="add_entry_location_pick">Choisir sur la carte</string>
+    <string name="add_entry_location_clear">Retirer</string>
+    <string name="add_entry_location_dialog_title">Choisir le lieu</string>
+    <string name="add_entry_location_dialog_hint">Touchez la carte ou faites glisser l’épingle. Votre position actuelle apparaît à l’ouverture.</string>
+    <string name="add_entry_location_current">Position actuelle</string>
+    <string name="add_entry_location_confirm">Utiliser ce point</string>
+    <string name="add_entry_location_cancel">Annuler</string>
+    <string name="add_entry_location_locating">Localisation en cours…</string>
+
     <string name="add_entry_section_files">Photo / document</string>
     <string name="add_entry_add_file">Ajouter un fichier (%1$s, %2$d Mo)</string>
     <string name="add_entry_remove_file">Retirer</string>
@@ -34,4 +45,13 @@
 
     <string name="add_entry_footer_hint">L\'entrée est ajoutée à la chronologie avec la date et l\'heure choisies ; vous pourrez la modifier ensuite.</string>
     <string name="add_entry_save">Ajouter à l\'histoire</string>
+
+    <!-- Modifier l'entrée -->
+    <string name="edit_entry_title">Modifier l\'entrée</string>
+    <string name="edit_entry_eyebrow">DANS LA CHRONOLOGIE</string>
+    <string name="edit_entry_headline">Que souhaitez-vous corriger ?</string>
+    <string name="edit_entry_intro">Modifiez la date, la note ou le lieu ; les photos et documents existants sont conservés.</string>
+    <string name="edit_entry_save">Enregistrer les modifications</string>
+    <string name="edit_entry_existing_files">Fichiers existants</string>
+    <string name="edit_entry_add_files_hint">Les nouveaux fichiers s\'ajoutent aux existants ; les fichiers existants sont conservés.</string>
 </resources>

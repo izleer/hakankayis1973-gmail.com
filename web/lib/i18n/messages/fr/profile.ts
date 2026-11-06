@@ -21,6 +21,31 @@ const profile = {
   'İlk varlığı ekle': 'Ajouter votre premier objet',
   Paylaşımlar: 'Publications',
   'Hafızadan notlar': 'Notes de mémoire',
+  'Yalnızca fotoğraf yükleyebilirsin.': 'Tu ne peux téléverser qu’une photo.',
+  'Dosya en fazla 10 MB olabilir.': 'Le fichier peut faire au maximum 10 Mo.',
+  'Fotoğraf yüklenemedi.': 'La photo n’a pas pu être téléversée.',
+  'Profil fotoğrafı kaldırılsın mı?': 'Supprimer la photo de profil ?',
+  'Fotoğraf kaldırılamadı.': 'La photo n’a pas pu être supprimée.',
+  'Profil fotoğrafını değiştir': 'Changer la photo de profil',
+  'Fotoğrafı kaldır': 'Supprimer la photo',
+  'SOSYAL HESAPLAR': 'COMPTES SOCIAUX',
+  'Facebook ve Instagram': 'Facebook et Instagram',
+  'Bağlantı yok': 'Aucune connexion',
+  'Sunucuda Meta uygulama bilgileri tanımlanınca Facebook ve Instagram bağlantısı açılır. Kurulum adımları sosyal ayarlarda.':
+    'Les connexions Facebook et Instagram seront disponibles dès que les identifiants de l’application Meta seront configurés sur le serveur. Les étapes de configuration se trouvent dans les réglages sociaux.',
+  'Henüz bağlı hesap yok. Facebook Sayfanı bağla; sayfaya bağlı Instagram Business hesabı varsa otomatik eklenir.':
+    'Aucun compte connecté pour l’instant. Connecte ta Page Facebook ; un compte Instagram Business lié est ajouté automatiquement.',
+  'Hesap ekle': 'Ajouter un compte',
+  'Sosyal ayarlar': 'Réglages sociaux',
+  'Varlığını paylaş': 'Partager un bien',
+  'Paylaşılacak varlık': 'Bien à partager',
+  'Hazırlanıyor…': 'Préparation…',
+  'Paylaş': 'Partager',
+  'Paylaşmak için önce bir varlık ekle.': 'Ajoute d’abord un bien pour le partager.',
+  'Instagram için medya adresinin herkese açık HTTPS olması gerekir.':
+    'Instagram exige que l’adresse du média soit en HTTPS public.',
+  '{name} bağlantısı kaldırıldı.': '{name} a été déconnecté.',
+  'Varlık yüklenemedi.': 'Le bien n’a pas pu être chargé.',
 } as const;
 
 export default profile;

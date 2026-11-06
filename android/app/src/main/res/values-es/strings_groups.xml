@@ -1,0 +1,45 @@
+<resources>
+    <!-- Grupos -->
+    <string name="groups_subtitle">Recordar juntos</string>
+    <string name="groups_mine_title">Tus grupos</string>
+    <string name="groups_mine_empty_title">Aún no tienes grupos</string>
+    <string name="groups_mine_empty_body">Únete a una comunidad afín a tus intereses y hagan crecer los recuerdos juntos.</string>
+    <string name="groups_discover_title">Comunidades por descubrir</string>
+    <string name="groups_discover_empty_title">No hay comunidades nuevas ahora</string>
+    <string name="groups_discover_empty_body">Las nuevas comunidades aparecerán aquí cuando se abran.</string>
+    <string name="groups_visibility_private">Grupo privado</string>
+    <string name="groups_join_policy_approval">Ingreso con aprobación</string>
+    <string name="groups_join_policy_open">Abierto a todos</string>
+    <string name="groups_role_owner">Fundador</string>
+    <string name="groups_role_admin">Administrador</string>
+    <string name="groups_role_moderator">Moderador</string>
+    <string name="groups_role_member">Miembro</string>
+    <string name="groups_join">Unirse al grupo</string>
+    <string name="groups_join_busy">Uniéndose…</string>
+    <string name="groups_leave">Salir del grupo</string>
+    <string name="groups_pending">Esperando aprobación</string>
+    <string name="groups_pending_hint">Tu solicitud de ingreso espera la aprobación de un administrador del grupo.</string>
+    <string name="groups_leave_confirm_title">¿Salir del grupo?</string>
+    <string name="groups_leave_confirm_body">Tus bienes se quedan contigo; ya no verás el contenido compartido del grupo.</string>
+    <string name="groups_leave_confirm">Salir</string>
+    <string name="groups_leave_cancel">Cancelar</string>
+    <string name="groups_rules_title">Reglas del grupo</string>
+    <string name="groups_members_title">Miembros</string>
+    <string name="groups_assets_title">Bienes compartidos en el grupo</string>
+    <string name="groups_assets_empty">Aún no se ha compartido ningún bien en este grupo.</string>
+    <string name="groups_assets_locked">Únete al grupo para ver sus bienes.</string>
+    <string name="groups_owner_by">Fundador: %1$s</string>
+    <string name="groups_stat_members">Miembros</string>
+    <string name="groups_stat_posts">Publicaciones</string>
+    <string name="groups_stat_assets">Bienes</string>
+
+    <plurals name="groups_member_count">
+        <item quantity="one">%1$d miembro</item>
+        <item quantity="other">%1$d miembros</item>
+    </plurals>
+
+    <!-- Avisos -->
+    <string name="notice_group_joined">Te uniste al grupo.</string>
+    <string name="notice_group_pending">Tu solicitud de ingreso fue enviada.</string>
+    <string name="notice_group_left">Saliste del grupo.</string>
+</resources>

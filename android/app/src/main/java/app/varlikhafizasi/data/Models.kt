@@ -40,6 +40,7 @@ data class UserStats(
     val posts: Int = 0,
     val followers: Int = 0,
     val following: Int = 0,
+    val friends: Int = 0,
 )
 
 @Serializable
@@ -59,6 +60,7 @@ data class User(
     val isFollowing: Boolean = false,
     val isBlocked: Boolean = false,
     val blockedBy: Boolean = false,
+    val friendStatus: String? = null,
 )
 
 // ---------------------------------------------------------------------------
@@ -100,6 +102,9 @@ data class Asset(
     val entryCount: Int = 0,
     val createdAt: String? = null,
     val updatedAt: String? = null,
+    val relation: String? = null,
+    val sharedAt: String? = null,
+    val isFriend: Boolean = false,
 )
 
 // ---------------------------------------------------------------------------
@@ -181,6 +186,7 @@ data class Stats(
     val sharedWithMe: Int = 0,
     val followers: Int = 0,
     val following: Int = 0,
+    val friends: Int = 0,
     val recentEntries: List<Entry> = emptyList(),
 )
 
@@ -339,6 +345,98 @@ data class ProfilePayload(
 )
 
 // ---------------------------------------------------------------------------
+// Arkadaşlık
+// ---------------------------------------------------------------------------
+
+@Serializable
+data class Friend(
+    val id: String,
+    val username: String,
+    val displayName: String,
+    val avatarUrl: String? = null,
+    val since: String? = null,
+)
+
+@Serializable
+data class FriendRequest(
+    val user: UserMini,
+    val requestedAt: String? = null,
+)
+
+@Serializable
+data class FriendsPayload(val items: List<Friend> = emptyList())
+
+@Serializable
+data class FriendRequestsPayload(
+    val incoming: List<FriendRequest> = emptyList(),
+    val outgoing: List<FriendRequest> = emptyList(),
+)
+
+@Serializable
+data class FriendActionResult(val status: String = "none")
+
+// ---------------------------------------------------------------------------
+// Sosyal paylaşım
+// ---------------------------------------------------------------------------
+
+@Serializable
+data class SocialConfig(
+    val configured: Boolean = false,
+    val missing: List<String> = emptyList(),
+    val graphVersion: String = "",
+    val redirectUri: String = "",
+    val webReturnUrl: String = "",
+    val mediaPublicReady: Boolean = false,
+    val instagramReady: Boolean = false,
+)
+
+@Serializable
+data class SocialConnection(
+    val id: String,
+    val provider: String,
+    val externalId: String = "",
+    val accountName: String,
+    val accountUsername: String? = null,
+    val pageId: String = "",
+    val pageName: String = "",
+    val createdAt: String? = null,
+)
+
+@Serializable
+data class SocialConnectionsPayload(
+    val config: SocialConfig = SocialConfig(),
+    val items: List<SocialConnection> = emptyList(),
+)
+
+@Serializable
+data class SocialStartPayload(
+    val url: String,
+    val redirectUri: String? = null,
+    val expiresIn: Int = 0,
+)
+
+@Serializable
+data class SocialShare(
+    val id: String,
+    val assetId: String? = null,
+    val provider: String = "facebook",
+    val format: String = "post",
+    val status: String = "pending",
+    val caption: String? = null,
+    val permalink: String? = null,
+    val externalId: String? = null,
+    val error: String? = null,
+    val createdAt: String? = null,
+    val publishedAt: String? = null,
+)
+
+@Serializable
+data class SocialSharePayload(val share: SocialShare)
+
+@Serializable
+data class UserPayload(val user: User)
+
+// ---------------------------------------------------------------------------
 // İstek gövdeleri
 // ---------------------------------------------------------------------------
 
@@ -373,6 +471,18 @@ data class UploadRequest(
 )
 
 @Serializable
+data class UpdateProfileRequest(val avatarUrl: String? = null)
+
+@Serializable
+data class SocialShareRequest(
+    val assetId: String,
+    val provider: String,
+    val format: String,
+    val connectionId: String? = null,
+    val caption: String? = null,
+)
+
+@Serializable
 data class MediaPayload(val media: Media)
 
 @Serializable
@@ -387,6 +497,63 @@ data class AccessUserPayload(val user: UserMini)
 @Serializable
 data class EntryPayload(val entry: Entry)
 
+// ---------------------------------------------------------------------------
+// Topluluklar
+// ---------------------------------------------------------------------------
+
+@Serializable
+data class Group(
+    val id: String,
+    val slug: String,
+    val name: String,
+    val description: String? = null,
+    val category: String? = null,
+    val rules: String? = null,
+    val visibility: String = "public",
+    val joinPolicy: String = "open",
+    val coverUrl: String? = null,
+    val memberCount: Int = 0,
+    val postCount: Int = 0,
+    val assetCount: Int = 0,
+    val role: String? = null,
+    val membershipStatus: String? = null,
+    val owner: UserMini? = null,
+    val createdAt: String? = null,
+)
+
+@Serializable
+data class GroupPage(
+    val items: List<Group> = emptyList(),
+    val total: Int = 0,
+)
+
+@Serializable
+data class GroupMember(
+    val user: UserMini,
+    val role: String = "member",
+    val joinedAt: String? = null,
+)
+
+@Serializable
+data class GroupDetailPayload(
+    val community: Group,
+    val members: List<GroupMember> = emptyList(),
+    val isMember: Boolean = false,
+    val isOwner: Boolean = false,
+    val canPost: Boolean = false,
+    val canManage: Boolean = false,
+    val membershipStatus: String? = null,
+)
+
+@Serializable
+data class GroupAssetsPayload(val items: List<Asset> = emptyList())
+
+@Serializable
+data class GroupJoinResult(
+    val joined: Boolean = false,
+    val pending: Boolean = false,
+)
+
 @Serializable
 data class CreateAssetRequest(
     val typeId: String,
@@ -397,6 +564,23 @@ data class CreateAssetRequest(
     val locationName: String? = null,
     val latitude: Double? = null,
     val longitude: Double? = null,
+)
+
+/**
+ * PATCH /v1/assets/:id gövdesi. Konumu kaldırmak için [clearLocation] gönderilir;
+ * null alanlar istemcide düşürüldüğü için ayrı bayrak gerekir.
+ */
+@Serializable
+data class UpdateAssetRequest(
+    val typeId: String? = null,
+    val title: String? = null,
+    val description: String? = null,
+    val visibility: String? = null,
+    val coverMediaId: String? = null,
+    val locationName: String? = null,
+    val latitude: Double? = null,
+    val longitude: Double? = null,
+    val clearLocation: Boolean? = null,
 )
 
 @Serializable
@@ -413,6 +597,28 @@ data class CreateEntryRequest(
     val body: String? = null,
     val visibility: String,
     val occurredAt: String? = null,
+    val locationName: String? = null,
+    val latitude: Double? = null,
+    val longitude: Double? = null,
+    val mediaIds: List<String> = emptyList(),
+    val measurements: List<MeasurementInput> = emptyList(),
+)
+
+/**
+ * PATCH /v1/entries/:id gövdesi. Boş metinler başlığı/notu temizler;
+ * konumu kaldırmak için [clearLocation] gönderilir.
+ */
+@Serializable
+data class UpdateEntryRequest(
+    val type: String? = null,
+    val title: String? = null,
+    val body: String? = null,
+    val visibility: String? = null,
+    val occurredAt: String? = null,
+    val locationName: String? = null,
+    val latitude: Double? = null,
+    val longitude: Double? = null,
+    val clearLocation: Boolean? = null,
     val mediaIds: List<String> = emptyList(),
     val measurements: List<MeasurementInput> = emptyList(),
 )

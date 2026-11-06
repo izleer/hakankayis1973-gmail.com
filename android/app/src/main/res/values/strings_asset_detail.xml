@@ -6,6 +6,7 @@
     <string name="asset_detail_tab_people">Kişiler</string>
 
     <!-- Üst eylemler -->
+    <string name="asset_detail_edit_asset">Varlığı düzelt</string>
     <string name="asset_detail_add_entry">Kayıt ekle</string>
     <string name="asset_detail_share_with_people">Kişilerle paylaş</string>
 
@@ -42,6 +43,7 @@
 
     <!-- Silme ve görsel görüntüleyici -->
     <string name="asset_detail_delete">Sil</string>
+    <string name="asset_detail_edit_entry">Kaydı düzelt</string>
     <string name="asset_detail_delete_title">Kayıt silinsin mi?</string>
     <string name="asset_detail_delete_body">Bu kayıt ve bağlı medyaları arşivden kaldırılacak. Bu işlem geri alınamaz.</string>
     <string name="asset_detail_cancel">Vazgeç</string>

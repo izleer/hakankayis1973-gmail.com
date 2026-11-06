@@ -1,7 +1,9 @@
-export const assetSelect = `
+export function buildAssetSelect(extraColumns = ''): string {
+  return `
   SELECT a.id, a.owner_id, a.type_id, a.title, a.description, a.cover_url,
          a.visibility, a.status, a.attributes, a.location_name, a.latitude, a.longitude,
          a.acquired_at, a.created_at, a.updated_at,
+         ${extraColumns}
          t.label AS type_label, t.parent_id AS type_parent_id, t.icon AS type_icon,
          u.username AS owner_username, u.display_name AS owner_display_name,
          u.avatar_url AS owner_avatar_url,
@@ -13,3 +15,6 @@ export const assetSelect = `
   JOIN asset_types t ON t.id = a.type_id
   LEFT JOIN media cm ON cm.id = a.cover_media_id
 `;
+}
+
+export const assetSelect = buildAssetSelect();

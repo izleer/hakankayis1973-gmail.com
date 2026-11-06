@@ -27,6 +27,7 @@
     <string name="assets_visibility_label">Wer kann es sehen?</string>
     <string name="assets_visibility_selected_short">Ausgewählt</string>
     <string name="assets_visibility_public_hint">Erscheint im Entdecken-Feed. Du kannst das später ändern.</string>
+    <string name="assets_visibility_friends_hint">Sichtbar für deine bestätigten Freunde.</string>
     <string name="assets_visibility_selected_hint">Nur die Personen, mit denen du es teilst, können es sehen.</string>
     <string name="assets_visibility_private_hint">Nur du siehst es. Das ist die Standardeinstellung.</string>
     <string name="assets_cover_label">Titelbild</string>
@@ -35,6 +36,13 @@
     <string name="assets_cover_pick">Wähle ein Foto aus deiner Galerie</string>
     <string name="assets_error_type_required">Wähle zuerst einen Objekttyp.</string>
     <string name="assets_submit">Zum Gedächtnis hinzufügen</string>
+
+    <!-- Objekt bearbeiten -->
+    <string name="edit_asset_title">Objekt bearbeiten</string>
+    <string name="edit_asset_kicker">OBJEKT AKTUALISIEREN</string>
+    <string name="edit_asset_headline">Was möchtest du aktualisieren?</string>
+    <string name="edit_asset_intro">Ändere Name, Beschreibung, Sichtbarkeit oder Standort; Einträge und Dateien bleiben erhalten.</string>
+    <string name="edit_asset_save">Änderungen speichern</string>
 
     <!-- Standort -->
     <string name="assets_location_label">Standort</string>
