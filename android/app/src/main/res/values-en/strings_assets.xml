@@ -35,6 +35,7 @@
     <string name="assets_cover_change">Change</string>
     <string name="assets_cover_pick">Choose a photo from your gallery</string>
     <string name="assets_error_type_required">Choose an asset type first.</string>
+    <string name="assets_error_name_required">Enter an asset name.</string>
     <string name="assets_submit">Add to memory</string>
 
     <!-- Edit asset -->

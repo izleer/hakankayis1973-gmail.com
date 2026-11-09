@@ -35,6 +35,7 @@
     <string name="assets_cover_change">Ändern</string>
     <string name="assets_cover_pick">Wähle ein Foto aus deiner Galerie</string>
     <string name="assets_error_type_required">Wähle zuerst einen Objekttyp.</string>
+    <string name="assets_error_name_required">Gib einen Objektnamen ein.</string>
     <string name="assets_submit">Zum Gedächtnis hinzufügen</string>
 
     <!-- Objekt bearbeiten -->

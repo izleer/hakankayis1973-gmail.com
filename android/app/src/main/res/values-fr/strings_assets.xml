@@ -35,6 +35,7 @@
     <string name="assets_cover_change">Modifier</string>
     <string name="assets_cover_pick">Choisissez une photo dans votre galerie</string>
     <string name="assets_error_type_required">Choisissez d\'abord un type de bien.</string>
+    <string name="assets_error_name_required">Saisissez un nom de bien.</string>
     <string name="assets_submit">Ajouter à la mémoire</string>
 
     <!-- Modifier le bien -->

@@ -145,6 +145,7 @@ fun NewAssetScreen(
     var longitude by rememberSaveable { mutableStateOf<Double?>(null) }
     var clearLocation by rememberSaveable { mutableStateOf(false) }
     var seeded by rememberSaveable(assetId) { mutableStateOf(false) }
+    var attempted by rememberSaveable { mutableStateOf(false) }
     val scrollState = rememberScrollState()
     var viewersCardTop by remember { mutableStateOf(0) }
     var visibilityPickedByUser by rememberSaveable { mutableStateOf(false) }
@@ -155,7 +156,11 @@ fun NewAssetScreen(
     val options = remember(types) { flattenTypes(types) }
     val selected = options.firstOrNull { it.id == selectedId }
     val typeRequiredNotice = stringResource(R.string.assets_error_type_required)
+    val nameRequiredNotice = stringResource(R.string.assets_error_name_required)
     val viewersRequiredNotice = stringResource(R.string.error_asset_viewers_required)
+    val typeError = attempted && selectedId == null
+    val nameError = attempted && title.isBlank()
+    val viewersError = attempted && visibility == "selected" && viewerIds.isEmpty()
 
     val viewerOptions = remember(pickerFriends.data, assetViewers) {
         val seen = mutableSetOf<String>()
@@ -188,6 +193,17 @@ fun NewAssetScreen(
         if (visibility == "selected" && visibilityPickedByUser && viewersCardTop > 0) {
             delay(120)
             scrollState.animateScrollTo(
+                (viewersCardTop - scrollTopPadding).coerceAtLeast(0),
+            )
+        }
+    }
+
+    // Kaydet'e basıldığında ilk hatalı alanı görünür alana getir.
+    LaunchedEffect(attempted, typeError, nameError, viewersError) {
+        if (!attempted) return@LaunchedEffect
+        when {
+            typeError || nameError -> scrollState.animateScrollTo(0)
+            viewersError && viewersCardTop > 0 -> scrollState.animateScrollTo(
                 (viewersCardTop - scrollTopPadding).coerceAtLeast(0),
             )
         }
@@ -346,6 +362,14 @@ fun NewAssetScreen(
                     }
                 }
             }
+            if (typeError) {
+                Text(
+                    typeRequiredNotice,
+                    style = MaterialTheme.typography.bodySmall,
+                    color = Danger,
+                    modifier = Modifier.padding(start = 4.dp, top = 4.dp),
+                )
+            }
 
             Spacer(Modifier.height(16.dp))
             OutlinedTextField(
@@ -355,8 +379,17 @@ fun NewAssetScreen(
                 placeholder = { Text(stringResource(R.string.assets_name_placeholder)) },
                 singleLine = true,
                 enabled = !busy,
+                isError = nameError,
                 modifier = Modifier.fillMaxWidth(),
             )
+            if (nameError) {
+                Text(
+                    nameRequiredNotice,
+                    style = MaterialTheme.typography.bodySmall,
+                    color = Danger,
+                    modifier = Modifier.padding(start = 16.dp, top = 4.dp),
+                )
+            }
 
             Spacer(Modifier.height(12.dp))
             OutlinedTextField(
@@ -547,6 +580,14 @@ fun NewAssetScreen(
                     }
                 }
             }
+            if (viewersError) {
+                Text(
+                    viewersRequiredNotice,
+                    style = MaterialTheme.typography.bodySmall,
+                    color = Danger,
+                    modifier = Modifier.padding(start = 4.dp, top = 6.dp),
+                )
+            }
 
             Spacer(Modifier.height(20.dp))
             LocationPicker(
@@ -709,13 +750,9 @@ fun NewAssetScreen(
         ) {
             Button(
                 onClick = {
+                    attempted = true
                     val typeId = selectedId
-                    if (typeId == null) {
-                        vm.setNotice(typeRequiredNotice)
-                        return@Button
-                    }
-                    if (visibility == "selected" && viewerIds.isEmpty()) {
-                        vm.setNotice(viewersRequiredNotice)
+                    if (typeId == null || title.isBlank() || (visibility == "selected" && viewerIds.isEmpty())) {
                         return@Button
                     }
                     if (assetId != null) {

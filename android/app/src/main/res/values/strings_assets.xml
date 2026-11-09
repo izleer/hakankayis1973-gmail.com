@@ -35,6 +35,7 @@
     <string name="assets_cover_change">Değiştir</string>
     <string name="assets_cover_pick">Galeriden bir fotoğraf seç</string>
     <string name="assets_error_type_required">Önce bir varlık türü seçin.</string>
+    <string name="assets_error_name_required">Varlığın adını girin.</string>
     <string name="assets_submit">Hafızaya ekle</string>
 
     <!-- Varlık düzenleme -->
