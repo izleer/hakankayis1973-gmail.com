@@ -93,6 +93,7 @@ export async function canViewEntry(
 
   if (entry.visibility === 'public') return true;
   if (entry.visibility === 'friends') {
+    if (await isBlocked(viewer.id, asset.owner_id)) return false;
     return areFriends(viewer.id, asset.owner_id);
   }
   if (entry.visibility === 'selected') {
@@ -100,6 +101,57 @@ export async function canViewEntry(
     return hasAccessRule(viewer.id, 'asset', asset.id);
   }
   return false;
+}
+
+/**
+ * `canViewEntry()` ile aynı görünürlük kurallarını SQL'e taşır.
+ *
+ * Liste sorgularında kayıtları veritabanında filtrelemek için kullanılır.
+ * Parametre adları `$1` gibi yer tutuculardır; `entryAlias` ile kayıt
+ * tablosunun alias'ı değiştirilebilir.
+ *
+ * ÖNEMLİ: Buradaki kurallar `canViewEntry()` ile birlikte güncellenmelidir.
+ */
+export function entryVisibilitySql(options: {
+  isOwnerParam: string;
+  staffParam: string;
+  viewerParam: string;
+  ownerParam: string;
+  entryAlias?: string;
+}): string {
+  const entry = options.entryAlias ?? 'je';
+  const { isOwnerParam, staffParam, viewerParam, ownerParam } = options;
+
+  return `(
+    ${isOwnerParam}::boolean
+    OR ${staffParam}::boolean
+    OR ${entry}.author_id = ${viewerParam}
+    OR ${entry}.visibility = 'public'
+    OR (${entry}.visibility = 'selected' AND (
+      EXISTS (
+        SELECT 1 FROM access_rules ar
+        WHERE ar.resource_type = 'entry' AND ar.resource_id = ${entry}.id
+          AND ar.user_id = ${viewerParam}
+      )
+      OR EXISTS (
+        SELECT 1 FROM access_rules ar
+        WHERE ar.resource_type = 'asset' AND ar.resource_id = ${entry}.asset_id
+          AND ar.user_id = ${viewerParam}
+      )
+    ))
+    OR (${entry}.visibility = 'friends'
+      AND NOT EXISTS (
+        SELECT 1 FROM blocks b
+        WHERE (b.blocker_id = ${viewerParam} AND b.blocked_id = ${ownerParam})
+           OR (b.blocker_id = ${ownerParam} AND b.blocked_id = ${viewerParam})
+      )
+      AND EXISTS (
+        SELECT 1 FROM friendships f
+        WHERE f.status = 'accepted'
+          AND ((f.requester_id = ${viewerParam} AND f.addressee_id = ${ownerParam})
+            OR (f.requester_id = ${ownerParam} AND f.addressee_id = ${viewerParam}))
+      ))
+  )`;
 }
 
 export async function getAsset(assetId: string): Promise<AssetAccessRow> {

@@ -4,7 +4,9 @@ import { query, queryOne, transaction } from '../db.js';
 import {
   canViewAsset,
   canViewEntry,
+  entryVisibilitySql,
   getAsset,
+  isStaff,
   visibilityRank,
   type EntryAccessRow,
 } from '../lib/access.js';
@@ -294,9 +296,23 @@ export async function entryRoutes(app: FastifyInstance): Promise<void> {
     if (asset.deleted_at) notFound('Varlık bulunamadı.');
     const allowed = await canViewAsset(viewer, asset);
     if (!allowed) forbidden();
+    const viewerId = viewer?.id ?? '00000000-0000-0000-0000-000000000000';
     const rows = await query<Record<string, any>>(
-      `SELECT * FROM asset_measurements WHERE asset_id = $1 ORDER BY measured_at DESC`,
-      [id],
+      `SELECT am.*
+       FROM asset_measurements am
+       LEFT JOIN journal_entries je ON je.id = am.entry_id
+       WHERE am.asset_id = $1
+         AND (
+           am.entry_id IS NULL
+           OR (je.deleted_at IS NULL AND ${entryVisibilitySql({
+             isOwnerParam: '$2',
+             staffParam: '$3',
+             viewerParam: '$4',
+             ownerParam: '$5',
+           })})
+         )
+       ORDER BY am.measured_at DESC`,
+      [id, viewer?.id === asset.owner_id, isStaff(viewer), viewerId, asset.owner_id],
     );
     return {
       data: {

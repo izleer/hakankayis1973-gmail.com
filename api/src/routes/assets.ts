@@ -4,6 +4,7 @@ import { z } from 'zod';
 import { query, queryOne, transaction } from '../db.js';
 import {
   canViewEntry,
+  entryVisibilitySql,
   getAsset,
   isStaff,
   requireEditableAsset,
@@ -527,19 +528,22 @@ export async function assetRoutes(app: FastifyInstance): Promise<void> {
        FROM journal_entries je
        JOIN users u ON u.id = je.author_id AND u.deleted_at IS NULL
        WHERE je.asset_id = $1 AND je.deleted_at IS NULL
-         AND (
-           $2::boolean OR $3::boolean OR je.author_id = $4
-           OR je.visibility = 'public'
-           OR (je.visibility = 'selected' AND (
-             EXISTS (SELECT 1 FROM access_rules ar
-                     WHERE ar.resource_type = 'entry' AND ar.resource_id = je.id AND ar.user_id = $4)
-             OR EXISTS (SELECT 1 FROM access_rules ar
-                     WHERE ar.resource_type = 'asset' AND ar.resource_id = je.asset_id AND ar.user_id = $4)
-           ))
-         )
+         AND ${entryVisibilitySql({
+           isOwnerParam: '$2',
+           staffParam: '$3',
+           viewerParam: '$4',
+           ownerParam: '$6',
+         })}
        ORDER BY je.occurred_at DESC, je.id DESC
        LIMIT $5`,
-      [id, isOwner, staff, viewer?.id ?? '00000000-0000-0000-0000-000000000000', entryLimit + 1],
+      [
+        id,
+        isOwner,
+        staff,
+        viewer?.id ?? '00000000-0000-0000-0000-000000000000',
+        entryLimit + 1,
+        assetRow.owner_id,
+      ],
     );
     const hasMoreEntries = entryRows.length > entryLimit;
     const entryPage = hasMoreEntries ? entryRows.slice(0, entryLimit) : entryRows;
@@ -627,16 +631,12 @@ export async function assetRoutes(app: FastifyInstance): Promise<void> {
        FROM journal_entries je
        JOIN users u ON u.id = je.author_id AND u.deleted_at IS NULL
        WHERE je.asset_id = $1 AND je.deleted_at IS NULL
-         AND (
-           $2::boolean OR $3::boolean OR je.author_id = $4
-           OR je.visibility = 'public'
-           OR (je.visibility = 'selected' AND (
-             EXISTS (SELECT 1 FROM access_rules ar
-                     WHERE ar.resource_type = 'entry' AND ar.resource_id = je.id AND ar.user_id = $4)
-             OR EXISTS (SELECT 1 FROM access_rules ar
-                     WHERE ar.resource_type = 'asset' AND ar.resource_id = je.asset_id AND ar.user_id = $4)
-           ))
-         )
+         AND ${entryVisibilitySql({
+           isOwnerParam: '$2',
+           staffParam: '$3',
+           viewerParam: '$4',
+           ownerParam: '$8',
+         })}
          AND ($5::timestamptz IS NULL OR (je.occurred_at, je.id) < ($5::timestamptz, $6::uuid))
        ORDER BY je.occurred_at DESC, je.id DESC
        LIMIT $7`,
@@ -648,6 +648,7 @@ export async function assetRoutes(app: FastifyInstance): Promise<void> {
         cursor?.at ?? null,
         cursor?.id ?? null,
         limit + 1,
+        assetRow.owner_id,
       ],
     );
     const hasMore = rows.length > limit;
