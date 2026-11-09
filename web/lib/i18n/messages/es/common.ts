@@ -134,6 +134,7 @@ const common = {
   '{count} seçili': { one: '{count} seleccionada', other: '{count} seleccionadas' },
   'Arkadaşlarında ara': 'Buscar entre tus amigos',
   'Kişiler yükleniyor…': 'Cargando personas…',
+  'Kişiler yüklenemedi.': 'No se pudieron cargar las personas.',
   'Eşleşen kişi bulunamadı.': 'No se encontraron personas.',
   'Arkadaş listende kişi yok. Önce arkadaş ekleyebilirsin.':
     'Aún no hay nadie en tu lista de amigos. Puedes añadir amigos primero.',

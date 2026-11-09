@@ -38,8 +38,57 @@
         <item quantity="other">%1$d üye</item>
     </plurals>
 
+    <!-- Yeni grup -->
+    <string name="groups_new_title">Yeni grup</string>
+    <string name="groups_new_action_title">Yeni grup kur</string>
+    <string name="groups_new_action_body">Topluluğunu oluştur, anıları birlikte büyüt.</string>
+    <string name="groups_new_kicker">Yeni topluluk</string>
+    <string name="groups_new_headline">Bir grup kur</string>
+    <string name="groups_new_intro">Varlıklar sahiplerinde kalır. Grup, izin verdiğin parçaların etrafında insanları buluşturur.</string>
+    <string name="groups_name_label">Grup adı</string>
+    <string name="groups_name_placeholder">Örn. İzmir Bonsai Topluluğu</string>
+    <string name="groups_description_label">Açıklama</string>
+    <string name="groups_description_placeholder">Grubun amacı, konusu ve kapsamı…</string>
+    <string name="groups_category_label">Kategori</string>
+    <string name="groups_category_plants">Bitkiler</string>
+    <string name="groups_category_classic_cars">Klasik araçlar</string>
+    <string name="groups_category_home">Ev &amp; mekân</string>
+    <string name="groups_category_pets">Evcil hayvanlar</string>
+    <string name="groups_category_art">Sanat &amp; koleksiyon</string>
+    <string name="groups_category_bikes">Bisiklet</string>
+    <string name="groups_category_craft">El işi</string>
+    <string name="groups_category_other">Diğer</string>
+    <string name="groups_access_label">Kimler katılabilir?</string>
+    <string name="groups_visibility_public">Herkese açık grup</string>
+    <string name="groups_visibility_private_long">Özel grup (yalnızca davetle)</string>
+    <string name="groups_visibility_public_hint">Grup herkese görünür; katılım seçtiğin politikaya göre işler.</string>
+    <string name="groups_visibility_private_hint">Grup yalnızca davetle görünür ve katılım da davetle olur.</string>
+    <string name="groups_join_label">Katılım modeli</string>
+    <string name="groups_join_open">Serbest katılım</string>
+    <string name="groups_join_approval">Yönetici onayı</string>
+    <string name="groups_join_locked_hint">Özel gruplarda katılım yalnızca davetle olur.</string>
+    <string name="groups_invite_label">Davet et</string>
+    <string name="groups_invite_body">Grubu oluşturduğunda seçtiğin arkadaşlara davet gönderilir.</string>
+    <string name="groups_invite_button">Arkadaş seç</string>
+    <string name="groups_invite_hide">Listeyi kapat</string>
+    <string name="groups_invite_count">%1$d kişi seçildi</string>
+    <string name="groups_invite_loading">Arkadaşlar yükleniyor…</string>
+    <string name="groups_invite_empty">Henüz arkadaşın yok. Önce arkadaş eklemelisin.</string>
+    <string name="groups_rules_placeholder">Nazik ol, kaynak belirt, satış baskısı kurma…</string>
+    <string name="groups_cover_label">Kapak görseli</string>
+    <string name="groups_cover_pick">Görsel seç</string>
+    <string name="groups_cover_change">Görseli değiştir</string>
+    <string name="groups_submit">Grubu oluştur</string>
+    <string name="groups_submit_invites">Grubu kur ve davet et</string>
+    <string name="groups_creating">Oluşturuluyor…</string>
+    <string name="error_group_name_required">Grup adı en az 2 karakter olmalı.</string>
+
     <!-- Bildirimler -->
     <string name="notice_group_joined">Gruba katıldın.</string>
     <string name="notice_group_pending">Katılım isteğin gönderildi.</string>
     <string name="notice_group_left">Gruptan ayrıldın.</string>
+    <string name="notice_group_created">“%1$s” grubu oluşturuldu.</string>
+    <string name="notice_group_created_invited">“%1$s” grubu oluşturuldu ve %2$d kişiye davet gönderildi.</string>
+    <string name="notice_group_created_invite_partial">“%1$s” grubu oluşturuldu; %2$d / %3$d davet gönderilebildi.</string>
+    <string name="notice_group_created_invite_failed">“%1$s” grubu oluşturuldu ancak davetler gönderilemedi.</string>
 </resources>

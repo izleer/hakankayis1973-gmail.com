@@ -556,6 +556,62 @@ class VhViewModel(
         }
     }
 
+    fun createGroup(
+        name: String,
+        description: String?,
+        category: String?,
+        rules: String?,
+        visibility: String,
+        joinPolicy: String,
+        coverUri: Uri?,
+        inviteUsernames: List<String> = emptyList(),
+        onCreated: (Group) -> Unit,
+    ) {
+        if (name.trim().length < 2) {
+            _formError.value = str(R.string.error_group_name_required)
+            return
+        }
+        viewModelScope.launch {
+            _formBusy.value = true
+            _formError.value = null
+            try {
+                val group = repository.createGroup(
+                    name = name,
+                    description = description,
+                    category = category,
+                    rules = rules,
+                    visibility = visibility,
+                    joinPolicy = joinPolicy,
+                    coverUri = coverUri,
+                )
+                val targets = inviteUsernames
+                    .map { it.trim() }
+                    .filter { it.isNotEmpty() }
+                    .distinct()
+                var sent = 0
+                for (username in targets) {
+                    // Bir davet başarısız olsa bile grup oluşturulmuş kalır.
+                    runCatching { repository.inviteToGroup(group.slug, username) }
+                        .onSuccess { sent += 1 }
+                }
+                _notice.value = when {
+                    targets.isEmpty() -> str(R.string.notice_group_created, group.name)
+                    sent == targets.size ->
+                        str(R.string.notice_group_created_invited, group.name, sent)
+                    sent > 0 ->
+                        str(R.string.notice_group_created_invite_partial, group.name, sent, targets.size)
+                    else -> str(R.string.notice_group_created_invite_failed, group.name)
+                }
+                loadGroups(showSpinner = false)
+                onCreated(group)
+            } catch (error: Throwable) {
+                _formError.value = messageOf(error)
+            } finally {
+                _formBusy.value = false
+            }
+        }
+    }
+
     fun updateAvatar(uri: Uri?) {
         if (_avatarBusy.value) return
         viewModelScope.launch {

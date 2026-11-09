@@ -16,7 +16,12 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.outlined.ArrowForward
+import androidx.compose.material.icons.outlined.Groups
+import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
@@ -51,12 +56,16 @@ import app.varlikhafizasi.ui.theme.Paper
 import app.varlikhafizasi.ui.theme.PaperDeep
 import app.varlikhafizasi.ui.theme.SageInk
 import app.varlikhafizasi.ui.theme.SageLight
+import app.varlikhafizasi.ui.theme.TerracottaInk
+import app.varlikhafizasi.ui.theme.TerracottaPale
+import app.varlikhafizasi.ui.theme.TerracottaSoft
 import coil.compose.AsyncImage
 
 @Composable
 fun GroupsScreen(
     vm: VhViewModel,
     onOpenGroup: (String) -> Unit,
+    onNewGroup: () -> Unit,
 ) {
     val state by vm.groups.collectAsStateWithLifecycle()
 
@@ -77,6 +86,58 @@ fun GroupsScreen(
                 title = stringResource(R.string.nav_groups),
                 subtitle = stringResource(R.string.groups_subtitle),
             )
+        }
+
+        item {
+            Surface(
+                color = TerracottaPale,
+                shape = RoundedCornerShape(16.dp),
+                border = BorderStroke(1.dp, TerracottaSoft),
+                modifier = Modifier
+                    .padding(horizontal = 20.dp, vertical = 6.dp)
+                    .fillMaxWidth()
+                    .clickable { onNewGroup() },
+            ) {
+                Row(
+                    modifier = Modifier.padding(horizontal = 14.dp, vertical = 12.dp),
+                    verticalAlignment = Alignment.CenterVertically,
+                ) {
+                    Box(
+                        modifier = Modifier
+                            .size(38.dp)
+                            .background(Ivory, CircleShape),
+                        contentAlignment = Alignment.Center,
+                    ) {
+                        Icon(
+                            Icons.Outlined.Groups,
+                            contentDescription = null,
+                            tint = TerracottaInk,
+                            modifier = Modifier.size(19.dp),
+                        )
+                    }
+                    Spacer(Modifier.width(11.dp))
+                    Column(Modifier.weight(1f)) {
+                        Text(
+                            stringResource(R.string.groups_new_action_title),
+                            style = MaterialTheme.typography.titleMedium,
+                            color = Forest,
+                        )
+                        Text(
+                            stringResource(R.string.groups_new_action_body),
+                            style = MaterialTheme.typography.bodySmall,
+                            color = Muted,
+                            maxLines = 1,
+                            overflow = TextOverflow.Ellipsis,
+                        )
+                    }
+                    Icon(
+                        Icons.AutoMirrored.Outlined.ArrowForward,
+                        contentDescription = null,
+                        tint = TerracottaInk,
+                        modifier = Modifier.size(18.dp),
+                    )
+                }
+            }
         }
 
         if (state.loading && data == null) item { LoadingBox() }

@@ -555,6 +555,33 @@ data class GroupJoinResult(
 )
 
 @Serializable
+data class CreateGroupRequest(
+    val name: String,
+    val description: String? = null,
+    val category: String? = null,
+    val rules: String? = null,
+    val visibility: String = "public",
+    val joinPolicy: String = "open",
+    val coverUrl: String? = null,
+)
+
+@Serializable
+data class GroupCreatePayload(val community: Group)
+
+@Serializable
+data class InviteMemberRequest(val username: String)
+
+@Serializable
+data class GroupInvitation(
+    val id: String,
+    val invitee: UserMini? = null,
+    val createdAt: String? = null,
+)
+
+@Serializable
+data class GroupInvitePayload(val invitation: GroupInvitation)
+
+@Serializable
 data class CreateAssetRequest(
     val typeId: String,
     val title: String,

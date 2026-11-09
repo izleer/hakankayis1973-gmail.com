@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { vh } from '@/lib/client';
 import { useT } from '@/lib/i18n/client';
 import type { Friend, UserMini } from '@/lib/types';
@@ -19,20 +19,34 @@ export function ViewerPicker({
 }) {
   const t = useT();
   const [friends, setFriends] = useState<Friend[] | null>(null);
+  const [failed, setFailed] = useState(false);
+  const [error, setError] = useState<string | null>(null);
   const [query, setQuery] = useState('');
+  const containerRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     let active = true;
     vh.get<{ items: Friend[] }>('users/me/friends')
       .then((data) => {
-        if (active) setFriends(data.items);
+        if (!active) return;
+        setFriends(data.items);
+        setFailed(false);
+        setError(null);
       })
-      .catch(() => {
-        if (active) setFriends([]);
+      .catch((caught) => {
+        if (!active) return;
+        setFriends([]);
+        setFailed(true);
+        setError(caught instanceof Error ? caught.message : null);
       });
     return () => {
       active = false;
     };
+  }, []);
+
+  // Görünürlük "seçili" olunca formun altında kalan listeyi görünür alana getir.
+  useEffect(() => {
+    containerRef.current?.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
   }, []);
 
   const candidates = useMemo(() => {
@@ -65,7 +79,7 @@ export function ViewerPicker({
   }
 
   return (
-    <div className="viewer-picker">
+    <div className="viewer-picker" ref={containerRef}>
       <div className="viewer-picker-head">
         <span>
           {t('Kişiler')}
@@ -84,6 +98,8 @@ export function ViewerPicker({
       </label>
       {friends === null ? (
         <p className="muted-note">{t('Kişiler yükleniyor…')}</p>
+      ) : failed ? (
+        <p className="muted-note">{error ?? t('Kişiler yüklenemedi.')}</p>
       ) : filtered.length === 0 ? (
         <p className="muted-note">
           {query.trim()
@@ -91,14 +107,14 @@ export function ViewerPicker({
             : t('Arkadaş listende kişi yok. Önce arkadaş ekleyebilirsin.')}
         </p>
       ) : (
-        <div className="viewer-list">
+        <div className="viewer-list" role="group" aria-label={t('Kişiler')}>
           {filtered.map((user) => {
             const active = selected.includes(user.id);
             return (
               <button
                 type="button"
                 key={user.id}
-                className={`viewer-chip${active ? ' is-selected' : ''}`}
+                className={`viewer-row${active ? ' is-selected' : ''}`}
                 onClick={() => toggle(user.id)}
                 disabled={disabled}
                 aria-pressed={active}
@@ -110,15 +126,13 @@ export function ViewerPicker({
                     user.displayName.slice(0, 1)
                   )}
                 </span>
-                <span>
+                <span className="viewer-row-text">
                   <strong>{user.displayName}</strong>
                   <small>@{user.username}</small>
                 </span>
-                {active ? (
-                  <span className="type-check">
-                    <Icon name="check" size={13} />
-                  </span>
-                ) : null}
+                <span className={`viewer-check${active ? ' is-on' : ''}`} aria-hidden="true">
+                  {active ? <Icon name="check" size={13} /> : null}
+                </span>
               </button>
             );
           })}

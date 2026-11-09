@@ -189,11 +189,20 @@ interface VhApi {
         @Query("limit") limit: Int = 48,
     ): Envelope<GroupPage>
 
+    @POST("v1/communities")
+    suspend fun createCommunity(@Body body: CreateGroupRequest): Envelope<GroupCreatePayload>
+
     @GET("v1/communities/{slug}")
     suspend fun community(@Path("slug") slug: String): Envelope<GroupDetailPayload>
 
     @POST("v1/communities/{slug}/join")
     suspend fun joinCommunity(@Path("slug") slug: String): Envelope<GroupJoinResult>
+
+    @POST("v1/communities/{slug}/invitations")
+    suspend fun inviteToCommunity(
+        @Path("slug") slug: String,
+        @Body body: InviteMemberRequest,
+    ): Envelope<GroupInvitePayload>
 
     @DELETE("v1/communities/{slug}/join")
     suspend fun leaveCommunity(@Path("slug") slug: String)

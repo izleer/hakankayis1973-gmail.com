@@ -38,8 +38,57 @@
         <item quantity="other">%1$d Mitglieder</item>
     </plurals>
 
+    <!-- Neue Gruppe -->
+    <string name="groups_new_title">Neue Gruppe</string>
+    <string name="groups_new_action_title">Neue Gruppe gründen</string>
+    <string name="groups_new_action_body">Baue deine Gemeinschaft auf und lass Erinnerungen gemeinsam wachsen.</string>
+    <string name="groups_new_kicker">Eine neue Gemeinschaft</string>
+    <string name="groups_new_headline">Eine Gruppe gründen</string>
+    <string name="groups_new_intro">Die Objekte bleiben bei ihren Eigentümern. Eine Gruppe bringt Menschen um die Teile zusammen, die du freigibst.</string>
+    <string name="groups_name_label">Gruppenname</string>
+    <string name="groups_name_placeholder">z. B. Izmir Bonsai Gemeinschaft</string>
+    <string name="groups_description_label">Beschreibung</string>
+    <string name="groups_description_placeholder">Zweck, Thema und Umfang der Gruppe…</string>
+    <string name="groups_category_label">Kategorie</string>
+    <string name="groups_category_plants">Pflanzen</string>
+    <string name="groups_category_classic_cars">Oldtimer</string>
+    <string name="groups_category_home">Haus &amp; Orte</string>
+    <string name="groups_category_pets">Haustiere</string>
+    <string name="groups_category_art">Kunst &amp; Sammlungen</string>
+    <string name="groups_category_bikes">Fahrräder</string>
+    <string name="groups_category_craft">Handarbeit</string>
+    <string name="groups_category_other">Sonstiges</string>
+    <string name="groups_access_label">Wer kann beitreten?</string>
+    <string name="groups_visibility_public">Öffentliche Gruppe</string>
+    <string name="groups_visibility_private_long">Private Gruppe (nur auf Einladung)</string>
+    <string name="groups_visibility_public_hint">Die Gruppe ist für alle sichtbar; der Beitritt richtet sich nach der gewählten Regel.</string>
+    <string name="groups_visibility_private_hint">Die Gruppe ist nur auf Einladung sichtbar, und der Beitritt ist nur per Einladung möglich.</string>
+    <string name="groups_join_label">Beitrittsmodell</string>
+    <string name="groups_join_open">Offener Beitritt</string>
+    <string name="groups_join_approval">Admin-Freigabe</string>
+    <string name="groups_join_locked_hint">In privaten Gruppen ist der Beitritt nur per Einladung möglich.</string>
+    <string name="groups_invite_label">Einladen</string>
+    <string name="groups_invite_body">Beim Erstellen der Gruppe werden Einladungen an die ausgewählten Freunde gesendet.</string>
+    <string name="groups_invite_button">Freunde auswählen</string>
+    <string name="groups_invite_hide">Liste schließen</string>
+    <string name="groups_invite_count">%1$d ausgewählt</string>
+    <string name="groups_invite_loading">Freunde werden geladen…</string>
+    <string name="groups_invite_empty">Du hast noch keine Freunde. Füge zuerst Freunde hinzu.</string>
+    <string name="groups_rules_placeholder">Sei freundlich, nenne Quellen, kein Verkaufsdruck…</string>
+    <string name="groups_cover_label">Titelbild</string>
+    <string name="groups_cover_pick">Bild auswählen</string>
+    <string name="groups_cover_change">Bild ändern</string>
+    <string name="groups_submit">Gruppe erstellen</string>
+    <string name="groups_submit_invites">Gruppe erstellen und einladen</string>
+    <string name="groups_creating">Wird erstellt…</string>
+    <string name="error_group_name_required">Der Gruppenname muss mindestens 2 Zeichen lang sein.</string>
+
     <!-- Hinweise -->
     <string name="notice_group_joined">Du bist der Gruppe beigetreten.</string>
     <string name="notice_group_pending">Deine Beitrittsanfrage wurde gesendet.</string>
     <string name="notice_group_left">Du hast die Gruppe verlassen.</string>
+    <string name="notice_group_created">Die Gruppe „%1$s“ wurde erstellt.</string>
+    <string name="notice_group_created_invited">Die Gruppe „%1$s“ wurde erstellt und %2$d Personen eingeladen.</string>
+    <string name="notice_group_created_invite_partial">Die Gruppe „%1$s“ wurde erstellt; %2$d von %3$d Einladungen konnten gesendet werden.</string>
+    <string name="notice_group_created_invite_failed">Die Gruppe „%1$s“ wurde erstellt, aber die Einladungen konnten nicht gesendet werden.</string>
 </resources>

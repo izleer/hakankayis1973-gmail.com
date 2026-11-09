@@ -53,14 +53,15 @@ import app.varlikhafizasi.ui.components.entryTypeLabel
 import app.varlikhafizasi.ui.components.formatDate
 import app.varlikhafizasi.ui.theme.Clay
 import app.varlikhafizasi.ui.theme.Forest
-import app.varlikhafizasi.ui.theme.Gold
 import app.varlikhafizasi.ui.theme.Line
 import app.varlikhafizasi.ui.theme.Muted
 import app.varlikhafizasi.ui.theme.Paper
 import app.varlikhafizasi.ui.theme.PaperDeep
+import app.varlikhafizasi.ui.theme.TerracottaInk
+import app.varlikhafizasi.ui.theme.TerracottaPale
+import app.varlikhafizasi.ui.theme.TerracottaSoft
 import app.varlikhafizasi.ui.theme.Sage
 import app.varlikhafizasi.ui.theme.SageInk
-import app.varlikhafizasi.ui.theme.SageLight
 import app.varlikhafizasi.ui.theme.Ivory
 
 @Composable
@@ -132,7 +133,7 @@ fun HomeScreen(
                         Text(
                             stringResource(R.string.home_summary_label),
                             style = MaterialTheme.typography.labelSmall,
-                            color = Gold,
+                            color = TerracottaSoft,
                         )
                     }
                     Spacer(Modifier.height(12.dp))
@@ -159,7 +160,7 @@ fun HomeScreen(
                         color = Paper,
                     )
                     Spacer(Modifier.height(16.dp))
-                    GoldRule(Modifier.background(Gold))
+                    GoldRule(Modifier.background(TerracottaSoft))
                     Spacer(Modifier.height(16.dp))
                     Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                         DarkStat(
@@ -213,7 +214,7 @@ fun HomeScreen(
                 Surface(
                     color = Color.Transparent,
                     shape = RoundedCornerShape(50),
-                    border = BorderStroke(1.dp, Line),
+                    border = BorderStroke(1.dp, TerracottaSoft),
                     modifier = Modifier
                         .weight(1f)
                         .clickable { onOpenArchive() },
@@ -221,7 +222,7 @@ fun HomeScreen(
                     Text(
                         stringResource(R.string.home_open_archive),
                         style = MaterialTheme.typography.labelLarge,
-                        color = Forest,
+                        color = TerracottaInk,
                         modifier = Modifier.padding(vertical = 12.dp),
                         textAlign = androidx.compose.ui.text.style.TextAlign.Center,
                     )
@@ -245,13 +246,13 @@ fun HomeScreen(
                     Box(
                         modifier = Modifier
                             .size(38.dp)
-                            .background(SageLight, CircleShape),
+                            .background(TerracottaPale, CircleShape),
                         contentAlignment = Alignment.Center,
                     ) {
                         Icon(
                             Icons.Outlined.Groups,
                             contentDescription = null,
-                            tint = Forest,
+                            tint = TerracottaInk,
                             modifier = Modifier.size(19.dp),
                         )
                     }

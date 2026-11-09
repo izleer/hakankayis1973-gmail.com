@@ -38,8 +38,57 @@
         <item quantity="other">%1$d miembros</item>
     </plurals>
 
+    <!-- Nuevo grupo -->
+    <string name="groups_new_title">Nuevo grupo</string>
+    <string name="groups_new_action_title">Crear un grupo</string>
+    <string name="groups_new_action_body">Crea tu comunidad y hagan crecer los recuerdos juntos.</string>
+    <string name="groups_new_kicker">Una nueva comunidad</string>
+    <string name="groups_new_headline">Fundar un grupo</string>
+    <string name="groups_new_intro">Los objetos siguen siendo de sus dueños. El grupo reúne a las personas en torno a las piezas que permites ver.</string>
+    <string name="groups_name_label">Nombre del grupo</string>
+    <string name="groups_name_placeholder">p. ej. Comunidad Bonsái de Izmir</string>
+    <string name="groups_description_label">Descripción</string>
+    <string name="groups_description_placeholder">Propósito, tema y alcance del grupo…</string>
+    <string name="groups_category_label">Categoría</string>
+    <string name="groups_category_plants">Plantas</string>
+    <string name="groups_category_classic_cars">Coches clásicos</string>
+    <string name="groups_category_home">Casa &amp; lugares</string>
+    <string name="groups_category_pets">Mascotas</string>
+    <string name="groups_category_art">Arte &amp; colecciones</string>
+    <string name="groups_category_bikes">Bicicletas</string>
+    <string name="groups_category_craft">Hecho a mano</string>
+    <string name="groups_category_other">Otros</string>
+    <string name="groups_access_label">¿Quién puede unirse?</string>
+    <string name="groups_visibility_public">Grupo público</string>
+    <string name="groups_visibility_private_long">Grupo privado (solo por invitación)</string>
+    <string name="groups_visibility_public_hint">El grupo es visible para todos; la entrada sigue la política que elijas.</string>
+    <string name="groups_visibility_private_hint">El grupo solo es visible por invitación y la entrada también es por invitación.</string>
+    <string name="groups_join_label">Modelo de entrada</string>
+    <string name="groups_join_open">Entrada libre</string>
+    <string name="groups_join_approval">Aprobación del administrador</string>
+    <string name="groups_join_locked_hint">En los grupos privados solo se entra por invitación.</string>
+    <string name="groups_invite_label">Invitar</string>
+    <string name="groups_invite_body">Al crear el grupo, se envían invitaciones a los amigos que elijas.</string>
+    <string name="groups_invite_button">Elegir amigos</string>
+    <string name="groups_invite_hide">Cerrar la lista</string>
+    <string name="groups_invite_count">%1$d seleccionados</string>
+    <string name="groups_invite_loading">Cargando amigos…</string>
+    <string name="groups_invite_empty">Aún no tienes amigos. Añade amigos primero.</string>
+    <string name="groups_rules_placeholder">Sé amable, cita las fuentes, sin presión de venta…</string>
+    <string name="groups_cover_label">Imagen de portada</string>
+    <string name="groups_cover_pick">Elegir imagen</string>
+    <string name="groups_cover_change">Cambiar la imagen</string>
+    <string name="groups_submit">Crear el grupo</string>
+    <string name="groups_submit_invites">Crear e invitar</string>
+    <string name="groups_creating">Creando…</string>
+    <string name="error_group_name_required">El nombre del grupo debe tener al menos 2 caracteres.</string>
+
     <!-- Avisos -->
     <string name="notice_group_joined">Te uniste al grupo.</string>
     <string name="notice_group_pending">Tu solicitud de ingreso fue enviada.</string>
     <string name="notice_group_left">Saliste del grupo.</string>
+    <string name="notice_group_created">Se creó el grupo «%1$s».</string>
+    <string name="notice_group_created_invited">Se creó el grupo «%1$s» y se invitó a %2$d personas.</string>
+    <string name="notice_group_created_invite_partial">Se creó el grupo «%1$s»; se enviaron %2$d de %3$d invitaciones.</string>
+    <string name="notice_group_created_invite_failed">Se creó el grupo «%1$s», pero no se pudieron enviar las invitaciones.</string>
 </resources>

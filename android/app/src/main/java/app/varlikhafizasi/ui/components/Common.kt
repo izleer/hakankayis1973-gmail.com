@@ -54,9 +54,11 @@ import app.varlikhafizasi.ui.theme.Line
 import app.varlikhafizasi.ui.theme.Muted
 import app.varlikhafizasi.ui.theme.Paper
 import app.varlikhafizasi.ui.theme.PaperDeep
-import app.varlikhafizasi.ui.theme.Sage
 import app.varlikhafizasi.ui.theme.SageInk
 import app.varlikhafizasi.ui.theme.SageLight
+import app.varlikhafizasi.ui.theme.Terracotta
+import app.varlikhafizasi.ui.theme.TerracottaInk
+import app.varlikhafizasi.ui.theme.TerracottaPale
 import app.varlikhafizasi.ui.theme.Ivory
 import coil.compose.AsyncImage
 import java.time.Instant
@@ -205,7 +207,7 @@ fun SectionLabel(text: String, light: Boolean = false, modifier: Modifier = Modi
     Text(
         text = text.uppercase(appLocale),
         style = MaterialTheme.typography.labelMedium,
-        color = if (light) Paper.copy(alpha = 0.66f) else Muted,
+        color = if (light) Paper.copy(alpha = 0.66f) else TerracottaInk,
         letterSpacing = MaterialTheme.typography.labelMedium.letterSpacing,
         modifier = modifier.padding(vertical = 6.dp),
     )
@@ -241,7 +243,7 @@ fun VisibilityTag(visibility: String) {
     val background = when (visibility) {
         "public" -> SageLight
         "friends" -> Color(0xFFE6EEE4)
-        "selected" -> Color(0xFFF0E6CF)
+        "selected" -> TerracottaPale
         else -> PaperDeep
     }
     Surface(shape = RoundedCornerShape(4.dp), color = background) {
@@ -261,7 +263,7 @@ fun Avatar(name: String, url: String?, size: Dp = 38.dp) {
         modifier = Modifier
             .size(size)
             .clip(CircleShape)
-            .background(SageLight),
+            .background(TerracottaPale),
         contentAlignment = Alignment.Center,
     ) {
         if (!resolved.isNullOrBlank()) {
@@ -298,7 +300,7 @@ fun AssetRow(
             Box(
                 modifier = Modifier
                     .size(width = 92.dp, height = 92.dp)
-                    .background(SageLight),
+                    .background(TerracottaPale),
             ) {
                 val cover = MediaUrl.resolve(asset.coverUrl)
                 if (cover != null) {
@@ -429,14 +431,14 @@ fun EmptyState(
             modifier = Modifier
                 .size(46.dp)
                 .clip(CircleShape)
-                .background(SageLight),
+                .background(TerracottaPale),
             contentAlignment = Alignment.Center,
         ) {
             Box(
                 modifier = Modifier
                     .size(18.dp)
                     .clip(CircleShape)
-                    .background(Sage),
+                    .background(Terracotta),
             )
         }
         Spacer(Modifier.height(14.dp))
@@ -505,13 +507,13 @@ fun LoadingBox(modifier: Modifier = Modifier) {
 fun StatTile(value: String, label: String, modifier: Modifier = Modifier, light: Boolean = false) {
     Column(
         modifier = modifier
-            .background(if (light) Forest.copy(alpha = 0.04f) else PaperDeep, RoundedCornerShape(12.dp))
+            .background(if (light) Forest.copy(alpha = 0.04f) else TerracottaPale, RoundedCornerShape(12.dp))
             .padding(horizontal = 12.dp, vertical = 12.dp),
     ) {
         Text(
             value,
             style = MaterialTheme.typography.headlineSmall,
-            color = if (light) Forest else Forest,
+            color = Forest,
         )
         Spacer(Modifier.height(2.dp))
         Text(label.uppercase(appLocale), style = MaterialTheme.typography.labelSmall, color = Muted)

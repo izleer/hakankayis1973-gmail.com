@@ -62,13 +62,14 @@ import app.varlikhafizasi.ui.screens.GroupsScreen
 import app.varlikhafizasi.ui.screens.HomeScreen
 import app.varlikhafizasi.ui.screens.LoginScreen
 import app.varlikhafizasi.ui.screens.NewAssetScreen
+import app.varlikhafizasi.ui.screens.NewGroupScreen
 import app.varlikhafizasi.ui.screens.NotificationsScreen
 import app.varlikhafizasi.ui.screens.ProfileScreen
 import app.varlikhafizasi.ui.theme.Forest
 import app.varlikhafizasi.ui.theme.Line
 import app.varlikhafizasi.ui.theme.Muted
 import app.varlikhafizasi.ui.theme.Paper
-import app.varlikhafizasi.ui.theme.SageLight
+import app.varlikhafizasi.ui.theme.TerracottaPale
 import app.varlikhafizasi.ui.theme.Ivory
 
 private object Routes {
@@ -81,6 +82,7 @@ private object Routes {
     const val FRIENDS = "friends"
     const val NOTIFICATIONS = "notifications"
     const val NEW_ASSET = "newAsset"
+    const val NEW_GROUP = "newGroup"
     const val ASSET_DETAIL = "asset/{id}"
     const val GROUP_DETAIL = "group/{slug}"
     const val EDIT_ASSET = "editAsset/{id}"
@@ -219,6 +221,18 @@ private fun MainNavigator(vm: VhViewModel, viewer: User) {
                 GroupsScreen(
                     vm = vm,
                     onOpenGroup = { nav.navigate(Routes.group(it)) },
+                    onNewGroup = { nav.navigate(Routes.NEW_GROUP) },
+                )
+            }
+            composable(Routes.NEW_GROUP) {
+                NewGroupScreen(
+                    vm = vm,
+                    onBack = { nav.popBackStack() },
+                    onCreated = { slug ->
+                        nav.navigate(Routes.group(slug)) {
+                            popUpTo(Routes.NEW_GROUP) { inclusive = true }
+                        }
+                    },
                 )
             }
             composable(
@@ -385,7 +399,7 @@ private fun VhBottomBar(current: String?, onNavigate: (String) -> Unit) {
                     colors = NavigationBarItemDefaults.colors(
                         selectedIconColor = Forest,
                         unselectedIconColor = Muted,
-                        indicatorColor = SageLight,
+                        indicatorColor = TerracottaPale,
                         selectedTextColor = Forest,
                         unselectedTextColor = Muted,
                     ),

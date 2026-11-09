@@ -189,6 +189,35 @@ class VhRepository(
     suspend fun communities(mine: Boolean = false): GroupPage =
         call { api.communities(mine = if (mine) "true" else null) }
 
+    suspend fun createGroup(
+        name: String,
+        description: String?,
+        category: String?,
+        rules: String?,
+        visibility: String,
+        joinPolicy: String,
+        coverUri: Uri?,
+    ): Group {
+        val cover = coverUri?.let { uploadImage(it) }
+        val payload = call {
+            api.createCommunity(
+                CreateGroupRequest(
+                    name = name.trim(),
+                    description = description?.trim()?.takeIf { it.isNotEmpty() },
+                    category = category?.trim()?.takeIf { it.isNotEmpty() },
+                    rules = rules?.trim()?.takeIf { it.isNotEmpty() },
+                    visibility = visibility,
+                    joinPolicy = joinPolicy,
+                    coverUrl = cover?.url,
+                ),
+            )
+        }
+        return payload.community
+    }
+
+    suspend fun inviteToGroup(slug: String, username: String): GroupInvitation =
+        call { api.inviteToCommunity(slug, InviteMemberRequest(username.trim())) }.invitation
+
     suspend fun community(slug: String): GroupDetailPayload = call { api.community(slug) }
 
     suspend fun groupAssets(slug: String): List<Asset> = call { api.groupAssets(slug) }.items

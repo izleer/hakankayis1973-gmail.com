@@ -38,8 +38,57 @@
         <item quantity="other">%1$d members</item>
     </plurals>
 
+    <!-- New group -->
+    <string name="groups_new_title">New group</string>
+    <string name="groups_new_action_title">Start a new group</string>
+    <string name="groups_new_action_body">Build your community and grow memories together.</string>
+    <string name="groups_new_kicker">A new community</string>
+    <string name="groups_new_headline">Start a group</string>
+    <string name="groups_new_intro">Assets stay with their owners. A group brings people together around the pieces you allow them to see.</string>
+    <string name="groups_name_label">Group name</string>
+    <string name="groups_name_placeholder">e.g. Izmir Bonsai Community</string>
+    <string name="groups_description_label">Description</string>
+    <string name="groups_description_placeholder">The group’s purpose, subject and scope…</string>
+    <string name="groups_category_label">Category</string>
+    <string name="groups_category_plants">Plants</string>
+    <string name="groups_category_classic_cars">Classic cars</string>
+    <string name="groups_category_home">Home &amp; places</string>
+    <string name="groups_category_pets">Pets</string>
+    <string name="groups_category_art">Art &amp; collections</string>
+    <string name="groups_category_bikes">Bicycles</string>
+    <string name="groups_category_craft">Craft</string>
+    <string name="groups_category_other">Other</string>
+    <string name="groups_access_label">Who can join?</string>
+    <string name="groups_visibility_public">Public group</string>
+    <string name="groups_visibility_private_long">Private group (invitation only)</string>
+    <string name="groups_visibility_public_hint">The group is visible to everyone; joining follows the policy you choose.</string>
+    <string name="groups_visibility_private_hint">The group is visible by invitation only, and people join only by invitation.</string>
+    <string name="groups_join_label">How people join</string>
+    <string name="groups_join_open">Open joining</string>
+    <string name="groups_join_approval">Admin approval</string>
+    <string name="groups_join_locked_hint">In private groups, people can only join by invitation.</string>
+    <string name="groups_invite_label">Invite</string>
+    <string name="groups_invite_body">When you create the group, invitations are sent to the friends you select.</string>
+    <string name="groups_invite_button">Choose friends</string>
+    <string name="groups_invite_hide">Close the list</string>
+    <string name="groups_invite_count">%1$d selected</string>
+    <string name="groups_invite_loading">Loading friends…</string>
+    <string name="groups_invite_empty">You have no friends yet. Add friends first.</string>
+    <string name="groups_rules_placeholder">Be kind, credit your sources, no sales pressure…</string>
+    <string name="groups_cover_label">Cover image</string>
+    <string name="groups_cover_pick">Choose an image</string>
+    <string name="groups_cover_change">Change the image</string>
+    <string name="groups_submit">Create the group</string>
+    <string name="groups_submit_invites">Create and invite</string>
+    <string name="groups_creating">Creating…</string>
+    <string name="error_group_name_required">The group name must be at least 2 characters.</string>
+
     <!-- Notices -->
     <string name="notice_group_joined">You joined the group.</string>
     <string name="notice_group_pending">Your join request has been sent.</string>
     <string name="notice_group_left">You left the group.</string>
+    <string name="notice_group_created">The group “%1$s” was created.</string>
+    <string name="notice_group_created_invited">The group “%1$s” was created and %2$d people were invited.</string>
+    <string name="notice_group_created_invite_partial">The group “%1$s” was created; %2$d of %3$d invitations were sent.</string>
+    <string name="notice_group_created_invite_failed">The group “%1$s” was created, but the invitations could not be sent.</string>
 </resources>

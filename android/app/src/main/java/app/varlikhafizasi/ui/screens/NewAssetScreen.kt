@@ -5,6 +5,7 @@ import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -19,7 +20,9 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
@@ -51,9 +54,13 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.layout.onGloballyPositioned
+import androidx.compose.ui.layout.positionInParent
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -62,6 +69,7 @@ import app.varlikhafizasi.data.AssetType
 import app.varlikhafizasi.data.MediaUrl
 import app.varlikhafizasi.data.UserMini
 import app.varlikhafizasi.ui.VhViewModel
+import app.varlikhafizasi.ui.components.Avatar
 import app.varlikhafizasi.ui.components.ErrorBox
 import app.varlikhafizasi.ui.components.GoldRule
 import app.varlikhafizasi.ui.components.LoadingBox
@@ -77,8 +85,11 @@ import app.varlikhafizasi.ui.theme.Muted
 import app.varlikhafizasi.ui.theme.Paper
 import app.varlikhafizasi.ui.theme.PaperDeep
 import app.varlikhafizasi.ui.theme.SageInk
+import app.varlikhafizasi.ui.theme.SageLight
 import app.varlikhafizasi.ui.theme.Ivory
 import coil.compose.AsyncImage
+import kotlinx.coroutines.delay
+import kotlin.math.roundToInt
 
 private data class TypeOption(val id: String, val label: String, val parent: String?)
 
@@ -134,8 +145,12 @@ fun NewAssetScreen(
     var longitude by rememberSaveable { mutableStateOf<Double?>(null) }
     var clearLocation by rememberSaveable { mutableStateOf(false) }
     var seeded by rememberSaveable(assetId) { mutableStateOf(false) }
+    val scrollState = rememberScrollState()
+    var viewersCardTop by remember { mutableStateOf(0) }
+    var visibilityPickedByUser by rememberSaveable { mutableStateOf(false) }
     val context = LocalContext.current
     val cameraUnavailable = stringResource(R.string.media_camera_unavailable)
+    val scrollTopPadding = with(LocalDensity.current) { 16.dp.roundToPx() }
 
     val options = remember(types) { flattenTypes(types) }
     val selected = options.firstOrNull { it.id == selectedId }
@@ -162,7 +177,20 @@ fun NewAssetScreen(
     }
 
     LaunchedEffect(visibility) {
-        if (visibility == "selected") vm.loadPickerFriends()
+        if (visibility == "selected") {
+            vm.loadPickerFriends()
+        }
+    }
+
+    // Liste ancak arkadaşlar yüklendikten sonra gerçek yüksekliğine kavuşur;
+    // kullanıcı görünürlüğü elle seçtiğinde kartı üstten görünür alana kaydır.
+    LaunchedEffect(visibility, pickerFriends.data, viewersCardTop) {
+        if (visibility == "selected" && visibilityPickedByUser && viewersCardTop > 0) {
+            delay(120)
+            scrollState.animateScrollTo(
+                (viewersCardTop - scrollTopPadding).coerceAtLeast(0),
+            )
+        }
     }
 
     // Ekrandan çıkarken taslağı bırak; aynı varlığı yeniden düzenlerken
@@ -219,7 +247,7 @@ fun NewAssetScreen(
         Column(
             modifier = Modifier
                 .fillMaxSize()
-                .verticalScroll(rememberScrollState())
+                .verticalScroll(scrollState)
                 .imePadding(),
         ) {
             VhTopBar(
@@ -346,22 +374,34 @@ fun NewAssetScreen(
                 Pill(
                     stringResource(R.string.visibility_private),
                     visibility == "private",
-                    onClick = { visibility = "private" },
+                    onClick = {
+                        visibilityPickedByUser = true
+                        visibility = "private"
+                    },
                 )
                 Pill(
                     stringResource(R.string.assets_visibility_selected_short),
                     visibility == "selected",
-                    onClick = { visibility = "selected" },
+                    onClick = {
+                        visibilityPickedByUser = true
+                        visibility = "selected"
+                    },
                 )
                 Pill(
                     stringResource(R.string.visibility_friends),
                     visibility == "friends",
-                    onClick = { visibility = "friends" },
+                    onClick = {
+                        visibilityPickedByUser = true
+                        visibility = "friends"
+                    },
                 )
                 Pill(
                     stringResource(R.string.visibility_public),
                     visibility == "public",
-                    onClick = { visibility = "public" },
+                    onClick = {
+                        visibilityPickedByUser = true
+                        visibility = "public"
+                    },
                 )
             }
             Spacer(Modifier.height(6.dp))
@@ -382,7 +422,11 @@ fun NewAssetScreen(
                     color = PaperDeep,
                     shape = RoundedCornerShape(16.dp),
                     border = BorderStroke(1.dp, Line),
-                    modifier = Modifier.fillMaxWidth(),
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .onGloballyPositioned { coordinates ->
+                            viewersCardTop = coordinates.positionInParent().y.roundToInt()
+                        },
                 ) {
                     Column(Modifier.padding(14.dp)) {
                         Row(verticalAlignment = Alignment.CenterVertically) {
@@ -421,45 +465,80 @@ fun NewAssetScreen(
                                 color = Muted,
                             )
 
-                            else -> FlowRow(
-                                horizontalArrangement = Arrangement.spacedBy(8.dp),
-                                verticalArrangement = Arrangement.spacedBy(8.dp),
+                            else -> Column(
+                                verticalArrangement = Arrangement.spacedBy(6.dp),
                             ) {
                                 viewerOptions.forEach { person ->
                                     val chosen = viewerIds.contains(person.id)
                                     Surface(
-                                        color = if (chosen) Forest else Ivory,
-                                        shape = RoundedCornerShape(50),
-                                        border = BorderStroke(1.dp, if (chosen) Forest else Line),
-                                        modifier = Modifier.clickable(enabled = !busy) {
-                                            viewerIds = if (chosen) {
-                                                viewerIds - person.id
-                                            } else {
-                                                viewerIds + person.id
-                                            }
-                                        },
+                                        color = if (chosen) SageLight else Ivory,
+                                        shape = RoundedCornerShape(12.dp),
+                                        border = BorderStroke(1.dp, if (chosen) SageInk else Line),
+                                        modifier = Modifier
+                                            .fillMaxWidth()
+                                            .clickable(enabled = !busy) {
+                                                viewerIds = if (chosen) {
+                                                    viewerIds - person.id
+                                                } else {
+                                                    viewerIds + person.id
+                                                }
+                                            },
                                     ) {
                                         Row(
                                             verticalAlignment = Alignment.CenterVertically,
                                             modifier = Modifier.padding(
                                                 horizontal = 12.dp,
-                                                vertical = 7.dp,
+                                                vertical = 9.dp,
                                             ),
                                         ) {
-                                            if (chosen) {
-                                                Icon(
-                                                    Icons.Outlined.Check,
-                                                    contentDescription = null,
-                                                    tint = Paper,
-                                                    modifier = Modifier.size(14.dp),
-                                                )
-                                                Spacer(Modifier.size(4.dp))
-                                            }
-                                            Text(
-                                                person.displayName.ifBlank { person.username },
-                                                style = MaterialTheme.typography.labelMedium,
-                                                color = if (chosen) Paper else Forest,
+                                            Avatar(
+                                                name = person.displayName.ifBlank {
+                                                    person.username
+                                                },
+                                                url = person.avatarUrl,
+                                                size = 34.dp,
                                             )
+                                            Spacer(Modifier.width(10.dp))
+                                            Column(Modifier.weight(1f)) {
+                                                Text(
+                                                    person.displayName.ifBlank {
+                                                        person.username
+                                                    },
+                                                    style = MaterialTheme.typography.labelLarge,
+                                                    color = Forest,
+                                                    maxLines = 1,
+                                                )
+                                                Text(
+                                                    "@${person.username}",
+                                                    style = MaterialTheme.typography.labelSmall,
+                                                    color = Muted,
+                                                    maxLines = 1,
+                                                )
+                                            }
+                                            Spacer(Modifier.width(8.dp))
+                                            Box(
+                                                contentAlignment = Alignment.Center,
+                                                modifier = Modifier
+                                                    .size(22.dp)
+                                                    .clip(CircleShape)
+                                                    .border(
+                                                        width = 1.dp,
+                                                        color = if (chosen) Forest else Line,
+                                                        shape = CircleShape,
+                                                    )
+                                                    .background(
+                                                        if (chosen) Forest else Color.Transparent,
+                                                    ),
+                                            ) {
+                                                if (chosen) {
+                                                    Icon(
+                                                        Icons.Outlined.Check,
+                                                        contentDescription = null,
+                                                        tint = Paper,
+                                                        modifier = Modifier.size(13.dp),
+                                                    )
+                                                }
+                                            }
                                         }
                                     }
                                 }
