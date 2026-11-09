@@ -395,7 +395,7 @@ export async function assetRoutes(app: FastifyInstance): Promise<void> {
           [inserted.rows[0]!.id, body.coverMediaId, viewer.id],
         );
       }
-      if (viewerIds && viewerIds.length > 0) {
+      if (body.visibility === 'selected' && viewerIds && viewerIds.length > 0) {
         await client.query(
           `INSERT INTO access_rules (resource_type, resource_id, user_id, created_by)
            SELECT 'asset', $1, candidate, $3 FROM unnest($2::uuid[]) AS candidate
@@ -414,7 +414,7 @@ export async function assetRoutes(app: FastifyInstance): Promise<void> {
     });
 
     await audit(viewer.id, 'asset.created', 'asset', created.id, { typeId: body.typeId }, req.ip);
-    if (viewerIds && viewerIds.length > 0) {
+    if (body.visibility === 'selected' && viewerIds && viewerIds.length > 0) {
       await notifyViewers(viewer, created.id, viewerIds);
     }
     const asset = await loadAsset(created.id, req.locale);
@@ -763,7 +763,14 @@ export async function assetRoutes(app: FastifyInstance): Promise<void> {
       ]);
     }
 
-    if (viewerIds) {
+    if (nextVisibility !== 'selected') {
+      // Erişim kuralları yalnızca 'selected' görünürlüğünde anlam taşır;
+      // diğer görünürlüklerde eski kurallar temizlenir ki listeler yanıltmasın.
+      await query(
+        `DELETE FROM access_rules WHERE resource_type = 'asset' AND resource_id = $1`,
+        [id],
+      );
+    } else if (viewerIds) {
       const added = await syncAssetViewers(id, viewer.id, viewerIds);
       if (added.length > 0) await notifyViewers(viewer, id, added);
     }
@@ -820,6 +827,13 @@ export async function assetRoutes(app: FastifyInstance): Promise<void> {
     const body = parseBody(accessBody, req.body);
     const asset = await getAsset(id);
     if (asset.owner_id !== viewer.id) forbidden('Erişim yalnızca varlık sahibi tarafından verilebilir.');
+    if (asset.visibility !== 'selected') {
+      throw new ApiError(
+        422,
+        'ACCESS_REQUIRES_SELECTED',
+        'Kişiye erişim yalnızca "Seçili kişiler" görünürlüğünde verilebilir. Önce varlığın görünürlüğünü değiştirin.',
+      );
+    }
 
     const target = await queryOne<{
       id: string;
@@ -846,10 +860,7 @@ export async function assetRoutes(app: FastifyInstance): Promise<void> {
       type: 'system',
       entityType: 'asset',
       entityId: id,
-      messageKey:
-        asset.visibility === 'selected'
-          ? '{actor} sizinle seçili erişimle bir varlık paylaştı.'
-          : '{actor} sizinle bir varlık paylaştı.',
+      messageKey: '{actor} sizinle seçili erişimle bir varlık paylaştı.',
       messageParams: { actor: viewer.displayName },
     });
     await audit(viewer.id, 'asset.access_granted', 'asset', id, { userId: target.id }, req.ip);

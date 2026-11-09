@@ -32,7 +32,7 @@
 
     <!-- Erişim yönetimi -->
     <string name="asset_detail_access_section">Kimler görebilir?</string>
-    <string name="asset_detail_access_body">Varlık %1$s olsa da aşağıdaki kişiler yalnızca bu varlığı görüntüleyebilir. Kayıtların görünürlüğü ayrıca yönetilir.</string>
+    <string name="asset_detail_access_selected_only">Kişi ekleme yalnızca \"Seçili kişiler\" görünürlüğünde kullanılabilir. Görünürlüğü varlığı düzenleyerek değiştirebilirsin.</string>
     <string name="asset_detail_username_label">Kullanıcı adı</string>
     <string name="asset_detail_add">Ekle</string>
     <string name="asset_detail_remove_access">Erişimi kaldır</string>

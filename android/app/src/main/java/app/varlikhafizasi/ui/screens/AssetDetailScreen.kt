@@ -438,17 +438,25 @@ fun AssetDetailScreen(
                             Column(Modifier.padding(horizontal = 20.dp, vertical = 8.dp)) {
                                 SectionLabel(stringResource(R.string.asset_detail_access_section))
                                 Text(
-                                    stringResource(
-                                        R.string.asset_detail_access_body,
-                                        visibilityLabel(asset.visibility).lowercase(),
-                                    ),
+                                    visibilityLabel(asset.visibility),
+                                    style = MaterialTheme.typography.titleSmall,
+                                    color = Forest,
+                                )
+                                Spacer(Modifier.height(4.dp))
+                                Text(
+                                    text = when (asset.visibility) {
+                                        "public" -> stringResource(R.string.assets_visibility_public_hint)
+                                        "friends" -> stringResource(R.string.assets_visibility_friends_hint)
+                                        "selected" -> stringResource(R.string.assets_visibility_selected_hint)
+                                        else -> stringResource(R.string.assets_visibility_private_hint)
+                                    },
                                     style = MaterialTheme.typography.bodySmall,
                                     color = Muted,
                                 )
                                 Spacer(Modifier.height(14.dp))
                             }
                         }
-                        if (data.detail.access.isOwner) {
+                        if (data.detail.access.isOwner && asset.visibility == "selected") {
                             item {
                                 Row(
                                     modifier = Modifier.padding(horizontal = 20.dp),
@@ -530,6 +538,15 @@ fun AssetDetailScreen(
                                         )
                                     }
                                 }
+                            }
+                        } else if (data.detail.access.isOwner) {
+                            item {
+                                Text(
+                                    stringResource(R.string.asset_detail_access_selected_only),
+                                    style = MaterialTheme.typography.bodySmall,
+                                    color = Muted,
+                                    modifier = Modifier.padding(horizontal = 20.dp, vertical = 4.dp),
+                                )
                             }
                         } else {
                             item {

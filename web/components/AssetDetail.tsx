@@ -19,6 +19,7 @@ import {
   mediaSrc,
   resolveAttributeLabel,
   typeIconName,
+  visibilityHints,
   visibilityLabels,
 } from '@/lib/format';
 import type {
@@ -839,58 +840,70 @@ function SharePanel({
       <div className="info-card">
         <Icon name="users" size={22} />
         <div>
-          <h3>{t('Seçili kişilerle paylaş')}</h3>
+          <h3>{t('Kimler görebilir?')}</h3>
           <p>
-            {t('Varlığın görünürlüğü')}{' '}
-            <strong>{t(visibilityLabels[asset.visibility])}</strong>.{' '}
-            {t('Buradan eklediğin kişiler, varlıkla birlikte seçili kayıtlarını da görebilir.')}
+            <strong>{t(visibilityLabels[asset.visibility])}</strong> —{' '}
+            {t(visibilityHints[asset.visibility])}
           </p>
         </div>
       </div>
 
-      <form className="share-form" onSubmit={addUser}>
-        <Icon name="user" size={18} />
-        <input
-          value={username}
-          onChange={(event) => setUsername(event.target.value)}
-          placeholder={t('Kullanıcı adı veya e-posta')}
-          aria-label={t('Paylaşılacak kullanıcı')}
-          required
-        />
-        <button className="btn btn-primary btn-sm" type="submit" disabled={busy || !username}>
-          {t('Erişim ver')}
-        </button>
-      </form>
-      {error ? <div className="form-error">{error}</div> : null}
+      {asset.visibility === 'selected' ? (
+        <>
+          <p className="muted-note">
+            {t('Buradan eklediğin kişiler, varlıkla birlikte seçili kayıtlarını da görebilir.')}
+          </p>
+          <form className="share-form" onSubmit={addUser}>
+            <Icon name="user" size={18} />
+            <input
+              value={username}
+              onChange={(event) => setUsername(event.target.value)}
+              placeholder={t('Kullanıcı adı veya e-posta')}
+              aria-label={t('Paylaşılacak kullanıcı')}
+              required
+            />
+            <button className="btn btn-primary btn-sm" type="submit" disabled={busy || !username}>
+              {t('Erişim ver')}
+            </button>
+          </form>
+          {error ? <div className="form-error">{error}</div> : null}
 
-      <div className="share-list">
-        {viewers.length === 0 ? (
-          <p className="muted-note">{t('Henüz kimseyle paylaşmadın.')}</p>
-        ) : (
-          viewers.map((item) => (
-            <div className="share-row" key={item.user.id}>
-              <span className="avatar avatar-small">
-                {item.user.avatarUrl ? <img src={item.user.avatarUrl} alt="" /> : item.user.displayName.slice(0, 1)}
-              </span>
-              <span>
-                <strong>{item.user.displayName}</strong>
-                <small>
-                  @{item.user.username} · {formatDate(item.grantedAt, locale)}
-                </small>
-              </span>
-              <button
-                type="button"
-                className="icon-btn"
-                onClick={() => removeUser(item.user.id)}
-                disabled={busy}
-                aria-label={t('Erişimi kaldır')}
-              >
-                <Icon name="close" size={17} />
-              </button>
-            </div>
-          ))
-        )}
-      </div>
+          <div className="share-list">
+            {viewers.length === 0 ? (
+              <p className="muted-note">{t('Henüz kimseyle paylaşmadın.')}</p>
+            ) : (
+              viewers.map((item) => (
+                <div className="share-row" key={item.user.id}>
+                  <span className="avatar avatar-small">
+                    {item.user.avatarUrl ? <img src={item.user.avatarUrl} alt="" /> : item.user.displayName.slice(0, 1)}
+                  </span>
+                  <span>
+                    <strong>{item.user.displayName}</strong>
+                    <small>
+                      @{item.user.username} · {formatDate(item.grantedAt, locale)}
+                    </small>
+                  </span>
+                  <button
+                    type="button"
+                    className="icon-btn"
+                    onClick={() => removeUser(item.user.id)}
+                    disabled={busy}
+                    aria-label={t('Erişimi kaldır')}
+                  >
+                    <Icon name="close" size={17} />
+                  </button>
+                </div>
+              ))
+            )}
+          </div>
+        </>
+      ) : (
+        <p className="muted-note">
+          {t(
+            'Kişiye özel erişim yalnızca "Seçili kişiler" görünürlüğünde geçerlidir. Görünürlüğü "Düzenle" ekranından değiştirebilirsin.',
+          )}
+        </p>
+      )}
     </section>
   );
 }
@@ -1055,6 +1068,9 @@ function EntryComposer({
                   </option>
                 ))}
               </select>
+              <p className="muted-note">
+                {t('Kayıt, varlığın görünürlüğünden daha geniş bir kitleye açılamaz.')}
+              </p>
             </label>
           </div>
 
@@ -1288,6 +1304,9 @@ function EntryEditModal({
                   </option>
                 ))}
               </select>
+              <p className="muted-note">
+                {t('Kayıt, varlığın görünürlüğünden daha geniş bir kitleye açılamaz.')}
+              </p>
             </label>
           </div>
 
@@ -1536,6 +1555,7 @@ function EditAssetModal({
                   </option>
                 ))}
               </select>
+              <p className="muted-note">{t(visibilityHints[visibility])}</p>
             </label>
             <label className="field">
               <span>{t('Durum')}</span>

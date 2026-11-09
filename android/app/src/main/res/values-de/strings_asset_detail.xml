@@ -32,7 +32,7 @@
 
     <!-- Zugriffsverwaltung -->
     <string name="asset_detail_access_section">Wer kann das sehen?</string>
-    <string name="asset_detail_access_body">Das Objekt ist %1$s, die unten genannten Personen können aber ausschließlich dieses Objekt sehen. Die Sichtbarkeit der Einträge wird separat verwaltet.</string>
+    <string name="asset_detail_access_selected_only">Personen hinzufügen ist nur bei der Sichtbarkeit „Ausgewählte Personen“ möglich. Die Sichtbarkeit kannst du durch Bearbeiten des Objekts ändern.</string>
     <string name="asset_detail_username_label">Benutzername</string>
     <string name="asset_detail_add">Hinzufügen</string>
     <string name="asset_detail_remove_access">Zugriff entfernen</string>

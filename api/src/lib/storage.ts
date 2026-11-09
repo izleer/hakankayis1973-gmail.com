@@ -1,4 +1,4 @@
-import { randomUUID } from 'node:crypto';
+import { createHmac, randomUUID, timingSafeEqual } from 'node:crypto';
 import { mkdir, readFile, writeFile } from 'node:fs/promises';
 import path from 'node:path';
 import { GetObjectCommand, HeadObjectCommand, PutObjectCommand, S3Client } from '@aws-sdk/client-s3';
@@ -52,6 +52,107 @@ export function newStorageKey(mimeType: string): string {
 
 export function isSafeStorageKey(key: string): boolean {
   return /^media\/\d{4}\/\d{2}\/[a-f0-9-]{36}\.[a-z0-9]{2,5}$/.test(key);
+}
+
+/**
+ * `/files/` altında sunulabilecek anahtarlar. Seed görselleri `seed/...`
+ * biçiminde tutulur; yüklenen medya ise `media/YYYY/AA/<uuid>.<uzantı>`.
+ */
+export function isSignableMediaKey(key: string): boolean {
+  return (
+    isSafeStorageKey(key) ||
+    /^seed\/[A-Za-z0-9][A-Za-z0-9._-]{0,120}$/.test(key)
+  );
+}
+
+const DEV_MEDIA_SIGNING_SECRET = 'izleer-local-media-signing-secret';
+
+function mediaSigningSecret(): string {
+  return env.MEDIA_SIGNING_SECRET ?? DEV_MEDIA_SIGNING_SECRET;
+}
+
+function encodeMediaKey(key: string): string {
+  return key
+    .split('/')
+    .map((part) => encodeURIComponent(part))
+    .join('/');
+}
+
+function mediaSignature(key: string, expiresAt: number): string {
+  return createHmac('sha256', mediaSigningSecret())
+    .update(`${key}\n${expiresAt}`)
+    .digest('base64url');
+}
+
+/**
+ * Yerel depolamadaki bir medya anahtarını süreli imzalı `/files/...` adresine
+ * çevirir. Adres yalnızca imza doğrulandığında sunulur; böylece tahmin edilen
+ * veya sızdırılan ham depolama yolları doğrudan indirilemez.
+ *
+ * Süre, TTL penceresinin sonuna yuvarlanır: aynı anahtar aynı pencere içinde
+ * özdeş URL üretir, böylece tarayıcı/Coil önbellekleri her istekte kırılmaz.
+ */
+export function signMediaKey(
+  key: string,
+  ttlSeconds = env.MEDIA_URL_TTL_SECONDS,
+): string {
+  const ttl = Math.max(1, Math.floor(ttlSeconds));
+  const now = Math.floor(Date.now() / 1000);
+  const expiresAt = (Math.floor(now / ttl) + 1) * ttl;
+  const signature = mediaSignature(key, expiresAt);
+  return `/files/${encodeMediaKey(key)}?exp=${expiresAt}&sig=${signature}`;
+}
+
+export function verifyMediaSignature(
+  key: string,
+  expiresRaw: string | null | undefined,
+  signature: string | null | undefined,
+): boolean {
+  if (!isSignableMediaKey(key) || !expiresRaw || !signature) return false;
+  const expiresAt = Number(expiresRaw);
+  if (!Number.isInteger(expiresAt)) return false;
+  // Küçük bir saat farkı payı bırakılır.
+  if (expiresAt < Math.floor(Date.now() / 1000) - 60) return false;
+
+  const expected = Buffer.from(mediaSignature(key, expiresAt), 'utf8');
+  const actual = Buffer.from(signature, 'utf8');
+  return expected.length === actual.length && timingSafeEqual(expected, actual);
+}
+
+/**
+ * Veritabanında saklanan bir medya referansını istemciye dönerken imzalar.
+ * Eski kayıtlarda `/files/...` biçiminde avatar/kapak adresi bulunabilir;
+ * bunların süresi dolmuş imzaları temizlenip yeniden imzalanır.
+ */
+export function mediaRefUrl(value: string | null | undefined): string | null {
+  if (!value) return null;
+  if (env.STORAGE_DRIVER !== 'local') return value;
+
+  const match = /^\/files\/([^?#]+)(?:\?.*)?$/.exec(value);
+  if (!match) return value;
+  let key: string;
+  try {
+    key = decodeURIComponent(match[1]!);
+  } catch {
+    return value;
+  }
+  return isSignableMediaKey(key) ? signMediaKey(key) : value;
+}
+
+/**
+ * İstemciden gelen `/files/...` adresini imzasız, kanonik depolama yoluna
+ * indirger. Harici HTTP(S) adresleri değiştirilmez.
+ */
+export function canonicalMediaRef(value: string | null | undefined): string | null {
+  if (!value) return null;
+  const match = /^\/files\/([^?#]+)(?:\?.*)?$/.exec(value);
+  if (!match) return value;
+  try {
+    const key = decodeURIComponent(match[1]!);
+    return isSignableMediaKey(key) ? `/files/${encodeMediaKey(key)}` : value;
+  } catch {
+    return value;
+  }
 }
 
 export async function saveBuffer(key: string, buffer: Buffer, mimeType: string): Promise<void> {
@@ -113,13 +214,13 @@ export async function mediaUrl(key: string | null | undefined): Promise<string |
   if (env.STORAGE_DRIVER === 'local') {
     // İstemciler kendi API köklerine göre çözer; böylece emülatör, web proxy
     // ve yerel geliştirme aynı veriyi farklı adreslerden kullanabilir.
-    return `/files/${key}`;
+    return isSignableMediaKey(key) ? signMediaKey(key) : null;
   }
   try {
     return await getSignedUrl(
       s3Client(),
       new GetObjectCommand({ Bucket: env.S3_BUCKET, Key: key }),
-      { expiresIn: 3600 },
+      { expiresIn: env.MEDIA_URL_TTL_SECONDS },
     );
   } catch (error) {
     console.error('Medya URL imzalanamadı:', error);
@@ -139,7 +240,9 @@ export async function publicMediaUrl(key: string | null | undefined): Promise<st
     env.MEDIA_PUBLIC_BASE_URL ??
     (/^https:\/\//i.test(env.PUBLIC_API_URL) ? env.PUBLIC_API_URL : null);
   if (!base) return null;
-  return `${base.replace(/\/$/, '')}/files/${key}`;
+  if (!isSignableMediaKey(key)) return null;
+  // Meta'nın erişebilmesi için mutlak adres gerekir; imza yine zorunludur.
+  return `${base.replace(/\/$/, '')}${signMediaKey(key, env.MEDIA_PUBLIC_URL_TTL_SECONDS)}`;
 }
 
 export async function readStorageObject(key: string): Promise<Buffer> {

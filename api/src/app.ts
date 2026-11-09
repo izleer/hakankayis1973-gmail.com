@@ -5,12 +5,12 @@ import rateLimit from '@fastify/rate-limit';
 import fastifyStatic from '@fastify/static';
 import { ZodError } from 'zod';
 import { env } from './env.js';
-import { databaseSsl, databaseTarget, query } from './db.js';
+import { databaseSsl, databaseTarget, query, queryOne } from './db.js';
 import { ApiError } from './lib/errors.js';
 import { translate } from './lib/i18n/index.js';
 import { negotiateLocale, type Locale } from './lib/locale.js';
 import { ensureTaxonomy } from './lib/taxonomy.js';
-import { storageRoot } from './lib/storage.js';
+import { storageRoot, verifyMediaSignature } from './lib/storage.js';
 import { authRoutes } from './routes/auth.js';
 import { assetTypeRoutes } from './routes/asset-types.js';
 import { assetRoutes } from './routes/assets.js';
@@ -135,12 +135,70 @@ export async function buildApp(): Promise<FastifyInstance> {
 
   if (env.STORAGE_DRIVER === 'local') {
     await mkdir(storageRoot, { recursive: true });
+    // Ham depolama yolları yalnızca süreli imzayla sunulur; imza geçerli olsa
+    // bile silinen/gizlenen medya DB kontrolüyle kapatılır. Böylece URL sızıntısı
+    // kalıcı erişim vermez ve görünürlük değişiklikleri dosyalara da yansır.
+    app.addHook('onRequest', async (req, reply) => {
+      if (!req.url.startsWith('/files/')) return;
+      let key = '';
+      let expires: string | undefined;
+      let signature: string | undefined;
+      try {
+        const url = new URL(req.url, 'http://localhost');
+        key = decodeURIComponent(url.pathname.replace(/^\/files\//, ''));
+        expires = url.searchParams.get('exp') ?? undefined;
+        signature = url.searchParams.get('sig') ?? undefined;
+      } catch {
+        key = '';
+      }
+      if (!verifyMediaSignature(key, expires, signature)) {
+        return reply.status(403).send({
+          error: {
+            code: 'MEDIA_FORBIDDEN',
+            message: translate(req.locale, 'Medya adresi geçersiz veya süresi dolmuş.'),
+          },
+        });
+      }
+      // Seed görselleri kamuya açık demo içeriğidir ve media satırı yoktur.
+      if (!key.startsWith('seed/')) {
+        const row = await queryOne<{
+          status: string;
+          asset_deleted_at: Date | null;
+          entry_deleted_at: Date | null;
+          post_status: string | null;
+        }>(
+          `SELECT m.status, a.deleted_at AS asset_deleted_at,
+                  je.deleted_at AS entry_deleted_at, p.status AS post_status
+           FROM media m
+           LEFT JOIN assets a ON a.id = m.asset_id
+           LEFT JOIN journal_entries je ON je.id = m.entry_id
+           LEFT JOIN posts p ON p.id = m.post_id
+           WHERE m.storage_key = $1`,
+          [key],
+        );
+        if (
+          !row ||
+          row.status !== 'ready' ||
+          row.asset_deleted_at ||
+          row.entry_deleted_at ||
+          (row.post_status !== null && row.post_status !== 'visible')
+        ) {
+          return reply.status(404).send({
+            error: { code: 'NOT_FOUND', message: translate(req.locale, 'Medya bulunamadı.') },
+          });
+        }
+      }
+    });
     await app.register(fastifyStatic, {
       root: storageRoot,
       prefix: '/files/',
       index: false,
-      maxAge: '1h',
-      immutable: false,
+      cacheControl: false,
+      setHeaders(res) {
+        // İmzalı yanıtlar ortak önbelleklerde tutulmaz.
+        res.setHeader('Cache-Control', 'private, max-age=3600');
+        res.setHeader('X-Content-Type-Options', 'nosniff');
+      },
     });
   }
 

@@ -7,8 +7,16 @@ const groupDetail = {
     'The cover, name and basic details are visible; records stay hidden.',
   'Herkese açık işaretlediğin kayıtlar gruba açılır.':
     'Only the records you marked as public open to the group.',
-  'Varlığın bütün hikâyesi grup üyelerine açılır.':
-    'The whole story of the asset opens to group members.',
+  'Özel kayıtlar dahil varlığın bütün hikâyesi grup üyelerine açılır.':
+    'The whole story of the asset, including private entries, opens to group members.',
+  'Özel kayıtlar dahil varlığın bütün hikâyesi grup üyelerine açılacak. Onaylıyor musun?':
+    'The whole story of the asset, including private entries, will open to group members. Do you approve?',
+  'Bu kapsam, özel olarak işaretlediğin kayıtları da grup üyelerine açar.':
+    'This scope also opens the entries you marked as private to group members.',
+  'Özel kayıtlarımın grup üyeleriyle paylaşılmasını onaylıyorum.':
+    'I approve sharing my private entries with group members.',
+  'Tüm hikâyeyi paylaşmadan önce özel kayıtların paylaşımını onaylamalısın.':
+    'Before sharing the whole story, you must approve sharing your private entries.',
   'Bu varlık gruba yalnızca özet olarak paylaşıldı. Kayıtların tamamı sahibinde kalıyor.':
     'This asset was shared with the group as a summary only. All records stay with the owner.',
   'Sahibi bu varlığın yalnızca herkese açık işaretlediği kayıtlarını grupla paylaştı.':

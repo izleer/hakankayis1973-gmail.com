@@ -49,7 +49,7 @@ const scopeLabels: Record<GroupAssetScope, string> = {
 const scopeHints: Record<GroupAssetScope, string> = {
   summary: 'Kapak, ad ve temel bilgiler görünür; kayıtlar görünmez.',
   timeline: 'Herkese açık işaretlediğin kayıtlar gruba açılır.',
-  all: 'Varlığın bütün hikâyesi grup üyelerine açılır.',
+  all: 'Özel kayıtlar dahil varlığın bütün hikâyesi grup üyelerine açılır.',
 };
 
 const categories = [
@@ -295,6 +295,12 @@ export function GroupDetail({
   }
 
   async function changeScope(asset: GroupAsset, scope: GroupAssetScope) {
+    if (scope === 'all' && asset.scope !== 'all') {
+      const approved = window.confirm(
+        t('Özel kayıtlar dahil varlığın bütün hikâyesi grup üyelerine açılacak. Onaylıyor musun?'),
+      );
+      if (!approved) return false;
+    }
     setError(null);
     try {
       await vh.patch(
@@ -305,8 +311,10 @@ export function GroupDetail({
         current.map((item) => (item.id === asset.id ? { ...item, scope } : item)),
       );
       flash(t('Paylaşım kapsamı güncellendi.'));
+      return true;
     } catch (caught) {
       setError(caught instanceof Error ? caught.message : t('Kapsam güncellenemedi.'));
+      return false;
     }
   }
 
@@ -631,9 +639,11 @@ export function GroupDetail({
                           <span>{t('Kapsam')}</span>
                           <select
                             value={asset.scope}
-                            onChange={(event) =>
-                              changeScope(asset, event.target.value as GroupAssetScope)
-                            }
+                            onChange={async (event) => {
+                              const next = event.target.value as GroupAssetScope;
+                              const applied = await changeScope(asset, next);
+                              if (!applied) event.target.value = asset.scope;
+                            }}
                           >
                             <option value="summary">{t('Özet')}</option>
                             <option value="timeline">{t('Herkese açık kayıtlar')}</option>
@@ -1124,6 +1134,7 @@ function ShareAssetModal({
   const existingMap = new Map(existing.map((item) => [item.id, item.scope]));
   const [assetId, setAssetId] = useState('');
   const [scope, setScope] = useState<GroupAssetScope>('summary');
+  const [allApproved, setAllApproved] = useState(false);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const selected = myAssets.find((asset) => asset.id === assetId);
@@ -1131,12 +1142,22 @@ function ShareAssetModal({
   function pick(nextId: string) {
     setAssetId(nextId);
     setScope(existingMap.get(nextId) ?? 'summary');
+    setAllApproved(false);
+  }
+
+  function pickScope(value: GroupAssetScope) {
+    setScope(value);
+    if (value !== 'all') setAllApproved(false);
   }
 
   async function submit(event: React.FormEvent) {
     event.preventDefault();
     if (!assetId) {
       setError(t('Bir varlık seç.'));
+      return;
+    }
+    if (scope === 'all' && !allApproved) {
+      setError(t('Tüm hikâyeyi paylaşmadan önce özel kayıtların paylaşımını onaylamalısın.'));
       return;
     }
     setBusy(true);
@@ -1217,7 +1238,7 @@ function ShareAssetModal({
                       name="scope"
                       value={value}
                       checked={scope === value}
-                      onChange={() => setScope(value)}
+                      onChange={() => pickScope(value)}
                     />
                     <span>
                       <strong>{t(scopeLabels[value])}</strong>
@@ -1226,6 +1247,25 @@ function ShareAssetModal({
                   </label>
                 ))}
               </fieldset>
+
+              {scope === 'all' ? (
+                <div className="scope-warning" role="alert">
+                  <p>
+                    <Icon name="lock" size={14} />{' '}
+                    {t('Bu kapsam, özel olarak işaretlediğin kayıtları da grup üyelerine açar.')}
+                  </p>
+                  <label className="scope-warning-check">
+                    <input
+                      type="checkbox"
+                      checked={allApproved}
+                      onChange={(event) => setAllApproved(event.target.checked)}
+                    />
+                    <span>
+                      {t('Özel kayıtlarımın grup üyeleriyle paylaşılmasını onaylıyorum.')}
+                    </span>
+                  </label>
+                </div>
+              ) : null}
 
               <p className="muted-note">
                 <Icon name="lock" size={14} />{' '}
@@ -1238,7 +1278,11 @@ function ShareAssetModal({
                 <button type="button" className="btn btn-ghost" onClick={onClose} disabled={busy}>
                   {t('Vazgeç')}
                 </button>
-                <button type="submit" className="btn btn-primary" disabled={busy || !assetId}>
+                <button
+                  type="submit"
+                  className="btn btn-primary"
+                  disabled={busy || !assetId || (scope === 'all' && !allApproved)}
+                >
                   <Icon name="leaf" size={16} />
                   {busy
                     ? t('Ekleniyor…')

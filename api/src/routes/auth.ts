@@ -11,6 +11,7 @@ import {
 } from '../lib/session.js';
 import { audit } from '../lib/audit.js';
 import { notify } from '../lib/notify.js';
+import { mediaRefUrl } from '../lib/storage.js';
 
 const credentials = z.object({
   email: z.string().trim().email('Geçerli bir e-posta girin.').max(200),
@@ -49,7 +50,7 @@ function sessionUser(row: UserRow) {
     email: row.email,
     username: row.username,
     displayName: row.display_name,
-    avatarUrl: row.avatar_url,
+    avatarUrl: mediaRefUrl(row.avatar_url),
     role: row.role,
     onboardedAt: row.onboarded_at ? row.onboarded_at.toISOString() : null,
   };

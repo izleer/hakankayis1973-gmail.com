@@ -4,6 +4,7 @@ import { env } from '../env.js';
 import { query, queryOne } from '../db.js';
 import { forbidden, unauthorized } from './errors.js';
 import { iso } from './http.js';
+import { mediaRefUrl } from './storage.js';
 
 export type Viewer = {
   id: string;
@@ -104,7 +105,7 @@ export async function resolveViewer(req: FastifyRequest): Promise<Viewer | null>
     id: row.user_id,
     username: row.username,
     displayName: row.display_name,
-    avatarUrl: row.avatar_url,
+    avatarUrl: mediaRefUrl(row.avatar_url),
     role: row.role,
     onboardedAt: iso(row.onboarded_at),
     email: row.email,

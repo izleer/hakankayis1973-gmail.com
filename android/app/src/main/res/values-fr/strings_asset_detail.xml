@@ -32,7 +32,7 @@
 
     <!-- Gestion des accès -->
     <string name="asset_detail_access_section">Qui peut voir ceci ?</string>
-    <string name="asset_detail_access_body">Le bien est %1$s, mais les personnes ci-dessous peuvent uniquement consulter ce bien. La visibilité des entrées est gérée séparément.</string>
+    <string name="asset_detail_access_selected_only">L’ajout de personnes n’est disponible qu’avec la visibilité « Personnes sélectionnées ». Vous pouvez changer la visibilité en modifiant le bien.</string>
     <string name="asset_detail_username_label">Nom d\'utilisateur</string>
     <string name="asset_detail_add">Ajouter</string>
     <string name="asset_detail_remove_access">Retirer l\'accès</string>

@@ -7,8 +7,16 @@ const groupDetail = {
     'La portada, el nombre y los datos básicos son visibles; los registros no.',
   'Herkese açık işaretlediğin kayıtlar gruba açılır.':
     'Solo los registros que marcaste como públicos se abren al grupo.',
-  'Varlığın bütün hikâyesi grup üyelerine açılır.':
-    'Toda la historia del objeto se abre a los miembros del grupo.',
+  'Özel kayıtlar dahil varlığın bütün hikâyesi grup üyelerine açılır.':
+    'Toda la historia del objeto, incluidos los registros privados, se abre a los miembros del grupo.',
+  'Özel kayıtlar dahil varlığın bütün hikâyesi grup üyelerine açılacak. Onaylıyor musun?':
+    'Toda la historia del objeto, incluidos los registros privados, se abrirá a los miembros del grupo. ¿Lo apruebas?',
+  'Bu kapsam, özel olarak işaretlediğin kayıtları da grup üyelerine açar.':
+    'Este alcance también abre a los miembros del grupo los registros que marcaste como privados.',
+  'Özel kayıtlarımın grup üyeleriyle paylaşılmasını onaylıyorum.':
+    'Apruebo que mis registros privados se compartan con los miembros del grupo.',
+  'Tüm hikâyeyi paylaşmadan önce özel kayıtların paylaşımını onaylamalısın.':
+    'Antes de compartir toda la historia, debes aprobar el uso compartido de tus registros privados.',
   'Bu varlık gruba yalnızca özet olarak paylaşıldı. Kayıtların tamamı sahibinde kalıyor.':
     'Este objeto se compartió con el grupo solo como resumen. Todos los registros siguen con su dueño.',
   'Sahibi bu varlığın yalnızca herkese açık işaretlediği kayıtlarını grupla paylaştı.':

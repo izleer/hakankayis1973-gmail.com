@@ -923,6 +923,42 @@
   line-height: 1.45;
 }
 
+.scope-warning {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 12px 14px;
+  border: 1px solid rgba(172, 88, 59, 0.32);
+  border-radius: var(--radius-sm);
+  background: rgba(172, 88, 59, 0.07);
+}
+
+.scope-warning p {
+  display: flex;
+  align-items: flex-start;
+  gap: 6px;
+  margin: 0;
+  color: #7c3a24;
+  font-size: 0.8rem;
+  line-height: 1.5;
+}
+
+.scope-warning-check {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  cursor: pointer;
+  font-size: 0.8rem;
+  line-height: 1.45;
+  color: var(--ink);
+}
+
+.scope-warning-check input {
+  margin-top: 2px;
+  accent-color: var(--clay);
+  flex: none;
+}
+
 .modal-body > .muted-note {
   display: flex;
   align-items: flex-start;

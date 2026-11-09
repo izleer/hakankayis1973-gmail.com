@@ -56,8 +56,9 @@ const assetDetail = {
   '{metric} değişimi': 'Évolution de {metric}',
 
   // Paylaşım
-  'Seçili kişilerle paylaş': 'Partager avec les personnes sélectionnées',
-  'Varlığın görünürlüğü': 'Visibilité de l’objet :',
+  'Kimler görebilir?': 'Qui peut le voir ?',
+  'Kişiye özel erişim yalnızca "Seçili kişiler" görünürlüğünde geçerlidir. Görünürlüğü "Düzenle" ekranından değiştirebilirsin.':
+    'L’accès par personne ne s’applique qu’avec la visibilité « Personnes sélectionnées ». Vous pouvez changer la visibilité depuis l’écran « Modifier ».',
   'Buradan eklediğin kişiler, varlıkla birlikte seçili kayıtlarını da görebilir.':
     'Les personnes que vous ajoutez ici voient aussi les entrées partagées avec cet objet.',
   'Kullanıcı adı veya e-posta': 'Nom d’utilisateur ou e-mail',
@@ -81,6 +82,8 @@ const assetDetail = {
     'Que s’est-il passé aujourd’hui ? Qu’est-ce qui a changé ? Qu’avez-vous ressenti ?',
   'Tarih ve saat': 'Date et heure',
   'Kimler görebilsin?': 'Qui peut le voir ?',
+  'Kayıt, varlığın görünürlüğünden daha geniş bir kitleye açılamaz.':
+    'Une entrée ne peut pas être partagée avec un public plus large que la visibilité de l’objet.',
   'Fotoğraf veya belge ekle': 'Ajouter une photo ou un document',
   'En fazla 8 dosya · 10 MB / dosya · JPG, PNG, WEBP, GIF, PDF':
     '8 fichiers maximum · 10 Mo / fichier · JPG, PNG, WEBP, GIF, PDF',

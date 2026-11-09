@@ -12,6 +12,14 @@
 > - **Bu turda eklendi:** Yeni varlık formunda tür/ad/seçili kişi için satır içi doğrulama, ilk hatalı alana kaydırma ve Android `Sage`/`SageInk` kontrastının AA seviyesine çekilmesi.
 > - **Açık:** `/files/*` kimlik doğrulaması (risk 3), MIME/magic-byte doğrulaması (risk 4), `/v1/media/:id` erişim modeli (risk 5), test/CI kapsamı (risk 6) ve Android release sertleştirmesi (risk 7). Bunların en önceliklisi `/files/*` erişimidir.
 
+> **Güncelleme (9 Kasım 2026 — P0 güvenilirlik turu):** Üretim öncesi P0 maddeleri kapatıldı:
+>
+> - **Gizlilik/görünürlük:** Engel kontrolü `canViewAsset` ve `postIsVisibleTo` içinde tüm görünürlüklere (public dahil) yayıldı; engelleme artık arkadaşlığı da kaldırıyor (B6). Arama, `canViewAsset` ile aynı koşullarla friends/selected varlıkları kapsıyor ve engellileri dışlıyor (B7). Erişim kuralları yalnızca `selected` görünürlükte anlam taşıyor; diğer görünürlüklerde eski kurallar temizleniyor ve `POST /v1/assets/:id/access` selected dışında 422 döndürüyor.
+> - **Medya erişimi:** Yerel `/files/*` artık HMAC-SHA256 imzalı, süreli URL'lerle sunuluyor; `onRequest` kancasında imza doğrulaması + DB üzerinden iptal (silinmiş varlık/kayıt, gizli gönderi, hazır olmayan medya) kontrolü eklendi (B4). Yüklemelerde magic-byte doğrulaması ve katı base64 çözümü var (B5). `/v1/media/:id` ortak `canViewAsset`/`canViewEntry`/`postIsVisibleTo` fonksiyonlarına bağlandı (B3). Üretimde yerel sürücü için ≥32 karakter `MEDIA_SIGNING_SECRET` zorunlu.
+> - **Paylaşım UX:** Web ve Android'de "Kimler görebilir?" kartı görünür kitleyi açıklıyor; kişi ekleme yalnızca `selected` görünürlükte gösteriliyor. Grup `all` kapsamı için uyarı + açık onay (web) eklendi (B8). Tüm yeni metinler tr/en/de/fr/es.
+> - **Test:** Görünürlük matrisi ve medya güvenliği için 49 yeni birim testi eklendi (toplam 70, 5 dosya). API ve web typecheck temiz.
+> - **Kalan sınırlılıklar:** İmzalı URL'ler süre bitene kadar taşınabilir (bearer tarzı); personel özel içeriği görebilir (moderasyon politikası). Görsel yeniden kodlama (sharp) bilinçli olarak ertelendi. Test/CI kapsamı (risk 6) ve Android release sertleştirmesi (risk 7) hâlâ açık.
+
 ---
 
 ## 1. Yönetici özeti
@@ -654,6 +662,8 @@ Ancak `je.visibility = 'friends'` koşulu yok. Oysa `canViewEntry()` (`api/src/l
 
 #### B3 — Medya meta uç noktası arkadaş/seçili erişimini desteklemiyor (Orta)
 
+> **Durum (9 Kasım P0): Kapatıldı.** `GET /v1/media/:id` artık ortak `canViewAsset`/`canViewEntry`/`postIsVisibleTo` fonksiyonlarıyla görünürlük denetliyor; sahip/personel istisnası korunuyor.
+
 **Konum:** `api/src/routes/media.ts:311–330`
 
 ```ts
@@ -669,6 +679,8 @@ const visible =
 **Öneri:** `canViewAsset()` ve `canViewEntry()` üzerinden ortak bir medya görünürlük kontrolü kullanın.
 
 #### B4 — Yerel `/files/*` kimlik doğrulamasız (Orta)
+
+> **Durum (9 Kasım P0): Kapatıldı.** `/files/*` adresleri HMAC-SHA256 imzalı ve süreli (varsayılan 6 saat, pencereye yuvarlanmış önbellek dostu). `app.ts` `onRequest` kancası imzayı doğrular ve DB'den iptal durumunu (silinmiş varlık/kayıt, gizli gönderi, hazır olmayan medya) kontrol eder; `seed/` demo anahtarları imzalıdır ama DB denetiminden muaftır. Yanıt `Cache-Control: private` + `nosniff`. Kalıcı sızıntıya karşı URL süre bitiminde ölür.
 
 **Konum:** `api/src/app.ts:136–145`, `api/src/lib/storage.ts:111–117`
 
@@ -688,6 +700,8 @@ Yerel depolamada medya URL’si `/files/media/YYYY/MM/<uuid>.<ext>` biçiminde d
 
 #### B5 — Yükleme MIME türüne güveniyor (Orta)
 
+> **Durum (9 Kasım P0): Kapatıldı (kısmi).** `media-validation.ts` magic-byte doğrulaması (JPEG/PNG/GIF/WEBP/AVIF/MP4/PDF) ve katı base64 çözümü (alfabe + uzunluk + dolgu + boyut ön kontrolü) ekler; hem upload hem complete uçlarında uygulanır. **Ertelendi:** sunucu tarafı görsel yeniden kodlama (sharp) — ayrı bir iş olarak ele alınmalı.
+
 **Konum:** `api/src/routes/media.ts:91–139`, `api/src/lib/storage.ts`
 
 - `assertMime(body.mimeType)` yalnızca istemcinin bildirdiği türe bakar.
@@ -706,6 +720,8 @@ Yerel depolamada medya URL’si `/files/media/YYYY/MM/<uuid>.<ext>` biçiminde d
 
 #### B6 — Engel kontrolü tüm erişim yollarında tutarlı değil (Düşük/Orta)
 
+> **Durum (9 Kasım P0): Kapatıldı.** `canViewAsset` engeli tüm görünürlüklerden önce denetler (public dahil); `postIsVisibleTo` public ve grup gönderilerinde engeli uygular. `POST /v1/users/:username/block` artık takiplerin yanında her iki yöndeki arkadaşlığı da kaldırır. Ürün kararı: engel doğrudan erişimi her koşulda kapatır.
+
 **Konum:** `api/src/lib/access.ts:64–81`, `83–103`; `api/src/routes/safety.ts:52–62`
 
 İki ayrı tutarsızlık var:
@@ -721,6 +737,8 @@ Yerel depolamada medya URL’si `/files/media/YYYY/MM/<uuid>.<ext>` biçiminde d
 
 #### B7 — Arama, arkadaş/seçili varlıkları kapsamıyor (Düşük)
 
+> **Durum (9 Kasım P0): Kapatıldı.** Arama sorgusu `canViewAsset` ile aynı koşulları kullanır: kendi varlığı, seçili + erişim kuralı, friends/public + engel yok + (public veya kabul edilmiş arkadaşlık).
+
 **Konum:** `api/src/routes/search.ts:38–46`
 
 ```sql
@@ -732,6 +750,8 @@ AND (a.visibility = 'public' OR a.owner_id = $2)
 **Öneri:** `canViewAsset` ile aynı görünürlük koşullarını arama sorgusuna ekleyin veya ürün kararı olarak yalnızca public/own aramayı belgeleyin.
 
 #### B8 — Grup `scope='all'` özel kayıtları grup üyelerine açıyor (Tasarım notu)
+
+> **Durum (9 Kasım P0): Kapatıldı (web).** `all` kapsamı seçildiğinde özel kayıtların açılacağı uyarısı + zorunlu onay kutusu gösterilir; mevcut kapsam `all`'a çevrilirken `confirm` istenir. Android'de grup kapsamı kavramı henüz yok; eklenirse aynı onay akışı taşınmalı.
 
 **Konum:** `002_groups.sql:40`, `api/src/routes/communities.ts`, `api/src/routes/feed.ts:48–53`
 
@@ -907,6 +927,8 @@ Bir varlık gruba `all` kapsamıyla eklenirse, grup üyeleri varlığın özel k
 ---
 
 ## 15. Önceliklendirilmiş öneriler
+
+> **Durum (9 Kasım P0 turu):** Kapatılan maddeler: 1 (B1), 2 (B2), 3 (görünürlük matrisi — 26 birim senaryosu), 4 (imzalı/süreli medya erişimi), 6 (B3), 7 (B5 — magic byte + katı base64; sharp yeniden kodlama ertelendi), 10 (B6/B7). **Açık kalan P0:** 5 (Android release). **Açık P1:** 8 (CI), 9 (lint/format), 11 (depo hijyeni). Aşağıdaki liste 6 Kasım önceliklendirmesini korur; güncel durum için üstteki güncelleme notlarına bakın.
 
 ### P0 — Üretim öncesi zorunlu
 

@@ -60,6 +60,14 @@ export async function safetyRoutes(app: FastifyInstance): Promise<void> {
           OR (follower_id = $2 AND following_id = $1)`,
       [viewer.id, target.id],
     );
+    // Arkadaşlık devam ederse engellenen kullanıcı friends görünürlüklü
+    // içerikleri görmeyi sürdürebilir; engel arkadaşlığı da sonlandırır.
+    await query(
+      `DELETE FROM friendships
+       WHERE (requester_id = $1 AND addressee_id = $2)
+          OR (requester_id = $2 AND addressee_id = $1)`,
+      [viewer.id, target.id],
+    );
     await audit(viewer.id, 'user.blocked', 'user', target.id, {}, req.ip);
     return reply.status(201).send({ data: { blocked: true } });
   });

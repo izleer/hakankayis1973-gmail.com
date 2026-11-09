@@ -39,7 +39,26 @@ export async function searchRoutes(app: FastifyInstance): Promise<void> {
         `${assetSelect}
          WHERE a.deleted_at IS NULL AND a.status = 'active'
            AND (a.title ILIKE $1 OR a.description ILIKE $1)
-           AND (a.visibility = 'public' OR a.owner_id = $2)
+           AND (
+             a.owner_id = $2
+             OR (a.visibility = 'selected' AND EXISTS (
+               SELECT 1 FROM access_rules ar
+               WHERE ar.resource_type = 'asset' AND ar.resource_id = a.id AND ar.user_id = $2
+             ))
+             OR (a.visibility IN ('friends', 'public')
+               AND NOT EXISTS (
+                 SELECT 1 FROM blocks b
+                 WHERE (b.blocker_id = $2 AND b.blocked_id = a.owner_id)
+                    OR (b.blocker_id = a.owner_id AND b.blocked_id = $2)
+               )
+               AND (a.visibility = 'public' OR EXISTS (
+                 SELECT 1 FROM friendships f
+                 WHERE f.status = 'accepted'
+                   AND ((f.requester_id = $2 AND f.addressee_id = a.owner_id)
+                     OR (f.requester_id = a.owner_id AND f.addressee_id = $2))
+               ))
+             )
+           )
          ORDER BY a.updated_at DESC
          LIMIT $3`,
         [pattern, viewer.id, limit],

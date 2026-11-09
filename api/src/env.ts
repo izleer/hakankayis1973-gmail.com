@@ -28,6 +28,16 @@ const schema = z.object({
   SESSION_TTL_DAYS: z.coerce.number().int().positive().default(30),
   STORAGE_DRIVER: z.enum(['local', 's3']).default('local'),
   STORAGE_DIR: z.string().default('./storage'),
+  // Yerel /files adreslerini imzalamak için kullanılır. Üretimde local
+  // sürücüyle en az 32 karakterlik rastgele bir değer zorunludur.
+  MEDIA_SIGNING_SECRET: optionalText,
+  MEDIA_URL_TTL_SECONDS: z.coerce.number().int().positive().max(604800).default(21600),
+  MEDIA_PUBLIC_URL_TTL_SECONDS: z.coerce
+    .number()
+    .int()
+    .positive()
+    .max(604800)
+    .default(86400),
   MAX_UPLOAD_MB: z.coerce.number().positive().default(10),
   S3_REGION: z.string().default('eu-central-1'),
   S3_BUCKET: z.string().default('varlik-hafizasi-media'),
@@ -49,6 +59,19 @@ const schema = z.object({
   SOCIAL_TOKEN_KEY: optionalText,
   SOCIAL_WEB_RETURN_URL: optionalUrl,
   MEDIA_PUBLIC_BASE_URL: optionalUrl,
+}).superRefine((value, ctx) => {
+  if (
+    value.NODE_ENV === 'production' &&
+    value.STORAGE_DRIVER === 'local' &&
+    (!value.MEDIA_SIGNING_SECRET || value.MEDIA_SIGNING_SECRET.length < 32)
+  ) {
+    ctx.addIssue({
+      code: z.ZodIssueCode.custom,
+      path: ['MEDIA_SIGNING_SECRET'],
+      message:
+        'Yerel medya depolamada üretim için en az 32 karakterlik MEDIA_SIGNING_SECRET zorunludur.',
+    });
+  }
 });
 
 const parsed = schema.safeParse(process.env);

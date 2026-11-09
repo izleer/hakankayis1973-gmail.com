@@ -32,7 +32,7 @@
 
     <!-- Access management -->
     <string name="asset_detail_access_section">Who can see this?</string>
-    <string name="asset_detail_access_body">The asset itself is %1$s, but the people below can only view this asset. Entry visibility is managed separately.</string>
+    <string name="asset_detail_access_selected_only">Adding people is only available with \"Selected people\" visibility. You can change visibility by editing the asset.</string>
     <string name="asset_detail_username_label">Username</string>
     <string name="asset_detail_add">Add</string>
     <string name="asset_detail_remove_access">Remove access</string>

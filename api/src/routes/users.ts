@@ -10,6 +10,7 @@ import { notify } from '../lib/notify.js';
 import { optionalViewer, requireViewer, type Viewer } from '../lib/session.js';
 import { mapAsset, mapUser, mapUserMini } from '../lib/serialize.js';
 import { revokeAllSessions } from '../lib/session.js';
+import { canonicalMediaRef } from '../lib/storage.js';
 
 const usernameParam = z.object({ username: z.string().trim().min(1).max(30) });
 
@@ -583,7 +584,7 @@ export async function userRoutes(app: FastifyInstance): Promise<void> {
         body.bio !== undefined,
         body.bio ?? null,
         body.avatarUrl !== undefined,
-        body.avatarUrl ? body.avatarUrl : null,
+        canonicalMediaRef(body.avatarUrl),
         body.interests ? body.interests : null,
         body.onboarded ?? false,
       ],

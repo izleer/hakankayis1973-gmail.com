@@ -69,12 +69,14 @@ export async function canViewAsset(
   if (isStaff(viewer)) return true;
   if (asset.owner_id === viewer.id) return true;
   if (asset.deleted_at) return false;
+  // Engel ilişkisi her iki yönde de doğrudan erişimi kapatır; keşfet/arama
+  // sorguları zaten engelli kullanıcıları dışlar, ID ile erişim de tutarlı olmalı.
+  if (await isBlocked(viewer.id, asset.owner_id)) return false;
   if (asset.visibility === 'public') return true;
   if (asset.visibility === 'selected') {
     return hasAccessRule(viewer.id, 'asset', asset.id);
   }
   if (asset.visibility === 'friends') {
-    if (await isBlocked(viewer.id, asset.owner_id)) return false;
     return areFriends(viewer.id, asset.owner_id);
   }
   return false;
@@ -93,7 +95,7 @@ export async function canViewEntry(
 
   if (entry.visibility === 'public') return true;
   if (entry.visibility === 'friends') {
-    if (await isBlocked(viewer.id, asset.owner_id)) return false;
+    // Engel kontrolü canViewAsset içinde zaten yapıldı.
     return areFriends(viewer.id, asset.owner_id);
   }
   if (entry.visibility === 'selected') {
@@ -214,6 +216,7 @@ export async function postIsVisibleTo(
   if (!viewer) return false;
   if (isStaff(viewer)) return true;
   if (post.author_id === viewer.id) return true;
+  if (await isBlocked(viewer.id, post.author_id)) return false;
   if (post.audience === 'public') return true;
   if (!post.community_id) return false;
 

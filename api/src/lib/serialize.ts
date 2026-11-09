@@ -1,7 +1,7 @@
 import { query } from '../db.js';
 import { iso } from './http.js';
 import type { Locale } from './locale.js';
-import { mediaUrl } from './storage.js';
+import { mediaRefUrl, mediaUrl } from './storage.js';
 import { translateTypeLabel } from './taxonomy.js';
 
 type Row = Record<string, any>;
@@ -82,7 +82,7 @@ export function mapUserMini(row: Row, prefix = ''): {
     id: row[`${prefix}id`],
     username: row[`${prefix}username`],
     displayName: row[`${prefix}display_name`],
-    avatarUrl: row[`${prefix}avatar_url`],
+    avatarUrl: mediaRefUrl(row[`${prefix}avatar_url`]),
   };
 }
 
@@ -102,7 +102,7 @@ export function mapUser(row: Row): {
     username: row.username,
     displayName: row.display_name,
     bio: row.bio,
-    avatarUrl: row.avatar_url,
+    avatarUrl: mediaRefUrl(row.avatar_url),
     role: row.role,
     interests: row.interests ?? [],
     createdAt: iso(row.created_at)!,
@@ -139,7 +139,7 @@ function dateOnly(value: Date | string | null | undefined): string | null {
 }
 
 export async function mapAsset(row: Row, locale: Locale = 'tr'): Promise<AssetDto> {
-  const cover = row.cover_storage_key ? await mediaUrl(row.cover_storage_key) : row.cover_url;
+  const cover = row.cover_storage_key ? await mediaUrl(row.cover_storage_key) : mediaRefUrl(row.cover_url);
   return {
     id: row.id,
     title: row.title,
@@ -192,7 +192,7 @@ export async function mapPost(
 ): Promise<Record<string, unknown>> {
   const assetCover = row.asset_cover_storage_key
     ? await mediaUrl(row.asset_cover_storage_key)
-    : row.asset_cover_url;
+    : mediaRefUrl(row.asset_cover_url);
 
   return {
     id: row.id,
@@ -243,7 +243,7 @@ export function mapCommunity(row: Row): Record<string, unknown> {
     rules: row.rules ?? null,
     visibility: row.visibility,
     joinPolicy: row.join_policy ?? 'open',
-    coverUrl: row.cover_url,
+    coverUrl: mediaRefUrl(row.cover_url),
     memberCount: Number(row.member_count ?? 0),
     postCount: Number(row.post_count ?? 0),
     assetCount: Number(row.asset_count ?? 0),

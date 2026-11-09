@@ -2,7 +2,7 @@ import type { FastifyInstance } from 'fastify';
 import { z } from 'zod';
 import { query, queryOne } from '../db.js';
 import { env } from '../env.js';
-import { getAsset } from '../lib/access.js';
+import { canViewAsset, canViewEntry, getAsset, isStaff, postIsVisibleTo } from '../lib/access.js';
 import { audit } from '../lib/audit.js';
 import { ApiError, forbidden, notFound } from '../lib/errors.js';
 import {
@@ -22,8 +22,10 @@ import {
   newStorageKey,
   objectExists,
   presignedPutUrl,
+  readStorageObject,
   saveBuffer,
 } from '../lib/storage.js';
+import { assertMediaContent, decodeBase64Media } from '../lib/media-validation.js';
 
 const uuid = z.string().uuid();
 
@@ -94,23 +96,8 @@ export async function mediaRoutes(app: FastifyInstance): Promise<void> {
     assertMime(body.mimeType);
     await assertTargetPermission(viewer.id, viewer.role, body);
 
-    const base64 = body.dataBase64.replace(/^data:[^;]+;base64,/, '');
-    let buffer: Buffer;
-    try {
-      buffer = Buffer.from(base64, 'base64');
-    } catch {
-      throw new ApiError(422, 'INVALID_MEDIA', 'Dosya verisi okunamadı.');
-    }
-    if (buffer.length === 0) throw new ApiError(422, 'INVALID_MEDIA', 'Dosya boş.');
-    if (buffer.length > env.maxUploadBytes) {
-      throw new ApiError(
-        413,
-        'UPLOAD_TOO_LARGE',
-        translate(req.locale, 'Dosya en fazla {limit} MB olabilir.', {
-          limit: env.MAX_UPLOAD_MB,
-        }),
-      );
-    }
+    const buffer = decodeBase64Media(body.dataBase64, env.maxUploadBytes);
+    assertMediaContent(buffer, body.mimeType);
 
     const key = newStorageKey(body.mimeType);
     await saveBuffer(key, buffer, body.mimeType);
@@ -190,6 +177,20 @@ export async function mediaRoutes(app: FastifyInstance): Promise<void> {
     if (!row) notFound('Medya bulunamadı.');
     if (!row.storage_key || !(await objectExists(row.storage_key))) {
       throw new ApiError(422, 'UPLOAD_MISSING', 'Yükleme tamamlanmamış.');
+    }
+    // Doğrudan (presign) yüklemelerde içerik API'den geçmez; tamamlama
+    // adımında magic-byte doğrulaması burada yapılır.
+    try {
+      const buffer = await readStorageObject(row.storage_key);
+      if (buffer.length > env.maxUploadBytes) {
+        throw new ApiError(413, 'UPLOAD_TOO_LARGE', 'Dosya boyutu sınırı aşıldı.');
+      }
+      assertMediaContent(buffer, row.mime_type);
+    } catch (error) {
+      if (error instanceof ApiError) {
+        await query(`UPDATE media SET status = 'failed' WHERE id = $1`, [id]);
+      }
+      throw error;
     }
     const updated = await query<Record<string, any>>(
       `UPDATE media SET status = 'ready' WHERE id = $1 RETURNING *`,
@@ -311,21 +312,38 @@ export async function mediaRoutes(app: FastifyInstance): Promise<void> {
   app.get('/:id', async (req) => {
     const viewer = await requireViewer(req);
     const { id } = z.object({ id: uuid }).parse(req.params);
-    const row = await queryOne<Record<string, any>>(
-      `SELECT m.*, a.visibility AS asset_visibility, a.owner_id AS asset_owner,
-              p.author_id AS post_author, p.audience AS post_audience
-       FROM media m
-       LEFT JOIN assets a ON a.id = m.asset_id
-       LEFT JOIN posts p ON p.id = m.post_id
-       WHERE m.id = $1`,
-      [id],
-    );
+    const row = await queryOne<Record<string, any>>(`SELECT * FROM media WHERE id = $1`, [id]);
     if (!row) notFound('Medya bulunamadı.');
-    const visible =
-      row.owner_id === viewer.id ||
-      viewer.role === 'admin' ||
-      (row.asset_visibility === 'public' && row.asset_owner) ||
-      (row.post_id && row.post_audience === 'public');
+
+    // Görünürlük, medyanın bağlı olduğu kaynağın ortak erişim kurallarıyla
+    // belirlenir: kayıt > varlık > gönderi. Bağlı kaynağı olmayan medyayı
+    // yalnızca yükleyen ve personel görebilir.
+    let visible = row.owner_id === viewer.id || isStaff(viewer);
+    if (!visible && row.entry_id) {
+      const entry = await queryOne<{
+        id: string;
+        asset_id: string;
+        author_id: string;
+        visibility: 'private' | 'selected' | 'friends' | 'public';
+        deleted_at: Date | null;
+      }>(
+        `SELECT id, asset_id, author_id, visibility, deleted_at FROM journal_entries WHERE id = $1`,
+        [row.entry_id],
+      );
+      if (entry && !entry.deleted_at) {
+        visible = await canViewEntry(viewer, entry, await getAsset(entry.asset_id));
+      }
+    } else if (!visible && row.asset_id) {
+      visible = await canViewAsset(viewer, await getAsset(row.asset_id));
+    } else if (!visible && row.post_id) {
+      const post = await queryOne<{
+        author_id: string;
+        audience: 'public' | 'community';
+        community_id: string | null;
+        status: 'visible' | 'hidden' | 'deleted';
+      }>(`SELECT author_id, audience, community_id, status FROM posts WHERE id = $1`, [row.post_id]);
+      if (post) visible = await postIsVisibleTo(viewer, post);
+    }
     if (!visible) forbidden('Bu medyayı görüntüleme yetkiniz yok.');
     return { data: { media: await mapMedia(row) } };
   });

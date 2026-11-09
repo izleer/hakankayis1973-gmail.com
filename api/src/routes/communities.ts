@@ -23,6 +23,7 @@ import {
 } from '../lib/serialize.js';
 import { notify } from '../lib/notify.js';
 import { optionalViewer, requireViewer } from '../lib/session.js';
+import { canonicalMediaRef, mediaRefUrl } from '../lib/storage.js';
 
 const slugPattern = /^[a-z0-9-]{3,60}$/;
 
@@ -262,7 +263,7 @@ export async function communityRoutes(app: FastifyInstance): Promise<void> {
           body.rules?.trim() || null,
           body.visibility,
           body.joinPolicy,
-          body.coverUrl || null,
+          canonicalMediaRef(body.coverUrl) || null,
           viewer.id,
         ],
       );
@@ -316,7 +317,7 @@ export async function communityRoutes(app: FastifyInstance): Promise<void> {
             id: row.community_id,
             slug: row.community_slug,
             name: row.community_name,
-            coverUrl: row.community_cover_url,
+            coverUrl: mediaRefUrl(row.community_cover_url),
           },
           inviter: mapUserMini(row, 'inviter_'),
         })),
@@ -466,7 +467,7 @@ export async function communityRoutes(app: FastifyInstance): Promise<void> {
         body.description ?? null,
         body.visibility ?? null,
         body.coverUrl !== undefined,
-        body.coverUrl || null,
+        canonicalMediaRef(body.coverUrl) || null,
         body.category !== undefined,
         body.category?.trim() || null,
         body.rules !== undefined,
