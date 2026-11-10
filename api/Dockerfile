@@ -22,7 +22,8 @@ RUN mkdir -p /app/storage \
     && chown -R app:app /app
 USER app
 EXPOSE 4000
+# Render gibi platformlar PORT'u çalışma anında değiştirir; sağlık kontrolü onu izler.
 HEALTHCHECK --interval=30s --timeout=5s --start-period=30s --retries=3 \
-  CMD wget -qO- http://127.0.0.1:4000/health || exit 1
+  CMD wget -qO- "http://127.0.0.1:${PORT:-4000}/health" || exit 1
 ENTRYPOINT ["api-entrypoint.sh"]
 CMD ["node", "dist/server.js"]

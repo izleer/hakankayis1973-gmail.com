@@ -1,0 +1,91 @@
+# izleer — Render Blueprint (ücretsiz plan)
+#
+# Kullanım: Render Dashboard > New > Blueprint > bu repoyu seç. Render bu
+# dosyadaki servisleri oluşturur; `sync: false` işaretli değişkenlerin
+# değerlerini kurulum sırasında dashboard'da istersin (gizli/deploy'a özel).
+#
+# Mimari:
+#   - API (Fastify)  : Render free web service, Docker ile değişmeden çalışır.
+#   - Web (Next.js)  : Render free web service; API_URL'i API'nin public adresine ayarla.
+#   - Veritabanı     : Supabase Postgres (zaten aktif) — DATABASE_URL / DATABASE_MIGRATION_URL.
+#   - Medya          : Supabase Storage (S3 uyumlu) — STORAGE_DRIVER=s3.
+#
+# Not: Free web service'ler 15 dk hareketsizlikte uyur; ilk istek ~1 dk sürebilir.
+# Supabase S3 değerlerini Dashboard > Storage > S3 Configuration sayfasından kopyala:
+#   S3_ENDPOINT = https://<project-ref>.storage.supabase.co/storage/v1/s3
+#   S3_REGION   = eu-central-1   (proje bölgesi)
+#   S3_FORCE_PATH_STYLE = true
+
+services:
+  - type: web
+    name: izleer-api
+    runtime: docker
+    plan: free
+    dockerfilePath: ./api/Dockerfile
+    dockerContext: .
+    healthCheckPath: /health
+    autoDeploy: true
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: HOST
+        value: 0.0.0.0
+      - key: PORT
+        value: "10000"
+      # Migration'lar idempotent; Supabase session pooler (5432) gerektirir.
+      # DB zaten migrate edildiyse "false" yapabilirsin.
+      - key: RUN_MIGRATIONS
+        value: "true"
+      - key: DATABASE_SSL
+        value: "true"
+      - key: DATABASE_POOL_MAX
+        value: "5"
+      # Medya Supabase Storage'da (S3 uyumlu).
+      - key: STORAGE_DRIVER
+        value: s3
+      - key: S3_REGION
+        value: eu-central-1
+      - key: S3_FORCE_PATH_STYLE
+        value: "true"
+      - key: MAX_UPLOAD_MB
+        value: "10"
+      - key: SESSION_TTL_DAYS
+        value: "30"
+      # --- Deploy'a özel / gizli: dashboard'da girilir ---
+      # Supabase transaction pooler (6543), sslmode=require
+      - key: DATABASE_URL
+        sync: false
+      # Supabase session pooler (5432) — migration/advisory lock için
+      - key: DATABASE_MIGRATION_URL
+        sync: false
+      # API'nin public adresi, örn. https://izleer-api.onrender.com
+      - key: PUBLIC_API_URL
+        sync: false
+      # Web'in public adresi, örn. https://izleer-web.onrender.com
+      - key: CORS_ORIGINS
+        sync: false
+      # Supabase Storage S3 bağlantısı
+      - key: S3_ENDPOINT
+        sync: false
+      - key: S3_BUCKET
+        sync: false
+      - key: S3_ACCESS_KEY_ID
+        sync: false
+      - key: S3_SECRET_ACCESS_KEY
+        sync: false
+
+  - type: web
+    name: izleer-web
+    runtime: docker
+    plan: free
+    dockerfilePath: ./web/Dockerfile
+    dockerContext: ./web
+    healthCheckPath: /api/health
+    autoDeploy: true
+    envVars:
+      - key: NODE_ENV
+        value: production
+      # API deploy olduktan sonra API'nin public adresini gir (BFF çalışma anında okur).
+      # Örn. https://izleer-api.onrender.com
+      - key: API_URL
+        sync: false
