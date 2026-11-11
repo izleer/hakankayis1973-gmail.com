@@ -171,6 +171,43 @@ const assetDetail = {
   'Raporlara dön': 'Volver a los informes',
   'Bir varlık seç ve ayrıntılı raporunu yazdır ya da PDF olarak indir.':
     'Elige un objeto e imprime su informe detallado o descárgalo en PDF.',
+
+  // Hatırlatmalar
+  Hatırlatma: 'Recordatorio',
+  'Hatırlatma zamanı': 'Hora del recordatorio',
+  'Zamanı geldiğinde uygulamada bildirim ve alarm oluşur.':
+    'Cuando llegue el momento, aparecerán una notificación y una alarma en la aplicación.',
+  'Hatırlatma zamanını değiştirmek hatırlatmayı yeniden açar.':
+    'Cambiar la hora del recordatorio reabre el recordatorio.',
+  'Hatırlatma için bir tarih ve saat seçin.':
+    'Elige una fecha y una hora para el recordatorio.',
+  'Hatırlatma zamanı gelecekte olmalı.': 'La hora del recordatorio debe estar en el futuro.',
+  'Hatırlatma tamamlandı.': 'Recordatorio completado.',
+  'Hatırlatma yeniden açıldı.': 'Recordatorio reabierto.',
+  'Hatırlatma güncellenemedi.': 'No se pudo actualizar el recordatorio.',
+  Tamamlandı: 'Completado',
+  'Zamanı geçti': 'Atrasado',
+  Planlandı: 'Planificado',
+  '{date} tarihinde tamamlandı': 'Completado el {date}',
+  'Yeniden aç': 'Reabrir',
+  'Tamamlandı işaretle': 'Marcar como completado',
+
+  // Gestión compartida
+  Ortak: 'Compartido',
+  'Ortak yönetim': 'Gestión compartida',
+  'Ortak yönetim: {group}': 'Gestión compartida: {group}',
+  'Varlığı özel bir gruba atadığında grubun tüm etkin üyeleri varlığı ve kayıtlarını düzenleyebilir. Sahiplik sende kalır.':
+    'Cuando asignas el objeto a un grupo privado, todos los miembros activos del grupo pueden editar el objeto y sus entradas. La propiedad sigue siendo tuya.',
+  Grup: 'Grupo',
+  'Kapalı — yalnızca ben': 'Desactivado — solo yo',
+  'Önce özel bir grup oluşturmalısın.': 'Primero debes crear un grupo privado.',
+  'Grup oluştur': 'Crear grupo',
+  'Grubu aç': 'Abrir grupo',
+  'Ortak yönetim grubu atandı.': 'Grupo de gestión compartida asignado.',
+  'Ortak yönetim kapatıldı.': 'Gestión compartida desactivada.',
+  'Ortak yönetim ayarlanamadı.': 'No se pudo configurar la gestión compartida.',
+  'Kişi listesini yalnızca varlık sahibi yönetir.':
+    'Solo el propietario del objeto gestiona la lista de personas.',
 } as const;
 
 export default assetDetail;

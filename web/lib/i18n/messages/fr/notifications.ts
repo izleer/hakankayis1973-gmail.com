@@ -5,6 +5,7 @@ const notifications = {
   Beğeni: 'J’aime',
   Takip: 'Abonnement',
   Sistem: 'Système',
+  Hatırlatma: 'Rappel',
   'Henüz bildirim yok': 'Pas encore de notifications',
   'Biri gönderini beğendiğinde, yorum yaptığında ya da seni takip ettiğinde burada görünecek.':
     'Lorsque quelqu’un aime votre publication, la commente ou vous suit, cela apparaîtra ici.',

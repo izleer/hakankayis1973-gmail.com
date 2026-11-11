@@ -27,6 +27,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.AddPhotoAlternate
+import androidx.compose.material.icons.outlined.Alarm
 import androidx.compose.material.icons.outlined.CalendarMonth
 import androidx.compose.material.icons.outlined.Close
 import androidx.compose.material.icons.outlined.Edit
@@ -91,7 +92,19 @@ import java.util.Calendar
 
 private val entryTypes = listOf(
     "note", "photo", "maintenance", "health", "measurement", "acquisition", "event", "document",
+    "reminder",
 )
+
+/** Hatırlatma için makul başlangıç: yarın sabah 09:00. */
+private fun defaultReminderAt(): Long {
+    val calendar = Calendar.getInstance()
+    calendar.add(Calendar.DAY_OF_MONTH, 1)
+    calendar.set(Calendar.HOUR_OF_DAY, 9)
+    calendar.set(Calendar.MINUTE, 0)
+    calendar.set(Calendar.SECOND, 0)
+    calendar.set(Calendar.MILLISECOND, 0)
+    return calendar.timeInMillis
+}
 
 private val UriStateSaver = Saver<Uri?, String>(
     save = { it?.toString().orEmpty() },
@@ -137,13 +150,18 @@ fun AddEntryScreen(
     var mediaUris by rememberSaveable(stateSaver = UriListStateSaver) { mutableStateOf<List<Uri>>(emptyList()) }
     var pendingMediaUri by rememberSaveable(stateSaver = UriStateSaver) { mutableStateOf<Uri?>(null) }
     var occurredAt by rememberSaveable { mutableStateOf(System.currentTimeMillis()) }
+    var dueAt by rememberSaveable { mutableStateOf(defaultReminderAt()) }
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
     val cameraUnavailable = stringResource(R.string.media_camera_unavailable)
 
-    fun openOccurredAtPicker() {
-        val calendar = Calendar.getInstance().apply { timeInMillis = occurredAt }
-        DatePickerDialog(
+    fun openDateTimePicker(
+        initialMillis: Long,
+        minDateMillis: Long?,
+        onPicked: (Long) -> Unit,
+    ) {
+        val calendar = Calendar.getInstance().apply { timeInMillis = initialMillis }
+        val dialog = DatePickerDialog(
             context,
             { _, year, month, day ->
                 calendar.set(Calendar.YEAR, year)
@@ -155,7 +173,8 @@ fun AddEntryScreen(
                         calendar.set(Calendar.HOUR_OF_DAY, hour)
                         calendar.set(Calendar.MINUTE, minute)
                         calendar.set(Calendar.SECOND, 0)
-                        occurredAt = calendar.timeInMillis
+                        calendar.set(Calendar.MILLISECOND, 0)
+                        onPicked(calendar.timeInMillis)
                     },
                     calendar.get(Calendar.HOUR_OF_DAY),
                     calendar.get(Calendar.MINUTE),
@@ -165,7 +184,13 @@ fun AddEntryScreen(
             calendar.get(Calendar.YEAR),
             calendar.get(Calendar.MONTH),
             calendar.get(Calendar.DAY_OF_MONTH),
-        ).show()
+        )
+        minDateMillis?.let { dialog.datePicker.minDate = it }
+        dialog.show()
+    }
+
+    fun openOccurredAtPicker() {
+        openDateTimePicker(occurredAt, null) { occurredAt = it }
     }
 
     val asset = state.data?.detail?.asset
@@ -212,6 +237,9 @@ fun AddEntryScreen(
         clearLocation = false
         occurredAt = runCatching { Instant.parse(entry.occurredAt).toEpochMilli() }
             .getOrDefault(System.currentTimeMillis())
+        dueAt = entry.dueAt
+            ?.let { runCatching { Instant.parse(it).toEpochMilli() }.getOrNull() }
+            ?: defaultReminderAt()
         seeded = true
     }
 
@@ -377,6 +405,67 @@ fun AddEntryScreen(
                         modifier = Modifier.size(18.dp),
                     )
                 }
+            }
+
+            if (type == "reminder") {
+                Spacer(Modifier.height(18.dp))
+                SectionLabel(stringResource(R.string.add_entry_section_reminder))
+                Surface(
+                    color = PaperDeep,
+                    shape = RoundedCornerShape(14.dp),
+                    border = BorderStroke(1.dp, Line),
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .clickable {
+                            openDateTimePicker(
+                                dueAt,
+                                if (editing) null else System.currentTimeMillis(),
+                            ) { dueAt = it }
+                        },
+                ) {
+                    Row(
+                        modifier = Modifier.padding(horizontal = 14.dp, vertical = 12.dp),
+                        verticalAlignment = Alignment.CenterVertically,
+                    ) {
+                        Icon(
+                            Icons.Outlined.Alarm,
+                            contentDescription = null,
+                            tint = Clay,
+                            modifier = Modifier.size(20.dp),
+                        )
+                        Spacer(Modifier.size(10.dp))
+                        Column(Modifier.weight(1f)) {
+                            Text(
+                                formatDateTime(dueAt),
+                                style = MaterialTheme.typography.titleSmall,
+                                color = Forest,
+                            )
+                            Text(
+                                stringResource(R.string.add_entry_reminder_change),
+                                style = MaterialTheme.typography.bodySmall,
+                                color = Muted,
+                            )
+                        }
+                        Icon(
+                            Icons.Outlined.Edit,
+                            contentDescription = null,
+                            tint = Muted,
+                            modifier = Modifier.size(18.dp),
+                        )
+                    }
+                }
+                Text(
+                    stringResource(
+                        if (editing) {
+                            R.string.add_entry_reminder_edit_hint
+                        } else {
+                            R.string.add_entry_reminder_hint
+                        },
+                    ),
+                    style = MaterialTheme.typography.bodySmall,
+                    color = Muted,
+                    modifier = Modifier.padding(top = 5.dp),
+                )
             }
 
             Spacer(Modifier.height(18.dp))
@@ -707,7 +796,12 @@ fun AddEntryScreen(
                         null
                     }
                     val occurredAtIso = Instant.ofEpochMilli(occurredAt).toString()
-                    if (editing && entryId != null) {
+                    val dueAtIso = if (type == "reminder") {
+                        Instant.ofEpochMilli(dueAt).toString()
+                    } else {
+                        null
+                    }
+                    if (entryId != null) {
                         vm.updateEntry(
                             assetId = assetId,
                             entryId = entryId,
@@ -716,6 +810,7 @@ fun AddEntryScreen(
                             body = body,
                             visibility = visibility,
                             occurredAt = occurredAtIso,
+                            dueAt = dueAtIso,
                             newMediaUris = mediaUris,
                             measurement = measurement,
                             locationName = locationName,
@@ -732,6 +827,7 @@ fun AddEntryScreen(
                             body = body,
                             visibility = visibility,
                             occurredAt = occurredAtIso,
+                            dueAt = dueAtIso,
                             mediaUris = mediaUris,
                             measurement = measurement,
                             locationName = locationName,

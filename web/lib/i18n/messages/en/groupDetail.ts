@@ -225,6 +225,10 @@ const groupDetail = {
   'Yorumu sil': 'Delete comment',
   'Bir yorum bırak…': 'Leave a comment…',
   Gönder: 'Send',
+  'Ortak yönetim': 'Shared management',
+  'Varlığı yönet': 'Manage asset',
+  'Bu varlık grubun ortak yönetiminde. Tüm üyeler kayıtları düzenleyebilir.':
+    'This asset is under the group’s shared management. All members can edit its entries.',
 } as const;
 
 export default groupDetail;

@@ -13,6 +13,11 @@
     <string name="add_entry_section_when">Wann?</string>
     <string name="add_entry_change_datetime">Datum und Uhrzeit ändern</string>
 
+    <string name="add_entry_section_reminder">Erinnerungszeitpunkt</string>
+    <string name="add_entry_reminder_change">Datum und Uhrzeit ändern</string>
+    <string name="add_entry_reminder_hint">Wenn es so weit ist, erhältst du eine Benachrichtigung und ein Alarm ertönt. Tippe, um die Uhrzeit zu wählen.</string>
+    <string name="add_entry_reminder_edit_hint">Wenn du den Erinnerungszeitpunkt änderst, wird die Erinnerung wieder geöffnet.</string>
+
     <string name="add_entry_section_measurement">Messung</string>
     <string name="add_entry_metric">Messgröße</string>
     <string name="add_entry_metric_placeholder">Höhe</string>

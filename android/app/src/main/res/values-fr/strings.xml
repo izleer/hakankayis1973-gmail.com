@@ -32,6 +32,13 @@
     <string name="entry_type_event">Événement</string>
     <string name="entry_type_document">Document</string>
     <string name="entry_type_note">Note</string>
+    <string name="entry_type_reminder">Rappel</string>
+
+    <!-- Notification de rappel -->
+    <string name="reminder_channel_name">Rappels</string>
+    <string name="reminder_channel_description">Les rappels de biens sont signalés par une sonnerie d\'alarme et des vibrations.</string>
+    <string name="reminder_notification_message">Rappel pour « %1$s » : %2$s</string>
+    <string name="reminder_notification_fallback">Il est temps d\'un rappel pour « %1$s ».</string>
 
     <plurals name="common_entry_count">
         <item quantity="one">%1$d entrée</item>
@@ -88,15 +95,23 @@
     <string name="error_file_unreadable">Impossible de lire le fichier.</string>
     <string name="error_file_empty">Le fichier est vide.</string>
     <string name="error_file_too_large">Le fichier ne peut pas dépasser 10 Mo.</string>
+    <string name="error_reminder_time_required">Choisissez une date et une heure pour le rappel.</string>
+    <string name="error_reminder_time_future">L\'heure du rappel doit être dans le futur.</string>
 
     <!-- Notices -->
     <string name="notice_asset_added">« %1$s » a été ajouté à votre mémoire.</string>
     <string name="notice_entry_added">L\'entrée a été ajoutée à la chronologie.</string>
     <string name="notice_entry_deleted">L\'entrée a été supprimée.</string>
+    <string name="notice_asset_deleted">Le bien a été supprimé.</string>
     <string name="notice_entry_updated">L\'entrée a été mise à jour.</string>
+    <string name="notice_reminder_done">Rappel terminé.</string>
+    <string name="notice_reminder_reopened">Rappel rouvert.</string>
     <string name="notice_asset_updated">« %1$s » a été mis à jour.</string>
     <string name="notice_access_granted">@%1$s peut désormais voir ce bien.</string>
     <string name="notice_access_removed">Accès retiré.</string>
+    <string name="asset_manager_chip">Partagé</string>
+    <string name="notice_manager_assigned">Groupe de gestion partagée attribué.</string>
+    <string name="notice_manager_removed">Gestion partagée désactivée.</string>
     <string name="notice_unfollowed">Vous ne suivez plus @%1$s.</string>
     <string name="notice_following">Vous suivez maintenant @%1$s.</string>
     <string name="notice_friend_requested">Demande d\'ami envoyée à %1$s.</string>

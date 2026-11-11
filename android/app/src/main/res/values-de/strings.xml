@@ -32,6 +32,13 @@
     <string name="entry_type_event">Ereignis</string>
     <string name="entry_type_document">Dokument</string>
     <string name="entry_type_note">Notiz</string>
+    <string name="entry_type_reminder">Erinnerung</string>
+
+    <!-- Erinnerungsbenachrichtigung -->
+    <string name="reminder_channel_name">Erinnerungen</string>
+    <string name="reminder_channel_description">Erinnerungen zu Objekten werden mit Alarmsignal und Vibration gemeldet.</string>
+    <string name="reminder_notification_message">Erinnerung zu „%1$s“: %2$s</string>
+    <string name="reminder_notification_fallback">Es ist Zeit für eine Erinnerung zu „%1$s“.</string>
 
     <plurals name="common_entry_count">
         <item quantity="one">%1$d Eintrag</item>
@@ -88,15 +95,23 @@
     <string name="error_file_unreadable">Die Datei konnte nicht gelesen werden.</string>
     <string name="error_file_empty">Die Datei ist leer.</string>
     <string name="error_file_too_large">Die Datei darf höchstens 10 MB groß sein.</string>
+    <string name="error_reminder_time_required">Wähle ein Datum und eine Uhrzeit für die Erinnerung.</string>
+    <string name="error_reminder_time_future">Der Erinnerungszeitpunkt muss in der Zukunft liegen.</string>
 
     <!-- Hinweise -->
     <string name="notice_asset_added">„%1$s“ wurde dem Gedächtnis hinzugefügt.</string>
     <string name="notice_entry_added">Der Eintrag wurde zur Zeitleiste hinzugefügt.</string>
     <string name="notice_entry_deleted">Der Eintrag wurde gelöscht.</string>
+    <string name="notice_asset_deleted">Das Objekt wurde gelöscht.</string>
     <string name="notice_entry_updated">Der Eintrag wurde aktualisiert.</string>
+    <string name="notice_reminder_done">Erinnerung erledigt.</string>
+    <string name="notice_reminder_reopened">Erinnerung wieder geöffnet.</string>
     <string name="notice_asset_updated">„%1$s“ wurde aktualisiert.</string>
     <string name="notice_access_granted">@%1$s kann dieses Objekt jetzt sehen.</string>
     <string name="notice_access_removed">Zugriff entfernt.</string>
+    <string name="asset_manager_chip">Geteilt</string>
+    <string name="notice_manager_assigned">Gruppe für gemeinsame Verwaltung zugewiesen.</string>
+    <string name="notice_manager_removed">Gemeinsame Verwaltung beendet.</string>
     <string name="notice_unfollowed">@%1$s wird nicht mehr gefolgt.</string>
     <string name="notice_following">Du folgst jetzt @%1$s.</string>
     <string name="notice_friend_requested">Freundschaftsanfrage an %1$s gesendet.</string>

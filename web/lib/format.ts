@@ -147,6 +147,7 @@ export const entryTypeLabels: Record<EntryType, string> = {
   health: 'Sağlık',
   event: 'Dönüm noktası',
   document: 'Belge',
+  reminder: 'Hatırlatma',
 };
 
 export const entryTypeDescriptions: Record<EntryType, string> = {
@@ -158,6 +159,7 @@ export const entryTypeDescriptions: Record<EntryType, string> = {
   health: 'Sağlık, veteriner ya da kontrol notları.',
   event: 'Süreçte geri dönülüp bakılacak bir eşik.',
   document: 'Fatura, sertifika, rapor ya da yazılı belge.',
+  reminder: 'Zamanı gelince bildirim ve alarmla hatırlatılacak ileri tarihli iş.',
 };
 
 export const visibilityLabels: Record<Visibility, string> = {

@@ -77,7 +77,9 @@ export default async function GroupDetailPage({ params }: { params: Params }) {
       initialPosts={feed.items}
       initialAssets={sharedAssets.items}
       initialRequests={requests}
-      myAssets={ownAssets.items}
+      myAssets={ownAssets.items.filter(
+        (asset) => asset.owner.id === viewer.id && asset.manager?.id !== data.community.id,
+      )}
       viewer={viewer}
     />
   );

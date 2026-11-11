@@ -4,6 +4,7 @@ import android.app.Application
 import android.content.Context
 import app.varlikhafizasi.data.SessionStore
 import app.varlikhafizasi.data.VhRepository
+import app.varlikhafizasi.reminders.ReminderNotifier
 
 object AppGraph {
     lateinit var repository: VhRepository
@@ -20,5 +21,6 @@ class VhApplication : Application() {
     override fun onCreate() {
         super.onCreate()
         AppGraph.init(this)
+        ReminderNotifier.ensureChannel(this)
     }
 }

@@ -171,6 +171,16 @@ INSERT INTO journal_entries (id, asset_id, author_id, type, title, body, occurre
    '2026-10-24 19:10:00+03', 'public', 'İstanbul, Kadıköy', '{"flowers":14}', now() - interval '2 days')
 ON CONFLICT (id) DO NOTHING;
 
+-- Örnek bakım hatırlatması: zamanı gelince bildirim ve Android alarmı üretir.
+INSERT INTO journal_entries
+  (id, asset_id, author_id, type, title, body, occurred_at, visibility,
+   location_name, attributes, created_at, due_at)
+VALUES
+  ('e0000000-0000-4000-8000-000000000018', 'a0000000-0000-4000-8000-000000000008', '11111111-1111-4111-8111-111111111111', 'reminder',
+   'Toprak değişimi', 'Bonsai için akşam serinliğinde toprak değişimi; teller ve kökler kontrol edilecek.',
+   now(), 'private', 'İstanbul, Kadıköy', '{}', now(), now() + interval '7 days')
+ON CONFLICT (id) DO NOTHING;
+
 INSERT INTO media
   (id, owner_id, kind, status, storage_key, original_name, mime_type, byte_size, width, height,
    asset_id, entry_id, created_at) VALUES

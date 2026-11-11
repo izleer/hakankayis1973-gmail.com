@@ -30,6 +30,15 @@
     <string name="asset_detail_measurements_empty_body">Größe, Gewicht, Gießmenge… Sie sammeln sich hier, sobald du einen Eintrag vom Typ Messung hinzufügst.</string>
     <string name="asset_detail_measurement_history">Messverlauf</string>
 
+    <!-- Erinnerungsstatus -->
+    <string name="asset_detail_reminder_due">Erinnerungszeitpunkt: %1$s</string>
+    <string name="asset_detail_reminder_planned">Geplant</string>
+    <string name="asset_detail_reminder_overdue">Überfällig</string>
+    <string name="asset_detail_reminder_done">Erledigt</string>
+    <string name="asset_detail_reminder_done_at">Erledigt am %1$s</string>
+    <string name="asset_detail_reminder_complete">Als erledigt markieren</string>
+    <string name="asset_detail_reminder_reopen">Wieder öffnen</string>
+
     <!-- Zugriffsverwaltung -->
     <string name="asset_detail_access_section">Wer kann das sehen?</string>
     <string name="asset_detail_access_selected_only">Personen hinzufügen ist nur bei der Sichtbarkeit „Ausgewählte Personen“ möglich. Die Sichtbarkeit kannst du durch Bearbeiten des Objekts ändern.</string>
@@ -40,8 +49,21 @@
     <string name="asset_detail_no_viewers_body">Füge einen Benutzernamen hinzu, um die Geschichte dieses Objekts mit einer Person deiner Wahl zu teilen.</string>
     <string name="asset_detail_owner_only_title">Nur die besitzende Person verwaltet das</string>
     <string name="asset_detail_owner_only_body">Nur die besitzende Person kann die Zugriffsliste dieses Objekts bearbeiten.</string>
+    <string name="asset_detail_viewers_owner_only">Die Personenliste verwaltet nur die besitzende Person.</string>
+
+    <!-- Gemeinsame Verwaltung -->
+    <string name="asset_detail_manager_note">Gemeinsame Verwaltung: %1$s</string>
+    <string name="asset_detail_manager_section">Gemeinsame Verwaltung</string>
+    <string name="asset_detail_manager_off">Aus — nur ich</string>
+    <string name="asset_detail_manager_hint">Wenn du eine private Gruppe wählst, können alle Mitglieder dieses Objekt und seine Einträge bearbeiten. Löschen und die Personenliste bleiben bei der besitzenden Person.</string>
+    <string name="asset_detail_manager_change">Ändern</string>
+    <string name="asset_detail_manager_pick">Gruppe für gemeinsame Verwaltung</string>
+    <string name="asset_detail_manager_no_groups">Erstelle zuerst eine private Gruppe.</string>
 
     <!-- Löschen und Bildansicht -->
+    <string name="asset_detail_delete_asset">Objekt löschen</string>
+    <string name="asset_detail_delete_asset_title">Objekt löschen?</string>
+    <string name="asset_detail_delete_asset_body">Dieses Objekt, alle Einträge und zugehörigen Medien werden dauerhaft gelöscht. Das lässt sich nicht rückgängig machen.</string>
     <string name="asset_detail_delete">Löschen</string>
     <string name="asset_detail_edit_entry">Eintrag bearbeiten</string>
     <string name="asset_detail_delete_title">Eintrag löschen?</string>

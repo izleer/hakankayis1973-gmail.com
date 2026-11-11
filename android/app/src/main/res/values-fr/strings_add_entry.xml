@@ -13,6 +13,11 @@
     <string name="add_entry_section_when">Quand ?</string>
     <string name="add_entry_change_datetime">Modifier la date et l\'heure</string>
 
+    <string name="add_entry_section_reminder">Heure du rappel</string>
+    <string name="add_entry_reminder_change">Modifier la date et l\'heure</string>
+    <string name="add_entry_reminder_hint">Une notification et une alarme retentiront le moment venu. Touchez pour choisir l\'heure.</string>
+    <string name="add_entry_reminder_edit_hint">Modifier l\'heure du rappel rouvre le rappel.</string>
+
     <string name="add_entry_section_measurement">Mesure</string>
     <string name="add_entry_metric">Grandeur</string>
     <string name="add_entry_metric_placeholder">Taille</string>

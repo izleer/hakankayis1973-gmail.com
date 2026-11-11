@@ -171,6 +171,43 @@ const assetDetail = {
   'Raporlara dön': 'Retour aux rapports',
   'Bir varlık seç ve ayrıntılı raporunu yazdır ya da PDF olarak indir.':
     'Choisis un objet et imprime son rapport détaillé ou télécharge-le en PDF.',
+
+  // Hatırlatmalar
+  Hatırlatma: 'Rappel',
+  'Hatırlatma zamanı': 'Heure du rappel',
+  'Zamanı geldiğinde uygulamada bildirim ve alarm oluşur.':
+    'Le moment venu, une notification et une alarme apparaissent dans l’application.',
+  'Hatırlatma zamanını değiştirmek hatırlatmayı yeniden açar.':
+    'Modifier l’heure du rappel rouvre le rappel.',
+  'Hatırlatma için bir tarih ve saat seçin.':
+    'Choisis une date et une heure pour le rappel.',
+  'Hatırlatma zamanı gelecekte olmalı.': 'L’heure du rappel doit être dans le futur.',
+  'Hatırlatma tamamlandı.': 'Rappel terminé.',
+  'Hatırlatma yeniden açıldı.': 'Rappel rouvert.',
+  'Hatırlatma güncellenemedi.': 'Le rappel n’a pas pu être mis à jour.',
+  Tamamlandı: 'Terminé',
+  'Zamanı geçti': 'En retard',
+  Planlandı: 'Planifié',
+  '{date} tarihinde tamamlandı': 'Terminé le {date}',
+  'Yeniden aç': 'Rouvrir',
+  'Tamamlandı işaretle': 'Marquer comme terminé',
+
+  // Gestion partagée
+  Ortak: 'Partagé',
+  'Ortak yönetim': 'Gestion partagée',
+  'Ortak yönetim: {group}': 'Gestion partagée : {group}',
+  'Varlığı özel bir gruba atadığında grubun tüm etkin üyeleri varlığı ve kayıtlarını düzenleyebilir. Sahiplik sende kalır.':
+    'Lorsque vous assignez l’objet à un groupe privé, tous les membres actifs du groupe peuvent modifier l’objet et ses entrées. La propriété reste la vôtre.',
+  Grup: 'Groupe',
+  'Kapalı — yalnızca ben': 'Désactivé — moi seulement',
+  'Önce özel bir grup oluşturmalısın.': 'Vous devez d’abord créer un groupe privé.',
+  'Grup oluştur': 'Créer un groupe',
+  'Grubu aç': 'Ouvrir le groupe',
+  'Ortak yönetim grubu atandı.': 'Groupe de gestion partagée attribué.',
+  'Ortak yönetim kapatıldı.': 'Gestion partagée désactivée.',
+  'Ortak yönetim ayarlanamadı.': 'La gestion partagée n’a pas pu être configurée.',
+  'Kişi listesini yalnızca varlık sahibi yönetir.':
+    'Seul le propriétaire de l’objet gère la liste des personnes.',
 } as const;
 
 export default assetDetail;

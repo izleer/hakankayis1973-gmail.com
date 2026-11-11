@@ -10,6 +10,7 @@ import {
 import { audit } from '../lib/audit.js';
 import { conflict, forbidden, notFound } from '../lib/errors.js';
 import {
+  getGroupAsset,
   requireActiveGroupAsset,
   type GroupAssetScope,
 } from '../lib/groups.js';
@@ -101,8 +102,14 @@ const communitySelect = `
           WHERE m.community_id = c.id AND m.status = 'active') AS member_count,
          (SELECT count(*) FROM posts p
           WHERE p.community_id = c.id AND p.status = 'visible') AS post_count,
-         (SELECT count(*) FROM group_assets ga
-          WHERE ga.community_id = c.id AND ga.status = 'active') AS asset_count
+         (SELECT count(DISTINCT x.asset_id) FROM (
+            SELECT ga.asset_id FROM group_assets ga
+            WHERE ga.community_id = c.id AND ga.status = 'active'
+            UNION
+            SELECT ma.id FROM assets ma
+            WHERE ma.manager_community_id = c.id AND ma.deleted_at IS NULL
+              AND c.visibility = 'private'
+          ) x) AS asset_count
   FROM communities c
   JOIN users u ON u.id = c.owner_id AND u.deleted_at IS NULL
 `;
@@ -111,6 +118,7 @@ const sharedAssetSelect = `
   SELECT ga.id AS share_id, ga.visibility_scope, ga.shared_at, ga.added_by_user_id,
          a.*, u.username AS owner_username, u.display_name AS owner_display_name,
          u.avatar_url AS owner_avatar_url,
+         mc.id AS manager_id, mc.slug AS manager_slug, mc.name AS manager_name,
          t.label AS type_label, t.parent_id AS type_parent_id, t.icon AS type_icon,
          cm.storage_key AS cover_storage_key,
          ab.username AS added_by_username, ab.display_name AS added_by_display_name,
@@ -121,8 +129,24 @@ const sharedAssetSelect = `
   JOIN assets a ON a.id = ga.asset_id AND a.deleted_at IS NULL
   JOIN users u ON u.id = a.owner_id AND u.deleted_at IS NULL
   JOIN asset_types t ON t.id = a.type_id
+  LEFT JOIN communities mc ON mc.id = a.manager_community_id AND mc.deleted_at IS NULL
   LEFT JOIN media cm ON cm.id = a.cover_media_id
   JOIN users ab ON ab.id = ga.added_by_user_id AND ab.deleted_at IS NULL
+`;
+
+const managedAssetSelect = `
+  SELECT a.*, u.username AS owner_username, u.display_name AS owner_display_name,
+         u.avatar_url AS owner_avatar_url,
+         mc.id AS manager_id, mc.slug AS manager_slug, mc.name AS manager_name,
+         t.label AS type_label, t.parent_id AS type_parent_id, t.icon AS type_icon,
+         cm.storage_key AS cover_storage_key,
+         (SELECT count(*) FROM journal_entries je
+          WHERE je.asset_id = a.id AND je.deleted_at IS NULL) AS entry_count
+  FROM assets a
+  JOIN users u ON u.id = a.owner_id AND u.deleted_at IS NULL
+  JOIN asset_types t ON t.id = a.type_id
+  LEFT JOIN communities mc ON mc.id = a.manager_community_id AND mc.deleted_at IS NULL
+  LEFT JOIN media cm ON cm.id = a.cover_media_id
 `;
 
 async function loadCommunity(slug: string) {
@@ -155,6 +179,18 @@ function mapSharedAsset(row: Record<string, any>, asset: Record<string, unknown>
     scope: row.visibility_scope as GroupAssetScope,
     sharedAt: iso(row.shared_at),
     addedBy: mapUserMini(row, 'added_by_'),
+    managed: false,
+  };
+}
+
+function mapManagedAsset(row: Record<string, any>, asset: Record<string, unknown>) {
+  return {
+    ...asset,
+    shareId: null,
+    scope: 'all' as GroupAssetScope,
+    sharedAt: iso(row.created_at),
+    addedBy: mapUserMini(row, 'owner_'),
+    managed: true,
   };
 }
 
@@ -826,21 +862,38 @@ export async function communityRoutes(app: FastifyInstance): Promise<void> {
     const community = await loadCommunity(slug);
     await requireMember(community.id, viewer.id);
 
-    const rows = await query<Record<string, any>>(
-      `${sharedAssetSelect}
-       WHERE ga.community_id = $1 AND ga.status = 'active' AND a.deleted_at IS NULL
-       ORDER BY ga.shared_at DESC`,
-      [community.id],
-    );
-    return {
-      data: {
-        items: await Promise.all(
-          rows.map(async (row) =>
-            mapSharedAsset(row, await mapAsset(row, req.locale)),
-          ),
+    const [sharedRows, managedRows] = await Promise.all([
+      query<Record<string, any>>(
+        `${sharedAssetSelect}
+         WHERE ga.community_id = $1 AND ga.status = 'active' AND a.deleted_at IS NULL
+           AND a.manager_community_id IS DISTINCT FROM $1
+         ORDER BY ga.shared_at DESC`,
+        [community.id],
+      ),
+      // Ortak yönetim yalnızca özel gruplarda geçerlidir; grup herkese
+      // açıldığında atama sessizce etkisizleşir ve varlık listeden düşer.
+      community.visibility === 'private'
+        ? query<Record<string, any>>(
+            `${managedAssetSelect}
+             WHERE a.manager_community_id = $1 AND a.deleted_at IS NULL
+             ORDER BY a.created_at DESC`,
+            [community.id],
+          )
+        : Promise.resolve([] as Record<string, any>[]),
+    ]);
+    const items = [
+      ...(await Promise.all(
+        sharedRows.map(async (row) =>
+          mapSharedAsset(row, await mapAsset(row, req.locale)),
         ),
-      },
-    };
+      )),
+      ...(await Promise.all(
+        managedRows.map(async (row) =>
+          mapManagedAsset(row, await mapAsset(row, req.locale)),
+        ),
+      )),
+    ].sort((a, b) => String(b.sharedAt ?? '').localeCompare(String(a.sharedAt ?? '')));
+    return { data: { items } };
   });
 
   app.post('/:slug/assets', async (req, reply) => {
@@ -850,11 +903,14 @@ export async function communityRoutes(app: FastifyInstance): Promise<void> {
     const community = await loadCommunity(slug);
     await requireMember(community.id, viewer.id);
 
-    const asset = await queryOne<{ id: string; owner_id: string }>(
-      `SELECT id, owner_id FROM assets WHERE id = $1 AND deleted_at IS NULL`,
+    const asset = await queryOne<{ id: string; owner_id: string; manager_community_id: string | null }>(
+      `SELECT id, owner_id, manager_community_id FROM assets WHERE id = $1 AND deleted_at IS NULL`,
       [body.assetId],
     );
     if (!asset) notFound('Varlık bulunamadı.');
+    if (asset.manager_community_id === community.id) {
+      conflict('Bu varlık zaten grubun ortak yönetiminde.');
+    }
     if (asset.owner_id !== viewer.id && viewer.role !== 'admin') {
       forbidden('Gruba yalnızca kendi varlıklarınızı ekleyebilirsiniz.');
     }
@@ -942,37 +998,81 @@ export async function communityRoutes(app: FastifyInstance): Promise<void> {
       .parse(req.params);
     const community = await loadCommunity(slug);
     await requireMember(community.id, viewer.id);
-    const row = await loadSharedAsset(community.id, assetId);
-    const scopeValue = row.visibility_scope as GroupAssetScope;
 
-    let entries: Record<string, any>[] = [];
-    if (scopeValue !== 'summary') {
-      const visibilityClause = scopeValue === 'timeline' ? `AND je.visibility = 'public'` : '';
-      entries = await query<Record<string, any>>(
-        `SELECT je.*, u.username AS author_username, u.display_name AS author_display_name,
-                u.avatar_url AS author_avatar_url
-         FROM journal_entries je
-         JOIN users u ON u.id = je.author_id AND u.deleted_at IS NULL
-         WHERE je.asset_id = $1 AND je.deleted_at IS NULL ${visibilityClause}
-         ORDER BY je.occurred_at DESC, je.id DESC`,
-        [assetId],
+    // Ortak yönetim, group_assets paylaşımından önce gelir: varlık bu gruba
+    // atanmışsa tüm etkin üyeler kapsamdan bağımsız olarak tüm kayıtları görür.
+    if (community.visibility === 'private') {
+      const managedRow = await queryOne<Record<string, any>>(
+        `${managedAssetSelect}
+         WHERE a.manager_community_id = $1 AND a.id = $2 AND a.deleted_at IS NULL`,
+        [community.id, assetId],
       );
+      if (managedRow) {
+        const entries = await query<Record<string, any>>(
+          `SELECT je.*, u.username AS author_username, u.display_name AS author_display_name,
+                  u.avatar_url AS author_avatar_url
+           FROM journal_entries je
+           JOIN users u ON u.id = je.author_id AND u.deleted_at IS NULL
+           WHERE je.asset_id = $1 AND je.deleted_at IS NULL
+           ORDER BY je.occurred_at DESC, je.id DESC`,
+          [assetId],
+        );
+        const media = await mediaForEntries(entries.map((entry) => entry.id));
+        return {
+          data: {
+            asset: await mapAsset(managedRow, req.locale),
+            share: {
+              scope: 'all' as GroupAssetScope,
+              sharedAt: iso(managedRow.created_at),
+              addedBy: mapUserMini(managedRow, 'owner_'),
+              managed: true,
+            },
+            community: { id: community.id, slug: community.slug, name: community.name },
+            entries: await Promise.all(
+              entries.map((entry) => mapEntry(entry, media.get(entry.id) ?? [])),
+            ),
+          },
+        };
+      }
     }
-    const media = await mediaForEntries(entries.map((entry) => entry.id));
 
-    return {
-      data: {
-        asset: await mapAsset(row, req.locale),
-        share: {
-          scope: scopeValue,
-          sharedAt: iso(row.shared_at),
-          addedBy: mapUserMini(row, 'added_by_'),
+    const shareRow = await getGroupAsset(community.id, assetId);
+    if (shareRow?.status === 'active') {
+      const row = await loadSharedAsset(community.id, assetId);
+      const scopeValue = row.visibility_scope as GroupAssetScope;
+
+      let entries: Record<string, any>[] = [];
+      if (scopeValue !== 'summary') {
+        const visibilityClause = scopeValue === 'timeline' ? `AND je.visibility = 'public'` : '';
+        entries = await query<Record<string, any>>(
+          `SELECT je.*, u.username AS author_username, u.display_name AS author_display_name,
+                  u.avatar_url AS author_avatar_url
+           FROM journal_entries je
+           JOIN users u ON u.id = je.author_id AND u.deleted_at IS NULL
+           WHERE je.asset_id = $1 AND je.deleted_at IS NULL ${visibilityClause}
+           ORDER BY je.occurred_at DESC, je.id DESC`,
+          [assetId],
+        );
+      }
+      const media = await mediaForEntries(entries.map((entry) => entry.id));
+
+      return {
+        data: {
+          asset: await mapAsset(row, req.locale),
+          share: {
+            scope: scopeValue,
+            sharedAt: iso(row.shared_at),
+            addedBy: mapUserMini(row, 'added_by_'),
+            managed: false,
+          },
+          community: { id: community.id, slug: community.slug, name: community.name },
+          entries: await Promise.all(
+            entries.map((entry) => mapEntry(entry, media.get(entry.id) ?? [])),
+          ),
         },
-        community: { id: community.id, slug: community.slug, name: community.name },
-        entries: await Promise.all(
-          entries.map((entry) => mapEntry(entry, media.get(entry.id) ?? [])),
-        ),
-      },
-    };
+      };
+    }
+
+    notFound('Bu varlık gruba eklenmemiş.');
   });
 }

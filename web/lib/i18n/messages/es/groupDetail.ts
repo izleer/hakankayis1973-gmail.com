@@ -230,6 +230,10 @@ const groupDetail = {
   'Yorumu sil': 'Eliminar comentario',
   'Bir yorum bırak…': 'Deja un comentario…',
   Gönder: 'Enviar',
+  'Ortak yönetim': 'Gestión compartida',
+  'Varlığı yönet': 'Gestionar objeto',
+  'Bu varlık grubun ortak yönetiminde. Tüm üyeler kayıtları düzenleyebilir.':
+    'Este objeto está bajo la gestión compartida del grupo. Todos los miembros pueden editar sus entradas.',
 } as const;
 
 export default groupDetail;

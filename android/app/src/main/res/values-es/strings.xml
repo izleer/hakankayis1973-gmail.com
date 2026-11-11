@@ -32,6 +32,13 @@
     <string name="entry_type_event">Evento</string>
     <string name="entry_type_document">Documento</string>
     <string name="entry_type_note">Nota</string>
+    <string name="entry_type_reminder">Recordatorio</string>
+
+    <!-- Notificación de recordatorio -->
+    <string name="reminder_channel_name">Recordatorios</string>
+    <string name="reminder_channel_description">Los recordatorios de bienes se avisan con sonido de alarma y vibración.</string>
+    <string name="reminder_notification_message">Recordatorio de «%1$s»: %2$s</string>
+    <string name="reminder_notification_fallback">Es hora de un recordatorio de «%1$s».</string>
 
     <plurals name="common_entry_count">
         <item quantity="one">%1$d entrada</item>
@@ -88,15 +95,23 @@
     <string name="error_file_unreadable">No se pudo leer el archivo.</string>
     <string name="error_file_empty">El archivo está vacío.</string>
     <string name="error_file_too_large">El archivo puede ocupar como máximo 10 MB.</string>
+    <string name="error_reminder_time_required">Elige una fecha y una hora para el recordatorio.</string>
+    <string name="error_reminder_time_future">La hora del recordatorio debe ser futura.</string>
 
     <!-- Avisos -->
     <string name="notice_asset_added">«%1$s» se añadió a tu memoria.</string>
     <string name="notice_entry_added">La entrada se añadió a la cronología.</string>
     <string name="notice_entry_deleted">La entrada se eliminó.</string>
+    <string name="notice_asset_deleted">El bien se eliminó.</string>
     <string name="notice_entry_updated">La entrada se actualizó.</string>
+    <string name="notice_reminder_done">Recordatorio completado.</string>
+    <string name="notice_reminder_reopened">Recordatorio reabierto.</string>
     <string name="notice_asset_updated">«%1$s» se actualizó.</string>
     <string name="notice_access_granted">@%1$s ya puede ver este bien.</string>
     <string name="notice_access_removed">Acceso retirado.</string>
+    <string name="asset_manager_chip">Compartido</string>
+    <string name="notice_manager_assigned">Grupo de gestión compartida asignado.</string>
+    <string name="notice_manager_removed">Gestión compartida desactivada.</string>
     <string name="notice_unfollowed">Has dejado de seguir a @%1$s.</string>
     <string name="notice_following">Ahora sigues a @%1$s.</string>
     <string name="notice_friend_requested">Solicitud de amistad enviada a %1$s.</string>

@@ -25,6 +25,7 @@ const entryIcons: Record<EntryType, IconName> = {
   health: 'heart',
   event: 'sparkles',
   document: 'file',
+  reminder: 'clock',
 };
 
 function formatCoordinates(lat: number, lng: number): string {

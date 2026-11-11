@@ -30,6 +30,15 @@
     <string name="asset_detail_measurements_empty_body">Altura, peso, cantidad de riego… Se reúnen aquí cuando añades una entrada de tipo medición.</string>
     <string name="asset_detail_measurement_history">Historial de mediciones</string>
 
+    <!-- Estado del recordatorio -->
+    <string name="asset_detail_reminder_due">Hora del recordatorio: %1$s</string>
+    <string name="asset_detail_reminder_planned">Planificado</string>
+    <string name="asset_detail_reminder_overdue">Vencido</string>
+    <string name="asset_detail_reminder_done">Completado</string>
+    <string name="asset_detail_reminder_done_at">Completado el %1$s</string>
+    <string name="asset_detail_reminder_complete">Marcar como completado</string>
+    <string name="asset_detail_reminder_reopen">Reabrir</string>
+
     <!-- Gestión de accesos -->
     <string name="asset_detail_access_section">¿Quién puede verlo?</string>
     <string name="asset_detail_access_selected_only">Añadir personas solo está disponible con la visibilidad \"Personas seleccionadas\". Puedes cambiar la visibilidad editando el bien.</string>
@@ -40,8 +49,21 @@
     <string name="asset_detail_no_viewers_body">Añade un nombre de usuario para compartir la historia de este bien con la persona que elijas.</string>
     <string name="asset_detail_owner_only_title">Solo lo gestiona la persona propietaria</string>
     <string name="asset_detail_owner_only_body">Solo la persona propietaria puede editar la lista de acceso de este bien.</string>
+    <string name="asset_detail_viewers_owner_only">Solo la persona propietaria gestiona la lista de personas.</string>
+
+    <!-- Gestión compartida -->
+    <string name="asset_detail_manager_note">Gestión compartida: %1$s</string>
+    <string name="asset_detail_manager_section">Gestión compartida</string>
+    <string name="asset_detail_manager_off">Desactivada — solo yo</string>
+    <string name="asset_detail_manager_hint">Si eliges un grupo privado, todos los miembros pueden editar este bien y sus entradas. Eliminar y la lista de personas siguen siendo de la persona propietaria.</string>
+    <string name="asset_detail_manager_change">Cambiar</string>
+    <string name="asset_detail_manager_pick">Grupo de gestión compartida</string>
+    <string name="asset_detail_manager_no_groups">Primero crea un grupo privado.</string>
 
     <!-- Eliminación y visor de imágenes -->
+    <string name="asset_detail_delete_asset">Eliminar el bien</string>
+    <string name="asset_detail_delete_asset_title">¿Eliminar este bien?</string>
+    <string name="asset_detail_delete_asset_body">Este bien, todas sus entradas y medios asociados se eliminarán de forma permanente. No se puede deshacer.</string>
     <string name="asset_detail_delete">Eliminar</string>
     <string name="asset_detail_edit_entry">Editar entrada</string>
     <string name="asset_detail_delete_title">¿Eliminar la entrada?</string>

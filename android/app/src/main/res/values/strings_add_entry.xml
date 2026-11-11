@@ -13,6 +13,11 @@
     <string name="add_entry_section_when">Ne zaman?</string>
     <string name="add_entry_change_datetime">Tarih ve saati değiştir</string>
 
+    <string name="add_entry_section_reminder">Hatırlatma zamanı</string>
+    <string name="add_entry_reminder_change">Tarih ve saati değiştir</string>
+    <string name="add_entry_reminder_hint">Zamanı gelince bildirim gelir ve alarm çalar. Saati seçmek için dokun.</string>
+    <string name="add_entry_reminder_edit_hint">Hatırlatma zamanını değiştirmek hatırlatmayı yeniden açar.</string>
+
     <string name="add_entry_section_measurement">Ölçüm</string>
     <string name="add_entry_metric">Metrik</string>
     <string name="add_entry_metric_placeholder">Boy</string>

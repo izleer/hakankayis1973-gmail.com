@@ -43,6 +43,15 @@ export async function AssetCard({
           <Icon name={typeIconName(asset.type.icon)} size={14} />
           {asset.type.label}
         </span>
+        {asset.manager ? (
+          <span
+            className="asset-manager-chip"
+            title={t('Ortak yönetim: {group}', { group: asset.manager.name })}
+          >
+            <Icon name="users" size={13} />
+            {t('Ortak')}
+          </span>
+        ) : null}
         <span className={`asset-visibility is-${asset.visibility}`} title={visibility}>
           <Icon name={visibilityIcons[asset.visibility]} size={12} />
           {visibility}

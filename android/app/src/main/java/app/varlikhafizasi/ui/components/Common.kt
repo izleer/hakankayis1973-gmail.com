@@ -20,6 +20,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.outlined.ArrowBack
 import androidx.compose.material.icons.outlined.ChevronRight
 import androidx.compose.material.icons.outlined.Description
+import androidx.compose.material.icons.outlined.Groups
 import androidx.compose.material.icons.outlined.Image
 import androidx.compose.material.icons.outlined.Movie
 import androidx.compose.material.icons.outlined.NotificationsNone
@@ -97,6 +98,7 @@ fun entryTypeLabel(type: String): String = stringResource(
         "health" -> R.string.entry_type_health
         "event" -> R.string.entry_type_event
         "document" -> R.string.entry_type_document
+        "reminder" -> R.string.entry_type_reminder
         else -> R.string.entry_type_note
     },
 )
@@ -350,6 +352,28 @@ fun AssetRow(
                     )
                     Spacer(Modifier.width(8.dp))
                     VisibilityTag(asset.visibility)
+                    if (asset.manager != null) {
+                        Spacer(Modifier.width(6.dp))
+                        Surface(shape = RoundedCornerShape(4.dp), color = SageLight) {
+                            Row(
+                                modifier = Modifier.padding(horizontal = 6.dp, vertical = 3.dp),
+                                verticalAlignment = Alignment.CenterVertically,
+                            ) {
+                                Icon(
+                                    Icons.Outlined.Groups,
+                                    contentDescription = null,
+                                    tint = Forest,
+                                    modifier = Modifier.size(11.dp),
+                                )
+                                Spacer(Modifier.width(3.dp))
+                                Text(
+                                    text = stringResource(R.string.asset_manager_chip),
+                                    style = MaterialTheme.typography.labelSmall,
+                                    color = Forest,
+                                )
+                            }
+                        }
+                    }
                 }
             }
             if (action != null) {

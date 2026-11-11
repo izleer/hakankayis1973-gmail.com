@@ -4,7 +4,13 @@ import { AssetDetail } from '@/components/AssetDetail';
 import { ApiError, api, requireViewer } from '@/lib/api';
 import { loadAttributeLabels } from '@/lib/asset-types';
 import { getT } from '@/lib/i18n/server';
-import type { AssetDetailData, Measurement, SocialConnectionsResponse } from '@/lib/types';
+import type {
+  AssetDetailData,
+  Group,
+  Measurement,
+  Paged,
+  SocialConnectionsResponse,
+} from '@/lib/types';
 
 type Params = Promise<{ id: string }>;
 
@@ -46,9 +52,18 @@ export default async function AssetDetailPage({ params }: { params: Params }) {
   const loaded = await loadAsset(id);
   if (!loaded) notFound();
   const attributeLabels = await loadAttributeLabels(loaded.data.asset.type.id);
-  const socialEnabled = await api<SocialConnectionsResponse>('/v1/social/connections')
-    .then((response) => Boolean(response.config?.configured))
-    .catch(() => false);
+  const [socialEnabled, myGroups] = await Promise.all([
+    api<SocialConnectionsResponse>('/v1/social/connections')
+      .then((response) => Boolean(response.config?.configured))
+      .catch(() => false),
+    // Ortak yönetim yalnızca özel gruplara atanabildiği için yalnızca onları
+    // sahibine sun. Liste yalnızca varlık sahibi için gerekli.
+    loaded.data.access.isOwner
+      ? api<Paged<Group>>('/v1/communities?mine=true&limit=48')
+          .then((response) => response.items.filter((group) => group.visibility === 'private'))
+          .catch(() => [] as Group[])
+      : Promise.resolve([] as Group[]),
+  ]);
 
   return (
     <AssetDetail
@@ -57,6 +72,7 @@ export default async function AssetDetailPage({ params }: { params: Params }) {
       viewer={viewer}
       attributeLabels={attributeLabels}
       socialEnabled={socialEnabled}
+      groups={myGroups}
     />
   );
 }

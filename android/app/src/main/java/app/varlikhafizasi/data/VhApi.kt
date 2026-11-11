@@ -7,6 +7,7 @@ import retrofit2.http.DELETE
 import retrofit2.http.GET
 import retrofit2.http.PATCH
 import retrofit2.http.POST
+import retrofit2.http.PUT
 import retrofit2.http.Path
 import retrofit2.http.Query
 
@@ -69,6 +70,15 @@ interface VhApi {
         @Body body: UpdateAssetRequest,
     ): Envelope<AssetPayload>
 
+    @DELETE("v1/assets/{id}")
+    suspend fun deleteAsset(@Path("id") id: String): Response<ResponseBody>
+
+    @PUT("v1/assets/{id}/manager")
+    suspend fun setAssetManager(
+        @Path("id") id: String,
+        @Body body: ManagerRequest,
+    ): Envelope<ManagerPayload>
+
     @POST("v1/assets/{id}/entries")
     suspend fun createEntry(
         @Path("id") id: String,
@@ -129,6 +139,12 @@ interface VhApi {
 
     @GET("v1/notifications")
     suspend fun notifications(@Query("limit") limit: Int = 50): Envelope<NotificationPage>
+
+    @GET("v1/reminders")
+    suspend fun reminders(
+        @Query("includeDone") includeDone: String? = null,
+        @Query("limit") limit: Int = 200,
+    ): Envelope<ReminderPage>
 
     @POST("v1/notifications/read-all")
     suspend fun markAllRead(): Envelope<OkResponse>
@@ -231,3 +247,13 @@ data class AccessListPayload(val items: List<AccessViewer> = emptyList())
 
 @kotlinx.serialization.Serializable
 data class FollowResult(val following: Boolean = false)
+
+/**
+ * Ortak yönetim ataması. null gönderildiğinde alan istemcide düşürülür;
+ * sunucu boş gövdeyi "yönetimi kaldır" olarak yorumlar.
+ */
+@kotlinx.serialization.Serializable
+data class ManagerRequest(val communityId: String? = null)
+
+@kotlinx.serialization.Serializable
+data class ManagerPayload(val manager: AssetManagerRef? = null)

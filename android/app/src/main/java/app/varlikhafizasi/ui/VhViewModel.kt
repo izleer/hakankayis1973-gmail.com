@@ -12,6 +12,7 @@ import app.varlikhafizasi.data.AppLanguage
 import app.varlikhafizasi.data.AccessViewer
 import app.varlikhafizasi.data.ArchivePage
 import app.varlikhafizasi.data.Asset
+import app.varlikhafizasi.data.AssetAccess
 import app.varlikhafizasi.data.AssetDetail
 import app.varlikhafizasi.data.AssetType
 import app.varlikhafizasi.data.Entry
@@ -24,17 +25,20 @@ import app.varlikhafizasi.data.Measurement
 import app.varlikhafizasi.data.MeasurementInput
 import app.varlikhafizasi.data.NotificationPage
 import app.varlikhafizasi.data.ProfilePayload
+import app.varlikhafizasi.data.ReminderItem
 import app.varlikhafizasi.data.SocialConnectionsPayload
 import app.varlikhafizasi.data.Stats
 import app.varlikhafizasi.data.User
 import app.varlikhafizasi.data.UserMini
 import app.varlikhafizasi.data.VhException
 import app.varlikhafizasi.data.VhRepository
+import app.varlikhafizasi.reminders.ReminderScheduler
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import java.time.Instant
 
 data class Loadable<T>(
     val loading: Boolean = false,
@@ -122,6 +126,13 @@ class VhViewModel(
     private val _assetDraft = MutableStateFlow(Loadable<Asset>())
     val assetDraft: StateFlow<Loadable<Asset>> = _assetDraft.asStateFlow()
 
+    /** Düzenlenen varlığın erişim bilgisi; kişi listesi yalnızca sahibe açılır. */
+    private val _assetDraftAccess = MutableStateFlow(AssetAccess())
+    val assetDraftAccess: StateFlow<AssetAccess> = _assetDraftAccess.asStateFlow()
+
+    private val _privateGroups = MutableStateFlow(Loadable<List<Group>>())
+    val privateGroups: StateFlow<Loadable<List<Group>>> = _privateGroups.asStateFlow()
+
     private val _assetViewers = MutableStateFlow<List<AccessViewer>>(emptyList())
     val assetViewers: StateFlow<List<AccessViewer>> = _assetViewers.asStateFlow()
 
@@ -136,6 +147,9 @@ class VhViewModel(
 
     private val _notifications = MutableStateFlow(Loadable<NotificationPage>())
     val notifications: StateFlow<Loadable<NotificationPage>> = _notifications.asStateFlow()
+
+    private val _reminders = MutableStateFlow(Loadable<List<ReminderItem>>())
+    val reminders: StateFlow<Loadable<List<ReminderItem>>> = _reminders.asStateFlow()
 
     private val _profile = MutableStateFlow(Loadable<ProfileData>())
     val profile: StateFlow<Loadable<ProfileData>> = _profile.asStateFlow()
@@ -245,6 +259,7 @@ class VhViewModel(
     fun logout() {
         viewModelScope.launch {
             repository.logout()
+            ReminderScheduler.cancelAll(appContext)
             _session.value = SessionUi(checking = false, user = null)
             _home.value = Loadable()
             _assets.value = Loadable()
@@ -256,6 +271,7 @@ class VhViewModel(
             _archive.value = Loadable()
             _explore.value = Loadable()
             _notifications.value = Loadable()
+            _reminders.value = Loadable()
             _profile.value = Loadable()
             _social.value = Loadable()
             _groups.value = Loadable()
@@ -340,12 +356,15 @@ class VhViewModel(
         viewModelScope.launch {
             _assetDraft.value = Loadable(loading = true)
             _assetViewers.value = emptyList()
+            _assetDraftAccess.value = AssetAccess()
             try {
                 val detail = repository.asset(id)
                 _assetViewers.value = detail.access.viewers
+                _assetDraftAccess.value = detail.access
                 _assetDraft.value = Loadable(data = detail.asset)
             } catch (error: Throwable) {
                 _assetViewers.value = emptyList()
+                _assetDraftAccess.value = AssetAccess()
                 _assetDraft.value = Loadable(error = messageOf(error))
             }
         }
@@ -354,6 +373,22 @@ class VhViewModel(
     fun clearAssetDraft() {
         _assetDraft.value = Loadable()
         _assetViewers.value = emptyList()
+        _assetDraftAccess.value = AssetAccess()
+    }
+
+    /** Ortak yönetim ataması için sahibin özel gruplarını getirir. */
+    fun loadPrivateGroups() {
+        if (_privateGroups.value.loading) return
+        viewModelScope.launch {
+            _privateGroups.value = Loadable(loading = true)
+            try {
+                val groups = repository.communities(mine = true).items
+                    .filter { it.visibility == "private" }
+                _privateGroups.value = Loadable(data = groups)
+            } catch (error: Throwable) {
+                _privateGroups.value = Loadable(error = messageOf(error))
+            }
+        }
     }
 
     /** Görünürlük "seçili kişiler" iken kullanılacak arkadaş listesini getirir. */
@@ -440,6 +475,39 @@ class VhViewModel(
         }
     }
 
+    /**
+     * Sunucudaki hatırlatmaları çeker ve cihaz alarmlarını buna göre yeniler.
+     * Başarısızlıkta mevcut alarmlar korunur; arka plan yenilemesi sessizdir.
+     */
+    fun loadReminders() {
+        viewModelScope.launch {
+            try {
+                val items = repository.reminders()
+                _reminders.value = Loadable(data = items)
+                ReminderScheduler.sync(appContext, items)
+            } catch (error: Throwable) {
+                if (_reminders.value.data == null) {
+                    _reminders.value = Loadable(error = messageOf(error))
+                }
+            }
+        }
+    }
+
+    fun setReminderDone(assetId: String, entryId: String, done: Boolean) {
+        viewModelScope.launch {
+            try {
+                repository.setReminderDone(entryId, done)
+                loadDetail(assetId)
+                loadReminders()
+                _notice.value = str(
+                    if (done) R.string.notice_reminder_done else R.string.notice_reminder_reopened,
+                )
+            } catch (error: Throwable) {
+                _notice.value = messageOf(error)
+            }
+        }
+    }
+
     fun loadProfile(username: String? = null) {
         val name = username ?: _session.value.user?.username ?: return
         viewModelScope.launch {
@@ -459,6 +527,7 @@ class VhViewModel(
         loadAssets()
         loadArchive()
         loadNotifications()
+        loadReminders()
     }
 
     fun loadSocial(showSpinner: Boolean = true) {
@@ -810,6 +879,7 @@ class VhViewModel(
         body: String?,
         visibility: String,
         occurredAt: String? = null,
+        dueAt: String? = null,
         mediaUris: List<Uri>,
         measurement: MeasurementInput?,
         locationName: String? = null,
@@ -820,6 +890,17 @@ class VhViewModel(
         if (title.isNullOrBlank() && body.isNullOrBlank()) {
             _formError.value = str(R.string.error_entry_text_required)
             return
+        }
+        if (type == "reminder") {
+            val due = dueAt?.let { runCatching { Instant.parse(it).toEpochMilli() }.getOrNull() }
+            if (due == null) {
+                _formError.value = str(R.string.error_reminder_time_required)
+                return
+            }
+            if (due <= System.currentTimeMillis() - 60_000) {
+                _formError.value = str(R.string.error_reminder_time_future)
+                return
+            }
         }
         viewModelScope.launch {
             _formBusy.value = true
@@ -832,6 +913,7 @@ class VhViewModel(
                     body,
                     visibility,
                     occurredAt,
+                    dueAt,
                     mediaUris,
                     measurement,
                     locationName,
@@ -841,6 +923,7 @@ class VhViewModel(
                 loadDetail(assetId)
                 loadHome()
                 loadArchive()
+                loadReminders()
                 _notice.value = str(R.string.notice_entry_added)
                 onSaved()
             } catch (error: Throwable) {
@@ -859,6 +942,7 @@ class VhViewModel(
         body: String?,
         visibility: String,
         occurredAt: String? = null,
+        dueAt: String? = null,
         newMediaUris: List<Uri> = emptyList(),
         measurement: MeasurementInput? = null,
         locationName: String? = null,
@@ -869,6 +953,10 @@ class VhViewModel(
     ) {
         if (title.isNullOrBlank() && body.isNullOrBlank()) {
             _formError.value = str(R.string.error_entry_text_required)
+            return
+        }
+        if (type == "reminder" && dueAt.isNullOrBlank()) {
+            _formError.value = str(R.string.error_reminder_time_required)
             return
         }
         viewModelScope.launch {
@@ -882,6 +970,7 @@ class VhViewModel(
                     body = body,
                     visibility = visibility,
                     occurredAt = occurredAt,
+                    dueAt = dueAt,
                     newMediaUris = newMediaUris,
                     measurement = measurement,
                     locationName = locationName,
@@ -892,6 +981,7 @@ class VhViewModel(
                 loadDetail(assetId)
                 loadHome()
                 loadArchive()
+                loadReminders()
                 _notice.value = str(R.string.notice_entry_updated)
                 onSaved()
             } catch (error: Throwable) {
@@ -909,9 +999,30 @@ class VhViewModel(
                 loadDetail(assetId)
                 loadHome()
                 loadArchive()
+                loadReminders()
                 _notice.value = str(R.string.notice_entry_deleted)
             } catch (error: Throwable) {
                 _notice.value = messageOf(error)
+            }
+        }
+    }
+
+    /** Varlığı ve tüm kayıtlarını siler; yalnızca sahip çağırabilir. */
+    fun deleteAsset(assetId: String, onDeleted: () -> Unit) {
+        viewModelScope.launch {
+            _formBusy.value = true
+            _formError.value = null
+            try {
+                repository.deleteAsset(assetId)
+                loadHome()
+                loadAssets()
+                loadArchive()
+                _notice.value = str(R.string.notice_asset_deleted)
+                onDeleted()
+            } catch (error: Throwable) {
+                _formError.value = messageOf(error)
+            } finally {
+                _formBusy.value = false
             }
         }
     }
@@ -974,6 +1085,29 @@ class VhViewModel(
                 val user: UserMini = repository.addAccess(assetId, username)
                 loadDetail(assetId)
                 _notice.value = str(R.string.notice_access_granted, user.username)
+            } catch (error: Throwable) {
+                _formError.value = messageOf(error)
+            } finally {
+                _formBusy.value = false
+            }
+        }
+    }
+
+    /** Varlığın ortak yönetim grubunu atar veya kaldırır; yalnızca sahip çağırabilir. */
+    fun setAssetManager(assetId: String, communityId: String?) {
+        viewModelScope.launch {
+            _formBusy.value = true
+            _formError.value = null
+            try {
+                val manager = repository.setAssetManager(assetId, communityId)
+                loadDetail(assetId)
+                _notice.value = str(
+                    if (manager != null) {
+                        R.string.notice_manager_assigned
+                    } else {
+                        R.string.notice_manager_removed
+                    },
+                )
             } catch (error: Throwable) {
                 _formError.value = messageOf(error)
             } finally {

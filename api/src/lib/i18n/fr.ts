@@ -1,4 +1,10 @@
 const messages = {
+  '“{asset}” için hatırlatma: {title}': 'Rappel pour « {asset} » : {title}',
+  '“{asset}” için bir hatırlatma zamanı geldi.': 'Il est temps d’un rappel pour « {asset} ».',
+  'Hatırlatma zamanı yalnızca hatırlatma kayıtlarında kullanılabilir.':
+    'Une heure de rappel ne peut être utilisée que sur les entrées de rappel.',
+  'Hatırlatma için bir tarih ve saat seçin.': 'Choisissez une date et une heure pour le rappel.',
+  'Hatırlatma zamanı gelecekte olmalı.': 'L’heure du rappel doit être dans le futur.',
   '{actor} gönderine yorum yaptı.': '{actor} a commenté votre publication.',
   '{actor} gönderini beğendi.': '{actor} aime votre publication.',
   '{actor} seni takip etmeye başladı.': '{actor} a commencé à vous suivre.',
@@ -14,6 +20,8 @@ const messages = {
   '{actor}, sizi {community} grubuna davet etti.': '{actor} vous a invité dans le groupe {community}.',
   '{community} grubuna katılım isteğiniz onaylandı.': 'Votre demande pour rejoindre le groupe {community} a été approuvée.',
   '{community} grubundaki rolünüz güncellendi.': 'Votre rôle dans le groupe {community} a été mis à jour.',
+  '{actor}, "{asset}" varlığını {community} grubunda ortak yönetime açtı.':
+    '{actor} a ouvert « {asset} » à la gestion partagée dans le groupe {community}.',
   '{method} {url} bulunamadı.': '{method} {url} introuvable.',
   'Bağlantı isteğinin süresi doldu. Lütfen yeniden deneyin.': 'La demande de connexion a expiré. Veuillez réessayer.',
   'Beklenmeyen bir hata oluştu.': "Une erreur inattendue s’est produite.",

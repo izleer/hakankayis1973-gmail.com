@@ -30,6 +30,15 @@
     <string name="asset_detail_measurements_empty_body">Boy, ağırlık, sulama miktarı… Ölçüm tipinde bir kayıt ekleyince burada birikir.</string>
     <string name="asset_detail_measurement_history">Ölçüm geçmişi</string>
 
+    <!-- Hatırlatma durumu -->
+    <string name="asset_detail_reminder_due">Hatırlatma zamanı: %1$s</string>
+    <string name="asset_detail_reminder_planned">Planlandı</string>
+    <string name="asset_detail_reminder_overdue">Zamanı geçti</string>
+    <string name="asset_detail_reminder_done">Tamamlandı</string>
+    <string name="asset_detail_reminder_done_at">%1$s tarihinde tamamlandı</string>
+    <string name="asset_detail_reminder_complete">Tamamlandı işaretle</string>
+    <string name="asset_detail_reminder_reopen">Yeniden aç</string>
+
     <!-- Erişim yönetimi -->
     <string name="asset_detail_access_section">Kimler görebilir?</string>
     <string name="asset_detail_access_selected_only">Kişi ekleme yalnızca \"Seçili kişiler\" görünürlüğünde kullanılabilir. Görünürlüğü varlığı düzenleyerek değiştirebilirsin.</string>
@@ -40,8 +49,21 @@
     <string name="asset_detail_no_viewers_body">Bir kullanıcı adı ekleyerek bu varlığın hikâyesini seçtiğin kişiyle paylaşabilirsin.</string>
     <string name="asset_detail_owner_only_title">Sadece sahibi yönetir</string>
     <string name="asset_detail_owner_only_body">Bu varlığın erişim listesini yalnızca sahibi düzenleyebilir.</string>
+    <string name="asset_detail_viewers_owner_only">Kişi listesini yalnızca varlık sahibi yönetir.</string>
+
+    <!-- Ortak yönetim -->
+    <string name="asset_detail_manager_note">Ortak yönetim: %1$s</string>
+    <string name="asset_detail_manager_section">Ortak yönetim</string>
+    <string name="asset_detail_manager_off">Kapalı — yalnızca ben</string>
+    <string name="asset_detail_manager_hint">Özel bir grup seçtiğinde gruptaki tüm üyeler bu varlığı ve kayıtlarını düzenleyebilir. Silme ve kişi listesi sahibinde kalır.</string>
+    <string name="asset_detail_manager_change">Değiştir</string>
+    <string name="asset_detail_manager_pick">Ortak yönetim grubu</string>
+    <string name="asset_detail_manager_no_groups">Önce özel bir grup oluşturmalısın.</string>
 
     <!-- Silme ve görsel görüntüleyici -->
+    <string name="asset_detail_delete_asset">Varlığı sil</string>
+    <string name="asset_detail_delete_asset_title">Varlık silinsin mi?</string>
+    <string name="asset_detail_delete_asset_body">Bu varlık, tüm kayıtları ve bağlı medyalarıyla birlikte kalıcı olarak silinecek. Bu işlem geri alınamaz.</string>
     <string name="asset_detail_delete">Sil</string>
     <string name="asset_detail_edit_entry">Kaydı düzelt</string>
     <string name="asset_detail_delete_title">Kayıt silinsin mi?</string>

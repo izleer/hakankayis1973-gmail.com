@@ -8,7 +8,8 @@ export type EntryType =
   | 'measurement'
   | 'health'
   | 'event'
-  | 'document';
+  | 'document'
+  | 'reminder';
 
 export type UserMini = {
   id: string;
@@ -72,6 +73,7 @@ export type Asset = {
   acquiredAt: string | null;
   attributes: Record<string, unknown>;
   owner: UserMini;
+  manager: { id: string; slug: string; name: string } | null;
   type: { id: string; label: string; parentId: string | null; icon: string | null };
   entryCount: number;
   createdAt: string;
@@ -101,6 +103,8 @@ export type Entry = {
   title: string | null;
   body: string | null;
   occurredAt: string;
+  dueAt: string | null;
+  reminderDoneAt: string | null;
   visibility: Visibility;
   locationName: string | null;
   latitude: number | null;
@@ -172,7 +176,10 @@ export type AssetDetailData = {
   }[];
   access: {
     isOwner: boolean;
+    isManager: boolean;
+    canEdit: boolean;
     isShared: boolean;
+    manager: { id: string; slug: string; name: string } | null;
     viewers: { user: UserMini; grantedAt: string }[];
   };
 };
@@ -266,10 +273,11 @@ export type GroupDetailData = {
 };
 
 export type GroupAsset = Asset & {
-  shareId: string;
+  shareId: string | null;
   scope: GroupAssetScope;
   sharedAt: string;
   addedBy: UserMini;
+  managed: boolean;
 };
 
 export type GroupAssetDetail = {
@@ -278,6 +286,7 @@ export type GroupAssetDetail = {
     scope: GroupAssetScope;
     sharedAt: string;
     addedBy: UserMini;
+    managed: boolean;
   };
   community: { id: string; slug: string; name: string };
   entries: Entry[];

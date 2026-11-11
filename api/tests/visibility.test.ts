@@ -58,6 +58,7 @@ function asset(over: Partial<AssetAccessRow> = {}): AssetAccessRow {
   return {
     id: 'asset1',
     owner_id: 'owner',
+    manager_community_id: null,
     visibility: 'private',
     status: 'active',
     deleted_at: null,

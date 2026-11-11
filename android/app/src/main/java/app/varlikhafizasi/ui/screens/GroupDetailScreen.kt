@@ -272,9 +272,11 @@ fun GroupDetailScreen(
                     }
                 }
             } else {
-                items(data.assets, key = { "asset-${it.id}" }) { asset ->
+                items(data.assets, key = { "asset-${it.shareId ?: it.id}" }) { asset ->
                     Box(Modifier.padding(horizontal = 20.dp, vertical = 4.dp)) {
-                        if (asset.owner?.id == viewerId) {
+                        // Ortak yönetimdeki varlıklar tüm üyelere açıktır; kişisel
+                        // detay ekranından kayıt ekleyip düzenleyebilirler.
+                        if (asset.managed || asset.owner?.id == viewerId) {
                             AssetRow(asset = asset, onClick = { onOpenAsset(asset.id) })
                         } else {
                             SharedAssetRow(asset)

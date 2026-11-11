@@ -12,6 +12,7 @@ type NotificationType =
   | 'community_approved'
   | 'friend_request'
   | 'friend_accept'
+  | 'reminder'
   | 'system';
 
 export async function notify(input: {

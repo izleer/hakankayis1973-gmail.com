@@ -30,6 +30,15 @@
     <string name="asset_detail_measurements_empty_body">Height, weight, watering amount… They collect here once you add a measurement entry.</string>
     <string name="asset_detail_measurement_history">Measurement history</string>
 
+    <!-- Reminder status -->
+    <string name="asset_detail_reminder_due">Reminder time: %1$s</string>
+    <string name="asset_detail_reminder_planned">Planned</string>
+    <string name="asset_detail_reminder_overdue">Overdue</string>
+    <string name="asset_detail_reminder_done">Completed</string>
+    <string name="asset_detail_reminder_done_at">Completed on %1$s</string>
+    <string name="asset_detail_reminder_complete">Mark as done</string>
+    <string name="asset_detail_reminder_reopen">Reopen</string>
+
     <!-- Access management -->
     <string name="asset_detail_access_section">Who can see this?</string>
     <string name="asset_detail_access_selected_only">Adding people is only available with \"Selected people\" visibility. You can change visibility by editing the asset.</string>
@@ -40,8 +49,21 @@
     <string name="asset_detail_no_viewers_body">Add a username to share this asset\'s story with someone you choose.</string>
     <string name="asset_detail_owner_only_title">Only the owner manages this</string>
     <string name="asset_detail_owner_only_body">Only the owner can edit this asset\'s access list.</string>
+    <string name="asset_detail_viewers_owner_only">Only the asset owner manages the people list.</string>
+
+    <!-- Shared management -->
+    <string name="asset_detail_manager_note">Shared management: %1$s</string>
+    <string name="asset_detail_manager_section">Shared management</string>
+    <string name="asset_detail_manager_off">Off — only me</string>
+    <string name="asset_detail_manager_hint">When you pick a private group, every member can edit this asset and its entries. Deleting and the people list stay with the owner.</string>
+    <string name="asset_detail_manager_change">Change</string>
+    <string name="asset_detail_manager_pick">Shared management group</string>
+    <string name="asset_detail_manager_no_groups">Create a private group first.</string>
 
     <!-- Delete and lightbox -->
+    <string name="asset_detail_delete_asset">Delete asset</string>
+    <string name="asset_detail_delete_asset_title">Delete this asset?</string>
+    <string name="asset_detail_delete_asset_body">This asset, all its entries and attached media will be permanently deleted. This cannot be undone.</string>
     <string name="asset_detail_delete">Delete</string>
     <string name="asset_detail_edit_entry">Edit entry</string>
     <string name="asset_detail_delete_title">Delete this entry?</string>

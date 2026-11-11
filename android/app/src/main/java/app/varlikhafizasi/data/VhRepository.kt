@@ -162,6 +162,8 @@ class VhRepository(
 
     suspend fun notifications(): NotificationPage = call { api.notifications() }
 
+    suspend fun reminders(): List<ReminderItem> = call { api.reminders() }.items
+
     suspend fun profile(username: String): ProfilePayload = call { api.profile(username) }
 
     suspend fun suggestions(): List<User> = call { api.suggestions() }.items
@@ -324,6 +326,13 @@ class VhRepository(
         return payload.asset
     }
 
+    /**
+     * Varlığın ortak yönetim grubunu atar. `communityId` null ise yönetim kaldırılır.
+     * Sunucu yalnızca varlık sahibine izin verir.
+     */
+    suspend fun setAssetManager(assetId: String, communityId: String?): AssetManagerRef? =
+        call { api.setAssetManager(assetId, ManagerRequest(communityId)) }.manager
+
     suspend fun updateAvatar(uri: Uri?): User {
         val avatarUrl = if (uri != null) {
             uploadImage(uri).url ?: throw VhException(
@@ -369,6 +378,7 @@ class VhRepository(
         body: String?,
         visibility: String,
         occurredAt: String?,
+        dueAt: String?,
         mediaUris: List<Uri>,
         measurement: MeasurementInput?,
         locationName: String? = null,
@@ -385,6 +395,7 @@ class VhRepository(
                     body = body?.trim()?.takeIf { it.isNotEmpty() },
                     visibility = visibility,
                     occurredAt = occurredAt,
+                    dueAt = dueAt,
                     locationName = locationName?.trim()?.takeIf { it.isNotEmpty() },
                     latitude = latitude,
                     longitude = longitude,
@@ -405,6 +416,7 @@ class VhRepository(
         body: String?,
         visibility: String,
         occurredAt: String?,
+        dueAt: String?,
         newMediaUris: List<Uri>,
         measurement: MeasurementInput?,
         locationName: String?,
@@ -423,6 +435,7 @@ class VhRepository(
                     body = body?.trim().orEmpty(),
                     visibility = visibility,
                     occurredAt = occurredAt,
+                    dueAt = dueAt,
                     locationName = if (clearLocation) null else locationName?.trim(),
                     latitude = if (clearLocation) null else latitude,
                     longitude = if (clearLocation) null else longitude,
@@ -435,9 +448,24 @@ class VhRepository(
         return payload.entry
     }
 
+    suspend fun setReminderDone(entryId: String, done: Boolean): Entry = call {
+        api.updateEntry(entryId, UpdateEntryRequest(reminderDone = done))
+    }.entry
+
     suspend fun deleteEntry(id: String) {
         try {
             val response = api.deleteEntry(id)
+            if (!response.isSuccessful) throw HttpException(response)
+        } catch (error: HttpException) {
+            throw error.asVh()
+        } catch (error: IOException) {
+            throw offline()
+        }
+    }
+
+    suspend fun deleteAsset(id: String) {
+        try {
+            val response = api.deleteAsset(id)
             if (!response.isSuccessful) throw HttpException(response)
         } catch (error: HttpException) {
             throw error.asVh()

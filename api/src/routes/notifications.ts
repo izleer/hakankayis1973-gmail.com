@@ -3,6 +3,7 @@ import { z } from 'zod';
 import { query, queryOne } from '../db.js';
 import { decodeCursor, encodeCursor, limitFrom, parseQuery } from '../lib/http.js';
 import { optionalViewer, requireViewer } from '../lib/session.js';
+import { processDueReminders } from '../lib/reminders.js';
 import { mapUserMini } from '../lib/serialize.js';
 import { translate } from '../lib/i18n/index.js';
 
@@ -11,6 +12,12 @@ const uuid = z.string().uuid();
 export async function notificationRoutes(app: FastifyInstance): Promise<void> {
   app.get('/', async (req) => {
     const viewer = await requireViewer(req);
+    // Zamanı gelmiş hatırlatmalar, gelen kutusu açıldığında da bildirime dönüşür.
+    try {
+      await processDueReminders({ userId: viewer.id });
+    } catch (error) {
+      req.log.warn({ err: error }, 'Zamanı gelen hatırlatmalar işlenemedi');
+    }
     const params = parseQuery(
       z.object({
         unreadOnly: z.enum(['true', 'false']).default('false'),

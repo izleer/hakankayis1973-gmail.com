@@ -7,6 +7,7 @@ export type Visibility = 'private' | 'selected' | 'friends' | 'public';
 export type AssetAccessRow = {
   id: string;
   owner_id: string;
+  manager_community_id: string | null;
   visibility: Visibility;
   status: 'active' | 'archived';
   deleted_at: Date | null;
@@ -72,6 +73,8 @@ export async function canViewAsset(
   // Engel ilişkisi her iki yönde de doğrudan erişimi kapatır; keşfet/arama
   // sorguları zaten engelli kullanıcıları dışlar, ID ile erişim de tutarlı olmalı.
   if (await isBlocked(viewer.id, asset.owner_id)) return false;
+  // Ortak yönetim: varlığın atandığı özel grubun etkin üyeleri tam erişir.
+  if (await managesAssetGroup(viewer, asset)) return true;
   if (asset.visibility === 'public') return true;
   if (asset.visibility === 'selected') {
     return hasAccessRule(viewer.id, 'asset', asset.id);
@@ -80,6 +83,41 @@ export async function canViewAsset(
     return areFriends(viewer.id, asset.owner_id);
   }
   return false;
+}
+
+/**
+ * Varlığın ortak yönetim için atandığı özel grubun etkin üyesi mi?
+ * Grup herkese açık hale getirilirse (veya silinirse) yönetim yetkisi düşer;
+ * bu yüzden sorgu grubun hâlâ özel ve silinmemiş olduğunu doğrular.
+ */
+export async function managesAssetGroup(
+  viewer: Viewer | null,
+  asset: Pick<AssetAccessRow, 'manager_community_id'>,
+): Promise<boolean> {
+  if (!viewer || !asset.manager_community_id) return false;
+  const row = await queryOne<{ exists: boolean }>(
+    `SELECT true AS exists
+     FROM memberships m
+     JOIN communities c ON c.id = m.community_id
+     WHERE m.community_id = $1 AND m.user_id = $2
+       AND m.status = 'active'
+       AND c.visibility = 'private' AND c.deleted_at IS NULL
+     LIMIT 1`,
+    [asset.manager_community_id, viewer.id],
+  );
+  return Boolean(row);
+}
+
+/** Varlık sahibi, site yöneticisi veya ortak yönetim grubunun etkin üyesi. */
+export async function canEditAsset(
+  viewer: Viewer | null,
+  asset: AssetAccessRow,
+): Promise<boolean> {
+  if (!viewer) return false;
+  if (asset.owner_id === viewer.id || viewer.role === 'admin') return true;
+  if (!(await managesAssetGroup(viewer, asset))) return false;
+  // Ortak yönetici ile sahibi arasında engel varsa düzenleme yetkisi verilmez.
+  return !(await isBlocked(viewer.id, asset.owner_id));
 }
 
 export async function canViewEntry(
@@ -91,6 +129,9 @@ export async function canViewEntry(
   if (isStaff(viewer)) return true;
   if (entry.deleted_at) return false;
   if (asset.owner_id === viewer.id || entry.author_id === viewer.id) return true;
+  if (await managesAssetGroup(viewer, asset)) {
+    return !(await isBlocked(viewer.id, asset.owner_id));
+  }
   if (!(await canViewAsset(viewer, asset))) return false;
 
   if (entry.visibility === 'public') return true;
@@ -158,7 +199,8 @@ export function entryVisibilitySql(options: {
 
 export async function getAsset(assetId: string): Promise<AssetAccessRow> {
   const row = await queryOne<AssetAccessRow>(
-    `SELECT id, owner_id, visibility, status, deleted_at FROM assets WHERE id = $1`,
+    `SELECT id, owner_id, manager_community_id, visibility, status, deleted_at
+     FROM assets WHERE id = $1`,
     [assetId],
   );
   if (!row) notFound('Varlık bulunamadı.');
@@ -178,6 +220,16 @@ export async function requireViewableAsset(
 }
 
 export async function requireEditableAsset(viewer: Viewer, assetId: string): Promise<AssetAccessRow> {
+  const asset = await getAsset(assetId);
+  if (asset.deleted_at) notFound('Varlık bulunamadı.');
+  if (!(await canEditAsset(viewer, asset))) {
+    forbidden('Bu varlığı düzenleme yetkiniz yok.');
+  }
+  return asset;
+}
+
+/** Yalnızca varlığın sahibi (veya site yöneticisi) tarafından yapılabilen işlemler. */
+export async function requireOwnedAsset(viewer: Viewer, assetId: string): Promise<AssetAccessRow> {
   const asset = await getAsset(assetId);
   if (asset.deleted_at) notFound('Varlık bulunamadı.');
   if (asset.owner_id !== viewer.id && viewer.role !== 'admin') {

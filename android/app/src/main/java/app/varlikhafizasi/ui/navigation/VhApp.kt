@@ -97,13 +97,17 @@ private object Routes {
 }
 
 @Composable
-fun VhRoot(vm: VhViewModel) {
+fun VhRoot(
+    vm: VhViewModel,
+    pendingAssetId: String? = null,
+    onPendingAssetConsumed: () -> Unit = {},
+) {
     val session by vm.session.collectAsStateWithLifecycle()
 
     when {
         session.checking -> Splash()
         session.user == null -> LoginScreen(vm, session.error)
-        else -> MainNavigator(vm, session.user!!)
+        else -> MainNavigator(vm, session.user!!, pendingAssetId, onPendingAssetConsumed)
     }
 }
 
@@ -151,7 +155,12 @@ private fun Splash() {
 }
 
 @Composable
-private fun MainNavigator(vm: VhViewModel, viewer: User) {
+private fun MainNavigator(
+    vm: VhViewModel,
+    viewer: User,
+    pendingAssetId: String?,
+    onPendingAssetConsumed: () -> Unit,
+) {
     val nav = rememberNavController()
     val backStack by nav.currentBackStackEntryAsState()
     val route = backStack?.destination?.route
@@ -162,6 +171,16 @@ private fun MainNavigator(vm: VhViewModel, viewer: User) {
         val message = notice ?: return@LaunchedEffect
         snackbar.showSnackbar(message)
         vm.consumeNotice()
+    }
+
+    // Oturum açıkken hatırlatmaları tazele; alarm planı sunucuyla eşitlenir.
+    LaunchedEffect(viewer.id) { vm.loadReminders() }
+
+    // Bildirimden gelen varlık bağlantısı bir kez açılır.
+    LaunchedEffect(pendingAssetId) {
+        val id = pendingAssetId ?: return@LaunchedEffect
+        nav.navigate(Routes.asset(id))
+        onPendingAssetConsumed()
     }
 
     val showBar = route in setOf(
@@ -269,6 +288,7 @@ private fun MainNavigator(vm: VhViewModel, viewer: User) {
                     vm = vm,
                     onBack = { nav.popBackStack() },
                     onOpenFriends = { nav.navigate(Routes.FRIENDS) },
+                    onOpenAsset = { nav.navigate(Routes.asset(it)) },
                 )
             }
             composable(Routes.NEW_ASSET) {
@@ -295,6 +315,7 @@ private fun MainNavigator(vm: VhViewModel, viewer: User) {
                     onEditAsset = { nav.navigate(Routes.editAsset(id)) },
                     onAddEntry = { nav.navigate(Routes.addEntry(id)) },
                     onEditEntry = { entryId -> nav.navigate(Routes.editEntry(id, entryId)) },
+                    onDeleted = { nav.popBackStack() },
                 )
             }
             composable(

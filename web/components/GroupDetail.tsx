@@ -616,13 +616,15 @@ export function GroupDetail({
           ) : (
             <div className="group-asset-grid">
               {assets.map((asset) => (
-                <article className="group-asset-card" key={asset.shareId}>
+                <article className="group-asset-card" key={asset.shareId ?? asset.id}>
                   <Link
                     href={`/gruplar/${group.slug}/varliklar/${asset.id}`}
                     className="group-asset-cover"
                   >
                     <MediaImage src={asset.coverUrl} alt={asset.title} fallbackIcon="leaf" />
-                    <span className="group-asset-scope">{t(scopeLabels[asset.scope])}</span>
+                    <span className="group-asset-scope">
+                      {asset.managed ? t('Ortak yönetim') : t(scopeLabels[asset.scope])}
+                    </span>
                   </Link>
                   <div className="group-asset-body">
                     <span className="eyebrow">{asset.type.label}</span>
@@ -634,7 +636,13 @@ export function GroupDetail({
                       {formatDate(asset.sharedAt, locale)}
                     </small>
                     <div className="group-asset-actions">
-                      {asset.owner.id === viewer.id ? (
+                      {asset.managed ? (
+                        <Link href={`/varliklar/${asset.id}`} className="btn btn-ghost btn-sm">
+                          <Icon name="edit" size={14} />
+                          {t('Varlığı yönet')}
+                        </Link>
+                      ) : null}
+                      {!asset.managed && asset.owner.id === viewer.id ? (
                         <label className="inline-select">
                           <span>{t('Kapsam')}</span>
                           <select
@@ -651,7 +659,7 @@ export function GroupDetail({
                           </select>
                         </label>
                       ) : null}
-                      {asset.owner.id === viewer.id || canManage ? (
+                      {!asset.managed && (asset.owner.id === viewer.id || canManage) ? (
                         <button
                           type="button"
                           className="btn btn-ghost btn-sm"

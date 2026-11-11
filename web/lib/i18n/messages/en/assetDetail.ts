@@ -171,6 +171,42 @@ const assetDetail = {
   'Raporlara dön': 'Back to reports',
   'Bir varlık seç ve ayrıntılı raporunu yazdır ya da PDF olarak indir.':
     'Choose an asset and print its detailed report or download it as a PDF.',
+
+  // Hatırlatmalar
+  Hatırlatma: 'Reminder',
+  'Hatırlatma zamanı': 'Reminder time',
+  'Zamanı geldiğinde uygulamada bildirim ve alarm oluşur.':
+    'When the time comes, a notification and alarm appear in the app.',
+  'Hatırlatma zamanını değiştirmek hatırlatmayı yeniden açar.':
+    'Changing the reminder time reopens the reminder.',
+  'Hatırlatma için bir tarih ve saat seçin.': 'Choose a date and time for the reminder.',
+  'Hatırlatma zamanı gelecekte olmalı.': 'The reminder time must be in the future.',
+  'Hatırlatma tamamlandı.': 'Reminder completed.',
+  'Hatırlatma yeniden açıldı.': 'Reminder reopened.',
+  'Hatırlatma güncellenemedi.': 'The reminder could not be updated.',
+  Tamamlandı: 'Completed',
+  'Zamanı geçti': 'Overdue',
+  Planlandı: 'Planned',
+  '{date} tarihinde tamamlandı': 'Completed on {date}',
+  'Yeniden aç': 'Reopen',
+  'Tamamlandı işaretle': 'Mark as done',
+
+  // Ortak yönetim
+  Ortak: 'Shared',
+  'Ortak yönetim': 'Shared management',
+  'Ortak yönetim: {group}': 'Shared management: {group}',
+  'Varlığı özel bir gruba atadığında grubun tüm etkin üyeleri varlığı ve kayıtlarını düzenleyebilir. Sahiplik sende kalır.':
+    'When you assign the asset to a private group, every active member of the group can edit the asset and its entries. Ownership stays with you.',
+  Grup: 'Group',
+  'Kapalı — yalnızca ben': 'Off — only me',
+  'Önce özel bir grup oluşturmalısın.': 'You need to create a private group first.',
+  'Grup oluştur': 'Create a group',
+  'Grubu aç': 'Open group',
+  'Ortak yönetim grubu atandı.': 'Shared management group assigned.',
+  'Ortak yönetim kapatıldı.': 'Shared management turned off.',
+  'Ortak yönetim ayarlanamadı.': 'Shared management could not be configured.',
+  'Kişi listesini yalnızca varlık sahibi yönetir.':
+    'Only the asset owner manages the people list.',
 } as const;
 
 export default assetDetail;

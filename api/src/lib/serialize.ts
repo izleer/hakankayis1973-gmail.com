@@ -123,6 +123,7 @@ export type AssetDto = {
   acquiredAt: string | null;
   attributes: Record<string, unknown>;
   owner: ReturnType<typeof mapUserMini>;
+  manager: { id: string; slug: string; name: string } | null;
   type: { id: string; label: string; parentId: string | null; icon: string | null };
   entryCount: number;
   createdAt: string;
@@ -153,6 +154,9 @@ export async function mapAsset(row: Row, locale: Locale = 'tr'): Promise<AssetDt
     acquiredAt: dateOnly(row.acquired_at),
     attributes: row.attributes ?? {},
     owner: mapUserMini(row, 'owner_'),
+    manager: row.manager_id
+      ? { id: row.manager_id, slug: row.manager_slug, name: row.manager_name }
+      : null,
     type: {
       id: row.type_id,
       label: translateTypeLabel(locale, row.type_label),
@@ -173,6 +177,8 @@ export async function mapEntry(row: Row, media: MediaDto[] = []): Promise<Record
     title: row.title,
     body: row.body,
     occurredAt: iso(row.occurred_at)!,
+    dueAt: iso(row.due_at),
+    reminderDoneAt: iso(row.reminder_done_at),
     visibility: row.visibility,
     locationName: row.location_name,
     latitude: row.latitude == null ? null : Number(row.latitude),

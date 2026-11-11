@@ -2,18 +2,21 @@ import type { FastifyInstance } from 'fastify';
 import { z } from 'zod';
 import { query, queryOne, transaction } from '../db.js';
 import {
+  canEditAsset,
   canViewAsset,
   canViewEntry,
   entryVisibilitySql,
   getAsset,
   isStaff,
+  managesAssetGroup,
   visibilityRank,
   type EntryAccessRow,
 } from '../lib/access.js';
 import { audit } from '../lib/audit.js';
 import { ApiError, forbidden, notFound } from '../lib/errors.js';
-import { iso, parseBody } from '../lib/http.js';
+import { iso, limitFrom, parseBody, parseQuery } from '../lib/http.js';
 import { attachMedia } from '../lib/media.js';
+import { processDueReminders } from '../lib/reminders.js';
 import { optionalViewer, requireViewer } from '../lib/session.js';
 import { mapEntry, mediaForEntries } from '../lib/serialize.js';
 
@@ -29,11 +32,22 @@ const measurement = z.object({
 
 const entryFields = {
   type: z
-    .enum(['note', 'photo', 'maintenance', 'acquisition', 'measurement', 'health', 'event', 'document'])
+    .enum([
+      'note',
+      'photo',
+      'maintenance',
+      'acquisition',
+      'measurement',
+      'health',
+      'event',
+      'document',
+      'reminder',
+    ])
     .default('note'),
   title: z.string().trim().max(140).optional().nullable(),
   body: z.string().trim().max(5000).optional().nullable(),
   occurredAt: isoDate.optional(),
+  dueAt: isoDate.optional().nullable(),
   visibility: z.enum(['private', 'selected', 'friends', 'public']).optional(),
   locationName: z.string().trim().max(160).optional().nullable(),
   latitude: z.number().min(-90).max(90).optional().nullable(),
@@ -54,6 +68,8 @@ const updateBody = z
     title: entryFields.title,
     body: entryFields.body,
     occurredAt: entryFields.occurredAt,
+    dueAt: entryFields.dueAt,
+    reminderDone: z.boolean().optional(),
     visibility: entryFields.visibility.optional(),
     locationName: entryFields.locationName,
     latitude: entryFields.latitude,
@@ -70,6 +86,34 @@ const updateBody = z
       Boolean(body.title?.trim() || body.body?.trim()),
     { message: 'Kayıt için bir başlık veya açıklama gerekli.', path: ['body'] },
   );
+
+/**
+ * Hatırlatma zamanı yalnızca hatırlatma kayıtlarında bulunur. Yeni kayıtta
+ * geçmiş tarih kabul edilmez; düzenlemede süresi geçmiş bir hatırlatmanın
+ * notu güncellenebilsin diye mevcut tarih korunabilir.
+ */
+function assertReminderSchedule(
+  type: string,
+  dueAt: Date | null,
+  options: { requireFuture: boolean },
+): void {
+  if (type !== 'reminder') {
+    if (dueAt) {
+      throw new ApiError(
+        422,
+        'REMINDER_NOT_APPLICABLE',
+        'Hatırlatma zamanı yalnızca hatırlatma kayıtlarında kullanılabilir.',
+      );
+    }
+    return;
+  }
+  if (!dueAt) {
+    throw new ApiError(422, 'REMINDER_DUE_REQUIRED', 'Hatırlatma için bir tarih ve saat seçin.');
+  }
+  if (options.requireFuture && dueAt.getTime() <= Date.now() - 60_000) {
+    throw new ApiError(422, 'REMINDER_DUE_PAST', 'Hatırlatma zamanı gelecekte olmalı.');
+  }
+}
 
 async function loadContext(entryId: string) {
   const row = await queryOne<Record<string, any>>(
@@ -115,12 +159,14 @@ export async function entryRoutes(app: FastifyInstance): Promise<void> {
     const body = parseBody(createBody, req.body);
     const asset = await getAsset(id);
     if (asset.deleted_at) notFound('Varlık bulunamadı.');
-    if (asset.owner_id !== viewer.id && viewer.role !== 'admin') {
-      forbidden('Bu varlığa yalnızca sahibi kayıt ekleyebilir.');
+    if (!(await canEditAsset(viewer, asset))) {
+      forbidden('Bu varlığa yalnızca sahibi veya ortak yönetici üyeler kayıt ekleyebilir.');
     }
     if ((body.latitude === undefined) !== (body.longitude === undefined)) {
       throw new ApiError(422, 'INVALID_LOCATION', 'Enlem ve boylam birlikte girilmeli.');
     }
+    const dueAt = body.dueAt ? new Date(body.dueAt) : null;
+    assertReminderSchedule(body.type, dueAt, { requireFuture: true });
     const entryVisibility =
       body.visibility ?? (asset.visibility === 'friends' ? 'friends' : 'private');
     await assertVisibilityAllowed(asset.visibility, entryVisibility);
@@ -129,8 +175,8 @@ export async function entryRoutes(app: FastifyInstance): Promise<void> {
       const inserted = await client.query<{ id: string }>(
         `INSERT INTO journal_entries
            (asset_id, author_id, type, title, body, occurred_at, visibility,
-            location_name, latitude, longitude, attributes)
-         VALUES ($1, $2, $3, $4, $5, COALESCE($6::timestamptz, now()), $7, $8, $9, $10, $11::jsonb)
+            location_name, latitude, longitude, attributes, due_at)
+         VALUES ($1, $2, $3, $4, $5, COALESCE($6::timestamptz, now()), $7, $8, $9, $10, $11::jsonb, $12)
          RETURNING id`,
         [
           id,
@@ -144,6 +190,7 @@ export async function entryRoutes(app: FastifyInstance): Promise<void> {
           body.latitude ?? null,
           body.longitude ?? null,
           JSON.stringify(body.attributes ?? {}),
+          dueAt,
         ],
       );
       const newId = inserted.rows[0]!.id;
@@ -176,6 +223,57 @@ export async function entryRoutes(app: FastifyInstance): Promise<void> {
     });
   });
 
+  /**
+   * Kullanıcının bekleyen hatırlatmaları. Android istemcisi bu listeyi yerel
+   * alarmları zamanlamak için kullanır; liste istenirken zamanı gelmiş
+   * hatırlatmalar da bildirime dönüştürülür (ücretsiz sunucu uykudan
+   * döndüğünde aralık çalışmamış olsa bile).
+   */
+  app.get('/reminders', async (req) => {
+    const viewer = await requireViewer(req);
+    const params = parseQuery(
+      z.object({
+        includeDone: z.enum(['true', 'false']).default('false'),
+        limit: z.string().optional(),
+      }),
+      req.query,
+    );
+    const limit = limitFrom(params.limit, 50, 200);
+    try {
+      await processDueReminders({ userId: viewer.id });
+    } catch (error) {
+      req.log.warn({ err: error }, 'Zamanı gelen hatırlatmalar işlenemedi');
+    }
+
+    const rows = await query<Record<string, any>>(
+      `SELECT je.id, je.asset_id, a.title AS asset_title, je.title, je.body,
+              je.due_at, je.reminder_done_at
+       FROM journal_entries je
+       JOIN assets a ON a.id = je.asset_id AND a.deleted_at IS NULL
+       WHERE je.author_id = $1
+         AND je.type = 'reminder'
+         AND je.deleted_at IS NULL
+         AND ($2::boolean OR je.reminder_done_at IS NULL)
+       ORDER BY je.reminder_done_at NULLS FIRST, je.due_at ASC
+       LIMIT $3`,
+      [viewer.id, params.includeDone === 'true', limit],
+    );
+
+    return {
+      data: {
+        items: rows.map((row) => ({
+          id: row.id,
+          assetId: row.asset_id,
+          assetTitle: row.asset_title,
+          title: row.title,
+          body: row.body,
+          dueAt: iso(row.due_at),
+          doneAt: iso(row.reminder_done_at),
+        })),
+      },
+    };
+  });
+
   app.get('/entries/:id', async (req) => {
     const viewer = await optionalViewer(req);
     const { id } = z.object({ id: uuid }).parse(req.params);
@@ -195,13 +293,46 @@ export async function entryRoutes(app: FastifyInstance): Promise<void> {
     const row = await loadContext(id);
     const asset = await getAsset(row.asset_id);
 
-    if (row.author_id !== viewer.id && asset.owner_id !== viewer.id && viewer.role !== 'admin') {
+    if (
+      row.author_id !== viewer.id &&
+      !(await canEditAsset(viewer, asset))
+    ) {
       forbidden('Bu kaydı düzenleme yetkiniz yok.');
     }
     if (body.visibility) await assertVisibilityAllowed(asset.visibility, body.visibility);
     if (!body.clearLocation && (body.latitude === undefined) !== (body.longitude === undefined)) {
       throw new ApiError(422, 'INVALID_LOCATION', 'Enlem ve boylam birlikte girilmeli.');
     }
+
+    const nextType = body.type ?? row.type;
+    const currentDueAt = row.due_at ? new Date(row.due_at) : null;
+    const nextDueAt =
+      nextType === 'reminder'
+        ? body.dueAt !== undefined
+          ? body.dueAt
+            ? new Date(body.dueAt)
+            : null
+          : currentDueAt
+        : null;
+    assertReminderSchedule(nextType, nextDueAt, { requireFuture: false });
+
+    const dueChanged =
+      nextType === 'reminder' &&
+      body.dueAt !== undefined &&
+      (nextDueAt?.getTime() ?? null) !== (currentDueAt?.getTime() ?? null);
+    let nextDoneAt =
+      nextType === 'reminder' && row.reminder_done_at
+        ? new Date(row.reminder_done_at)
+        : null;
+    if (nextType === 'reminder' && body.reminderDone !== undefined) {
+      nextDoneAt = body.reminderDone ? new Date() : null;
+    }
+    // Yeni bir zamana taşınan hatırlatma yeniden açılır ve yeniden bildirilebilir.
+    if (dueChanged) nextDoneAt = null;
+    const nextNotifiedAt =
+      nextType === 'reminder' && !dueChanged && row.reminder_notified_at
+        ? new Date(row.reminder_notified_at)
+        : null;
 
     await query(
       `UPDATE journal_entries SET
@@ -213,7 +344,10 @@ export async function entryRoutes(app: FastifyInstance): Promise<void> {
          location_name = CASE WHEN $9::boolean THEN $10 ELSE location_name END,
          latitude = CASE WHEN $11::boolean THEN $12 ELSE latitude END,
          longitude = CASE WHEN $11::boolean THEN $13 ELSE longitude END,
-         attributes = COALESCE($14::jsonb, attributes)
+         attributes = COALESCE($14::jsonb, attributes),
+         due_at = $15::timestamptz,
+         reminder_done_at = $16::timestamptz,
+         reminder_notified_at = $17::timestamptz
        WHERE id = $1`,
       [
         id,
@@ -230,6 +364,9 @@ export async function entryRoutes(app: FastifyInstance): Promise<void> {
         body.clearLocation ? null : (body.latitude ?? null),
         body.clearLocation ? null : (body.longitude ?? null),
         body.attributes ? JSON.stringify(body.attributes) : null,
+        nextDueAt,
+        nextDoneAt,
+        nextNotifiedAt,
       ],
     );
 
@@ -267,7 +404,10 @@ export async function entryRoutes(app: FastifyInstance): Promise<void> {
     const { id } = z.object({ id: uuid }).parse(req.params);
     const row = await loadContext(id);
     const asset = await getAsset(row.asset_id);
-    if (row.author_id !== viewer.id && asset.owner_id !== viewer.id && viewer.role !== 'admin') {
+    if (
+      row.author_id !== viewer.id &&
+      !(await canEditAsset(viewer, asset))
+    ) {
       forbidden('Bu kaydı silme yetkiniz yok.');
     }
     await query(
@@ -296,6 +436,8 @@ export async function entryRoutes(app: FastifyInstance): Promise<void> {
     if (asset.deleted_at) notFound('Varlık bulunamadı.');
     const allowed = await canViewAsset(viewer, asset);
     if (!allowed) forbidden();
+    const seesAllEntries =
+      viewer?.id === asset.owner_id || (await managesAssetGroup(viewer, asset));
     const viewerId = viewer?.id ?? '00000000-0000-0000-0000-000000000000';
     const rows = await query<Record<string, any>>(
       `SELECT am.*
@@ -312,7 +454,7 @@ export async function entryRoutes(app: FastifyInstance): Promise<void> {
            })})
          )
        ORDER BY am.measured_at DESC`,
-      [id, viewer?.id === asset.owner_id, isStaff(viewer), viewerId, asset.owner_id],
+      [id, seesAllEntries, isStaff(viewer), viewerId, asset.owner_id],
     );
     return {
       data: {

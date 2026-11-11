@@ -86,6 +86,13 @@ data class AssetType(
 )
 
 @Serializable
+data class AssetManagerRef(
+    val id: String,
+    val slug: String,
+    val name: String,
+)
+
+@Serializable
 data class Asset(
     val id: String,
     val title: String,
@@ -105,6 +112,12 @@ data class Asset(
     val relation: String? = null,
     val sharedAt: String? = null,
     val isFriend: Boolean = false,
+    val manager: AssetManagerRef? = null,
+    // Grup varlık listesinde paylaşım satırları için.
+    val shareId: String? = null,
+    val scope: String? = null,
+    val addedBy: UserMini? = null,
+    val managed: Boolean = false,
 )
 
 // ---------------------------------------------------------------------------
@@ -141,6 +154,8 @@ data class Entry(
     val title: String? = null,
     val body: String? = null,
     val occurredAt: String? = null,
+    val dueAt: String? = null,
+    val reminderDoneAt: String? = null,
     val visibility: String = "private",
     val locationName: String? = null,
     val latitude: Double? = null,
@@ -160,6 +175,20 @@ data class Measurement(
     val unit: String,
     val measuredAt: String? = null,
 )
+
+@Serializable
+data class ReminderItem(
+    val id: String,
+    val assetId: String,
+    val assetTitle: String = "",
+    val title: String? = null,
+    val body: String? = null,
+    val dueAt: String? = null,
+    val doneAt: String? = null,
+)
+
+@Serializable
+data class ReminderPage(val items: List<ReminderItem> = emptyList())
 
 // ---------------------------------------------------------------------------
 // Sayfalar ve özetler
@@ -243,7 +272,10 @@ data class AccessViewer(
 @Serializable
 data class AssetAccess(
     val isOwner: Boolean = false,
+    val isManager: Boolean = false,
+    val canEdit: Boolean = false,
     val isShared: Boolean = false,
+    val manager: AssetManagerRef? = null,
     val viewers: List<AccessViewer> = emptyList(),
 )
 
@@ -626,6 +658,7 @@ data class CreateEntryRequest(
     val body: String? = null,
     val visibility: String,
     val occurredAt: String? = null,
+    val dueAt: String? = null,
     val locationName: String? = null,
     val latitude: Double? = null,
     val longitude: Double? = null,
@@ -644,6 +677,8 @@ data class UpdateEntryRequest(
     val body: String? = null,
     val visibility: String? = null,
     val occurredAt: String? = null,
+    val dueAt: String? = null,
+    val reminderDone: Boolean? = null,
     val locationName: String? = null,
     val latitude: Double? = null,
     val longitude: Double? = null,

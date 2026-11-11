@@ -28,6 +28,7 @@ import type {
   CursorPage,
   Entry,
   EntryType,
+  Group,
   Measurement,
   Media,
   User,
@@ -52,21 +53,31 @@ const entryIcons: Record<EntryType, IconName> = {
   health: 'heart',
   event: 'sparkles',
   document: 'file',
+  reminder: 'clock',
 };
 
 const entryTypes = Object.keys(entryTypeLabels) as EntryType[];
 const visibilityOrder: Visibility[] = ['private', 'selected', 'friends', 'public'];
 
-function nowLocalInput(): string {
-  const date = new Date();
+function toLocalInput(date: Date): string {
   const offset = date.getTimezoneOffset();
   return new Date(date.getTime() - offset * 60 * 1000).toISOString().slice(0, 16);
 }
 
+function nowLocalInput(): string {
+  return toLocalInput(new Date());
+}
+
 function isoToLocalInput(value: string): string {
-  const date = new Date(value);
-  const offset = date.getTimezoneOffset();
-  return new Date(date.getTime() - offset * 60 * 1000).toISOString().slice(0, 16);
+  return toLocalInput(new Date(value));
+}
+
+/** Yeni hatırlatma için makul bir başlangıç: yarın sabah 09:00. */
+function defaultReminderInput(): string {
+  const date = new Date();
+  date.setDate(date.getDate() + 1);
+  date.setHours(9, 0, 0, 0);
+  return toLocalInput(date);
 }
 
 export function AssetDetail({
@@ -75,12 +86,14 @@ export function AssetDetail({
   viewer,
   attributeLabels = {},
   socialEnabled = false,
+  groups = [],
 }: {
   data: AssetDetailData;
   measurements: Measurement[];
   viewer: User;
   attributeLabels?: Record<string, string>;
   socialEnabled?: boolean;
+  groups?: Group[];
 }) {
   const router = useRouter();
   const t = useT();
@@ -99,6 +112,8 @@ export function AssetDetail({
   const [notice, setNotice] = useState<string | null>(null);
 
   const isOwner = data.access.isOwner || viewer.id === asset.owner.id;
+  const isManager = data.access.isManager;
+  const canEdit = data.access.canEdit || isOwner;
   const media = useMemo(
     () =>
       entries
@@ -131,6 +146,20 @@ export function AssetDetail({
       flash(caught instanceof Error ? caught.message : t('Daha eski kayıtlar yüklenemedi.'));
     } finally {
       setLoadingMore(false);
+    }
+  }
+
+  async function toggleReminder(entry: Entry, done: boolean) {
+    try {
+      const data = await vh.patch<{ entry: Entry }>(`entries/${entry.id}`, {
+        reminderDone: done,
+      });
+      setEntries((current) =>
+        current.map((item) => (item.id === data.entry.id ? data.entry : item)),
+      );
+      flash(done ? t('Hatırlatma tamamlandı.') : t('Hatırlatma yeniden açıldı.'));
+    } catch (caught) {
+      flash(caught instanceof Error ? caught.message : t('Hatırlatma güncellenemedi.'));
     }
   }
 
@@ -226,7 +255,7 @@ export function AssetDetail({
           ) : null}
 
           <div className="detail-actions">
-            {isOwner ? (
+            {canEdit ? (
               <>
                 <button
                   type="button"
@@ -243,7 +272,7 @@ export function AssetDetail({
                   <Icon name="edit" size={16} />
                   {t('Düzenle')}
                 </button>
-                {socialEnabled ? (
+                {isOwner && socialEnabled ? (
                   <button type="button" className="btn btn-ghost" onClick={() => setSocialOpen(true)}>
                     <Icon name="share" size={16} />
                     {t('Sosyal medya')}
@@ -260,6 +289,12 @@ export function AssetDetail({
               <Icon name="download" size={16} />
               {t('Rapor')}
             </Link>
+            {asset.manager ? (
+              <span className="shared-note">
+                <Icon name="users" size={15} />
+                {t('Ortak yönetim: {group}', { group: asset.manager.name })}
+              </span>
+            ) : null}
           </div>
           <p className="detail-owner">
             <span className="avatar avatar-tiny">
@@ -316,7 +351,7 @@ export function AssetDetail({
 
       {tab === 'story' ? (
         <section className="story">
-          {isOwner ? (
+          {canEdit ? (
             <button
               type="button"
               className="composer-prompt"
@@ -337,8 +372,9 @@ export function AssetDetail({
             <>
               <Timeline
                 entries={entries}
-                canEditEntry={(entry) => isOwner || entry.author.id === viewer.id}
+                canEditEntry={(entry) => canEdit || entry.author.id === viewer.id}
                 onEditEntry={setEditingEntry}
+                onToggleReminder={toggleReminder}
                 onOpenImage={(item, alt) => setLightbox({ url: item, alt })}
               />
               {cursor ? (
@@ -379,7 +415,11 @@ export function AssetDetail({
         <SharePanel
           asset={asset}
           viewers={viewers}
+          groups={groups}
           onChange={setViewers}
+          onManagerChange={(manager) =>
+            setAsset((current) => ({ ...current, manager }))
+          }
           onFlash={flash}
         />
       ) : null}
@@ -401,6 +441,7 @@ export function AssetDetail({
         <EditAssetModal
           asset={asset}
           viewers={viewers}
+          isOwner={isOwner}
           onViewersChange={setViewers}
           onClose={() => setEditOpen(false)}
           onSaved={(next) => {
@@ -474,11 +515,13 @@ function Timeline({
   entries,
   canEditEntry,
   onEditEntry,
+  onToggleReminder,
   onOpenImage,
 }: {
   entries: Entry[];
   canEditEntry: (entry: Entry) => boolean;
   onEditEntry: (entry: Entry) => void;
+  onToggleReminder: (entry: Entry, done: boolean) => void;
   onOpenImage: (url: string, alt: string) => void;
 }) {
   const t = useT();
@@ -526,6 +569,13 @@ function Timeline({
                   ) : null}
                 </header>
                 {entry.title ? <h3>{entry.title}</h3> : null}
+                {entry.type === 'reminder' && entry.dueAt ? (
+                  <ReminderStatus
+                    entry={entry}
+                    canEdit={canEditEntry(entry)}
+                    onToggle={onToggleReminder}
+                  />
+                ) : null}
                 {entry.body ? <p>{entry.body}</p> : null}
                 {Object.keys(entry.attributes ?? {}).length > 0 ? (
                   <dl className="entry-attrs">
@@ -577,6 +627,51 @@ function Timeline({
           </div>
         );
       })}
+    </div>
+  );
+}
+
+function ReminderStatus({
+  entry,
+  canEdit,
+  onToggle,
+}: {
+  entry: Entry;
+  canEdit: boolean;
+  onToggle: (entry: Entry, done: boolean) => void;
+}) {
+  const t = useT();
+  const { locale } = useI18n();
+  if (!entry.dueAt) return null;
+  const done = Boolean(entry.reminderDoneAt);
+  const overdue = !done && new Date(entry.dueAt).getTime() <= Date.now();
+  const state = done ? 'is-done' : overdue ? 'is-overdue' : 'is-planned';
+  const label = done ? t('Tamamlandı') : overdue ? t('Zamanı geçti') : t('Planlandı');
+
+  return (
+    <div className={`reminder-status ${state}`}>
+      <Icon name="clock" size={15} />
+      <span className="reminder-due">
+        {t('Hatırlatma zamanı')}: <strong>{formatDateTime(entry.dueAt, locale)}</strong>
+      </span>
+      <span className="reminder-state">{label}</span>
+      {done && entry.reminderDoneAt ? (
+        <span className="reminder-done-at">
+          {t('{date} tarihinde tamamlandı', {
+            date: formatDateTime(entry.reminderDoneAt, locale),
+          })}
+        </span>
+      ) : null}
+      {canEdit ? (
+        <button
+          type="button"
+          className="btn btn-ghost btn-sm reminder-toggle"
+          onClick={() => onToggle(entry, !done)}
+        >
+          <Icon name={done ? 'clock' : 'check'} size={14} />
+          {done ? t('Yeniden aç') : t('Tamamlandı işaretle')}
+        </button>
+      ) : null}
     </div>
   );
 }
@@ -792,12 +887,16 @@ function MeasurementsPanel({ items }: { items: Measurement[] }) {
 function SharePanel({
   asset,
   viewers,
+  groups,
   onChange,
+  onManagerChange,
   onFlash,
 }: {
   asset: Asset;
   viewers: { user: UserMini; grantedAt: string }[];
+  groups: Group[];
   onChange: (next: { user: UserMini; grantedAt: string }[]) => void;
+  onManagerChange: (manager: Asset['manager']) => void;
   onFlash: (message: string) => void;
 }) {
   const t = useT();
@@ -805,6 +904,24 @@ function SharePanel({
   const [username, setUsername] = useState('');
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  async function assignManager(communityId: string) {
+    setBusy(true);
+    setError(null);
+    try {
+      const data = await vh.put<{ manager: Asset['manager'] }>(`assets/${asset.id}/manager`, {
+        communityId: communityId || null,
+      });
+      onManagerChange(data.manager);
+      onFlash(
+        data.manager ? t('Ortak yönetim grubu atandı.') : t('Ortak yönetim kapatıldı.'),
+      );
+    } catch (caught) {
+      setError(caught instanceof Error ? caught.message : t('Ortak yönetim ayarlanamadı.'));
+    } finally {
+      setBusy(false);
+    }
+  }
 
   async function addUser(event: React.FormEvent) {
     event.preventDefault();
@@ -839,6 +956,48 @@ function SharePanel({
     <section className="share-panel">
       <div className="info-card">
         <Icon name="users" size={22} />
+        <div>
+          <h3>{t('Ortak yönetim')}</h3>
+          <p>
+            {t(
+              'Varlığı özel bir gruba atadığında grubun tüm etkin üyeleri varlığı ve kayıtlarını düzenleyebilir. Sahiplik sende kalır.',
+            )}
+          </p>
+          {groups.length > 0 ? (
+            <label className="field">
+              <span>{t('Grup')}</span>
+              <select
+                className="select"
+                value={asset.manager?.id ?? ''}
+                disabled={busy}
+                onChange={(event) => assignManager(event.target.value)}
+              >
+                <option value="">{t('Kapalı — yalnızca ben')}</option>
+                {groups.map((group) => (
+                  <option key={group.id} value={group.id}>
+                    {group.name}
+                  </option>
+                ))}
+              </select>
+            </label>
+          ) : (
+            <p className="muted-note">
+              {t('Önce özel bir grup oluşturmalısın.')}{' '}
+              <Link href="/gruplar/yeni">{t('Grup oluştur')}</Link>
+            </p>
+          )}
+          {asset.manager ? (
+            <p className="muted-note">
+              <Icon name="users" size={14} />{' '}
+              {t('Ortak yönetim: {group}', { group: asset.manager.name })}{' '}
+              <Link href={`/gruplar/${asset.manager.slug}`}>{t('Grubu aç')}</Link>
+            </p>
+          ) : null}
+        </div>
+      </div>
+
+      <div className="info-card">
+        <Icon name="eye" size={22} />
         <div>
           <h3>{t('Kimler görebilir?')}</h3>
           <p>
@@ -922,6 +1081,7 @@ function EntryComposer({
   const [title, setTitle] = useState('');
   const [body, setBody] = useState('');
   const [occurredAt, setOccurredAt] = useState(nowLocalInput());
+  const [dueAt, setDueAt] = useState(defaultReminderInput());
   const [visibility, setVisibility] = useState<Visibility>(
     asset.visibility === 'public' ? 'private' : 'private',
   );
@@ -941,6 +1101,16 @@ function EntryComposer({
     if (!title && !body) {
       setError(t('Bir başlık ya da not yazın.'));
       return;
+    }
+    if (type === 'reminder') {
+      if (!dueAt) {
+        setError(t('Hatırlatma için bir tarih ve saat seçin.'));
+        return;
+      }
+      if (new Date(dueAt).getTime() <= Date.now() - 60_000) {
+        setError(t('Hatırlatma zamanı gelecekte olmalı.'));
+        return;
+      }
     }
     if (files.length > 8) {
       setError(t('Bir kayda en fazla 8 dosya eklenebilir.'));
@@ -966,6 +1136,7 @@ function EntryComposer({
         title: title || null,
         body: body || null,
         occurredAt: new Date(occurredAt).toISOString(),
+        dueAt: type === 'reminder' ? new Date(dueAt).toISOString() : null,
         visibility,
         mediaIds,
       });
@@ -1031,6 +1202,23 @@ function EntryComposer({
               maxLength={140}
             />
           </label>
+
+          {type === 'reminder' ? (
+            <label className="field">
+              <span>{t('Hatırlatma zamanı')}</span>
+              <input
+                className="input"
+                type="datetime-local"
+                value={dueAt}
+                onChange={(event) => setDueAt(event.target.value)}
+                min={nowLocalInput()}
+                required
+              />
+              <p className="muted-note">
+                {t('Zamanı geldiğinde uygulamada bildirim ve alarm oluşur.')}
+              </p>
+            </label>
+          ) : null}
 
           <label className="field">
             <span>{t('Not')}</span>
@@ -1149,6 +1337,9 @@ function EntryEditModal({
   const [title, setTitle] = useState(entry.title ?? '');
   const [body, setBody] = useState(entry.body ?? '');
   const [occurredAt, setOccurredAt] = useState(isoToLocalInput(entry.occurredAt));
+  const [dueAt, setDueAt] = useState(
+    entry.dueAt ? isoToLocalInput(entry.dueAt) : defaultReminderInput(),
+  );
   const [locationName, setLocationName] = useState(entry.locationName ?? '');
   const [visibility, setVisibility] = useState<Visibility>(entry.visibility);
   const [attributes, setAttributes] = useState<Record<string, string>>(() =>
@@ -1173,6 +1364,10 @@ function EntryEditModal({
       setError(t('Bir başlık ya da not yazın.'));
       return;
     }
+    if (type === 'reminder' && !dueAt) {
+      setError(t('Hatırlatma için bir tarih ve saat seçin.'));
+      return;
+    }
     setBusy(true);
     setError(null);
     try {
@@ -1193,6 +1388,7 @@ function EntryEditModal({
         title: title.trim() || null,
         body: body.trim() || null,
         occurredAt: new Date(occurredAt).toISOString(),
+        dueAt: type === 'reminder' ? new Date(dueAt).toISOString() : null,
         locationName: locationName.trim() || null,
         visibility,
         attributes: nextAttributes,
@@ -1268,6 +1464,22 @@ function EntryEditModal({
               maxLength={140}
             />
           </label>
+
+          {type === 'reminder' ? (
+            <label className="field">
+              <span>{t('Hatırlatma zamanı')}</span>
+              <input
+                className="input"
+                type="datetime-local"
+                value={dueAt}
+                onChange={(event) => setDueAt(event.target.value)}
+                required
+              />
+              <p className="muted-note">
+                {t('Hatırlatma zamanını değiştirmek hatırlatmayı yeniden açar.')}
+              </p>
+            </label>
+          ) : null}
 
           <label className="field">
             <span>{t('Not')}</span>
@@ -1418,6 +1630,7 @@ function EntryEditModal({
 function EditAssetModal({
   asset,
   viewers,
+  isOwner,
   onViewersChange,
   onClose,
   onSaved,
@@ -1425,6 +1638,7 @@ function EditAssetModal({
 }: {
   asset: Asset;
   viewers: { user: UserMini; grantedAt: string }[];
+  isOwner: boolean;
   onViewersChange: (next: { user: UserMini; grantedAt: string }[]) => void;
   onClose: () => void;
   onSaved: (asset: Asset) => void;
@@ -1447,7 +1661,7 @@ function EditAssetModal({
 
   async function save(event: React.FormEvent) {
     event.preventDefault();
-    if (visibility === 'selected' && viewerIds.length === 0) {
+    if (isOwner && visibility === 'selected' && viewerIds.length === 0) {
       setError(t('Seçili kişiler görünürlüğü için en az bir kişi seçin.'));
       return;
     }
@@ -1463,13 +1677,13 @@ function EditAssetModal({
         title,
         description: description || null,
         visibility,
-        viewerIds: visibility === 'selected' ? viewerIds : undefined,
+        viewerIds: isOwner && visibility === 'selected' ? viewerIds : undefined,
         status,
         acquiredAt: acquiredAt || null,
         locationName: locationName || null,
         ...(coverMediaId ? { coverMediaId } : {}),
       });
-      if (visibility === 'selected') {
+      if (isOwner && visibility === 'selected') {
         const access = await vh.get<{
           items: { user: UserMini; grantedAt: string }[];
         }>(`assets/${asset.id}/access`);
@@ -1588,13 +1802,18 @@ function EditAssetModal({
             </label>
           </div>
 
-          {visibility === 'selected' ? (
+          {visibility === 'selected' && isOwner ? (
             <ViewerPicker
               selected={viewerIds}
               onChange={setViewerIds}
               extra={viewers.map((item) => item.user)}
               disabled={busy}
             />
+          ) : null}
+          {visibility === 'selected' && !isOwner ? (
+            <p className="muted-note">
+              {t('Kişi listesini yalnızca varlık sahibi yönetir.')}
+            </p>
           ) : null}
 
           <div className="cover-edit">
@@ -1649,15 +1868,19 @@ function EditAssetModal({
           ) : null}
 
           <div className="modal-actions spread">
-            <button
-              type="button"
-              className="btn btn-danger btn-sm"
-              onClick={() => setConfirming(true)}
-              disabled={busy || confirming}
-            >
-              <Icon name="trash" size={16} />
-              {t('Varlığı sil')}
-            </button>
+            {isOwner ? (
+              <button
+                type="button"
+                className="btn btn-danger btn-sm"
+                onClick={() => setConfirming(true)}
+                disabled={busy || confirming}
+              >
+                <Icon name="trash" size={16} />
+                {t('Varlığı sil')}
+              </button>
+            ) : (
+              <span />
+            )}
             <div className="modal-actions-right">
               <button type="button" className="btn btn-ghost" onClick={onClose} disabled={busy}>
                 {t('Vazgeç')}

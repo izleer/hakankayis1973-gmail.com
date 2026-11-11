@@ -122,6 +122,7 @@ fun NewAssetScreen(
 ) {
     val types by vm.assetTypes.collectAsStateWithLifecycle()
     val assetState by vm.assetDraft.collectAsStateWithLifecycle()
+    val draftAccess by vm.assetDraftAccess.collectAsStateWithLifecycle()
     val assetViewers by vm.assetViewers.collectAsStateWithLifecycle()
     val pickerFriends by vm.pickerFriends.collectAsStateWithLifecycle()
     val busy by vm.formBusy.collectAsStateWithLifecycle()
@@ -129,6 +130,8 @@ fun NewAssetScreen(
 
     val editing = assetId != null
     val draft = if (editing) assetState.data else null
+    // Kişi listesi ve görünürlüğe bağlı kişi seçimi yalnızca varlık sahibine aittir.
+    val canManageViewers = !editing || draftAccess.isOwner
 
     var title by rememberSaveable { mutableStateOf("") }
     var description by rememberSaveable { mutableStateOf("") }
@@ -160,7 +163,8 @@ fun NewAssetScreen(
     val viewersRequiredNotice = stringResource(R.string.error_asset_viewers_required)
     val typeError = attempted && selectedId == null
     val nameError = attempted && title.isBlank()
-    val viewersError = attempted && visibility == "selected" && viewerIds.isEmpty()
+    val viewersError = attempted && canManageViewers &&
+        visibility == "selected" && viewerIds.isEmpty()
 
     val viewerOptions = remember(pickerFriends.data, assetViewers) {
         val seen = mutableSetOf<String>()
@@ -181,8 +185,8 @@ fun NewAssetScreen(
         if (assetId != null) vm.loadAssetDraft(assetId) else vm.clearAssetDraft()
     }
 
-    LaunchedEffect(visibility) {
-        if (visibility == "selected") {
+    LaunchedEffect(visibility, canManageViewers) {
+        if (visibility == "selected" && canManageViewers) {
             vm.loadPickerFriends()
         }
     }
@@ -449,7 +453,7 @@ fun NewAssetScreen(
                 color = Muted,
             )
 
-            if (visibility == "selected") {
+            if (visibility == "selected" && canManageViewers) {
                 Spacer(Modifier.height(12.dp))
                 Surface(
                     color = PaperDeep,
@@ -578,6 +582,21 @@ fun NewAssetScreen(
                             }
                         }
                     }
+                }
+            }
+            if (visibility == "selected" && !canManageViewers) {
+                Spacer(Modifier.height(10.dp))
+                Surface(
+                    color = PaperDeep,
+                    shape = RoundedCornerShape(12.dp),
+                    modifier = Modifier.fillMaxWidth(),
+                ) {
+                    Text(
+                        stringResource(R.string.asset_detail_viewers_owner_only),
+                        style = MaterialTheme.typography.bodySmall,
+                        color = Muted,
+                        modifier = Modifier.padding(horizontal = 12.dp, vertical = 10.dp),
+                    )
                 }
             }
             if (viewersError) {
@@ -752,7 +771,9 @@ fun NewAssetScreen(
                 onClick = {
                     attempted = true
                     val typeId = selectedId
-                    if (typeId == null || title.isBlank() || (visibility == "selected" && viewerIds.isEmpty())) {
+                    if (typeId == null || title.isBlank() ||
+                        (canManageViewers && visibility == "selected" && viewerIds.isEmpty())
+                    ) {
                         return@Button
                     }
                     if (assetId != null) {

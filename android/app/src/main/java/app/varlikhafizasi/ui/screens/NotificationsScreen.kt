@@ -18,6 +18,7 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.outlined.Alarm
 import androidx.compose.material.icons.outlined.ChatBubbleOutline
 import androidx.compose.material.icons.outlined.DoneAll
 import androidx.compose.material.icons.outlined.FavoriteBorder
@@ -60,6 +61,7 @@ fun NotificationsScreen(
     vm: VhViewModel,
     onBack: () -> Unit,
     onOpenFriends: () -> Unit,
+    onOpenAsset: (String) -> Unit,
 ) {
     val state by vm.notifications.collectAsStateWithLifecycle()
 
@@ -128,7 +130,10 @@ fun NotificationsScreen(
                     notification = notification,
                     onClick = {
                         if (notification.readAt == null) vm.markRead(notification.id)
-                        if (notification.entityType == "friend") onOpenFriends()
+                        when (notification.entityType) {
+                            "friend" -> onOpenFriends()
+                            "asset" -> notification.entityId?.let(onOpenAsset)
+                        }
                     },
                 )
             }
@@ -175,6 +180,7 @@ private fun NotificationRow(notification: VhNotification, onClick: () -> Unit) {
                         "friend_accept" -> Icons.Outlined.Groups
                         "like" -> Icons.Outlined.FavoriteBorder
                         "comment" -> Icons.Outlined.ChatBubbleOutline
+                        "reminder" -> Icons.Outlined.Alarm
                         else -> Icons.Outlined.NotificationsNone
                     },
                     contentDescription = null,

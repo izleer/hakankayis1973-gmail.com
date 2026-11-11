@@ -3,11 +3,14 @@ import type { PoolClient } from 'pg';
 import { z } from 'zod';
 import { query, queryOne, transaction } from '../db.js';
 import {
+  canEditAsset,
   canViewEntry,
   entryVisibilitySql,
   getAsset,
   isStaff,
+  managesAssetGroup,
   requireEditableAsset,
+  requireOwnedAsset,
   requireViewableAsset,
   visibilityRank,
   type Visibility,
@@ -95,6 +98,12 @@ const updateBody = z.object({
 
 const accessBody = z.object({
   username: z.string().trim().min(3).max(30),
+});
+
+const managerBody = z.object({
+  // Boş gövde (communityId yok) yönetimi kaldırmak anlamına gelir; Android
+  // istemcisi null alanları serileştirmediği için alan isteğe bağlıdır.
+  communityId: z.string().uuid().nullable().optional(),
 });
 
 async function loadAsset(assetId: string, locale: Locale) {
@@ -244,7 +253,26 @@ export async function assetRoutes(app: FastifyInstance): Promise<void> {
     const filters = parseQuery(listQuery, req.query);
     const offset = (filters.page - 1) * filters.limit;
     const params: unknown[] = [viewer.id];
-    const clauses = ['a.owner_id = $1', 'a.deleted_at IS NULL'];
+    // Kişisel liste: kendi varlıkları + ortak yönetim için atandığı özel
+    // grubun etkin üyesi olduğu varlıklar.
+    const clauses = [
+      `(a.owner_id = $1 OR (
+        a.manager_community_id IS NOT NULL AND EXISTS (
+          SELECT 1 FROM memberships mgm
+          JOIN communities mgc ON mgc.id = mgm.community_id
+          WHERE mgm.community_id = a.manager_community_id
+            AND mgm.user_id = $1 AND mgm.status = 'active'
+            AND mgc.visibility = 'private' AND mgc.deleted_at IS NULL
+        )
+      ))`,
+      'a.deleted_at IS NULL',
+      // Sahip ile görüntüleyen arasındaki engel ortak yönetim listesini de kapatır.
+      `NOT EXISTS (
+        SELECT 1 FROM blocks b
+        WHERE (b.blocker_id = a.owner_id AND b.blocked_id = $1)
+           OR (b.blocker_id = $1 AND b.blocked_id = a.owner_id)
+      )`,
+    ];
     let index = 2;
 
     if (filters.q) {
@@ -520,6 +548,9 @@ export async function assetRoutes(app: FastifyInstance): Promise<void> {
     const owner = await loadAsset(id, req.locale);
     const isOwner = viewer?.id === assetRow.owner_id;
     const staff = isStaff(viewer);
+    const isManager = viewer ? await managesAssetGroup(viewer, assetRow) : false;
+    const canEdit = viewer ? await canEditAsset(viewer, assetRow) : false;
+    const seesAllEntries = isOwner || isManager;
 
     const entryLimit = 20;
     const entryRows = await query<Record<string, any>>(
@@ -538,7 +569,7 @@ export async function assetRoutes(app: FastifyInstance): Promise<void> {
        LIMIT $5`,
       [
         id,
-        isOwner,
+        seesAllEntries,
         staff,
         viewer?.id ?? '00000000-0000-0000-0000-000000000000',
         entryLimit + 1,
@@ -602,7 +633,10 @@ export async function assetRoutes(app: FastifyInstance): Promise<void> {
         })),
         access: {
           isOwner,
+          isManager,
+          canEdit,
           isShared,
+          manager: owner.manager,
           viewers: accessUsers.map((row) => ({
             user: mapUserMini(row),
             grantedAt: iso(row.created_at),
@@ -624,6 +658,8 @@ export async function assetRoutes(app: FastifyInstance): Promise<void> {
     const cursor = decodeCursor(params.cursor);
     const isOwner = viewer?.id === assetRow.owner_id;
     const staff = isStaff(viewer);
+    const seesAllEntries =
+      isOwner || (viewer ? await managesAssetGroup(viewer, assetRow) : false);
 
     const rows = await query<Record<string, any>>(
       `SELECT je.*, u.username AS author_username, u.display_name AS author_display_name,
@@ -642,7 +678,7 @@ export async function assetRoutes(app: FastifyInstance): Promise<void> {
        LIMIT $7`,
       [
         id,
-        isOwner,
+        seesAllEntries,
         staff,
         viewer?.id ?? '00000000-0000-0000-0000-000000000000',
         cursor?.at ?? null,
@@ -681,6 +717,19 @@ export async function assetRoutes(app: FastifyInstance): Promise<void> {
     }
 
     const current = await getAsset(id);
+    // Ortak yöneticiler varlığın içeriğini düzenleyebilir; erişim listesi ve
+    // "seçili kişiler" görünürlüğü sahiplik işlemidir.
+    const isOwnerOrAdmin = current.owner_id === viewer.id || viewer.role === 'admin';
+    if (body.viewerIds !== undefined && !isOwnerOrAdmin) {
+      forbidden('Kişi listesini yalnızca varlık sahibi yönetir.');
+    }
+    if (
+      body.visibility === 'selected' &&
+      current.visibility !== 'selected' &&
+      !isOwnerOrAdmin
+    ) {
+      forbidden('"Seçili kişiler" görünürlüğünü yalnızca varlık sahibi ayarlayabilir.');
+    }
     const viewerIds = await resolveViewerIds(viewer.id, body.viewerIds);
     const nextVisibility = body.visibility ?? current.visibility;
     if (body.viewerIds !== undefined && nextVisibility === 'selected' && viewerIds!.length === 0) {
@@ -783,7 +832,9 @@ export async function assetRoutes(app: FastifyInstance): Promise<void> {
   app.delete('/:id', async (req, reply) => {
     const viewer = await requireViewer(req);
     const { id } = z.object({ id: uuid }).parse(req.params);
-    await requireEditableAsset(viewer, id);
+    // Varlığın kendisini silmek sahiplik işlemidir; ortak yöneticiler yalnızca
+    // varlık bilgilerini ve kayıtlarını düzenleyebilir.
+    await requireOwnedAsset(viewer, id);
 
     await transaction(async (client) => {
       await client.query(`UPDATE assets SET deleted_at = now() WHERE id = $1`, [id]);
@@ -798,6 +849,94 @@ export async function assetRoutes(app: FastifyInstance): Promise<void> {
     });
     await audit(viewer.id, 'asset.deleted', 'asset', id, {}, req.ip);
     return reply.status(204).send();
+  });
+
+  /**
+   * Ortak yönetim grubunu atar veya kaldırır. Yalnızca varlık sahibi yapabilir;
+   * grup özel olmalı ve sahibi grubun etkin üyesi olmalıdır. Atama varlığın
+   * sahibini değiştirmez, grubun tüm etkin üyelerine düzenleme yetkisi verir.
+   */
+  app.put('/:id/manager', async (req) => {
+    const viewer = await requireViewer(req);
+    const { id } = z.object({ id: uuid }).parse(req.params);
+    const body = parseBody(managerBody, req.body);
+    const asset = await getAsset(id);
+    if (asset.deleted_at) notFound('Varlık bulunamadı.');
+    if (asset.owner_id !== viewer.id && viewer.role !== 'admin') {
+      forbidden('Ortak yönetim grubunu yalnızca varlık sahibi atayabilir.');
+    }
+
+    if (!body.communityId) {
+      if (asset.manager_community_id) {
+        await query(`UPDATE assets SET manager_community_id = NULL WHERE id = $1`, [id]);
+        await audit(viewer.id, 'asset.manager_revoked', 'asset', id, {}, req.ip);
+      }
+      return { data: { manager: null } };
+    }
+
+    const community = await queryOne<{
+      id: string;
+      slug: string;
+      name: string;
+      visibility: 'public' | 'private';
+      deleted_at: Date | null;
+    }>(
+      `SELECT id, slug, name, visibility, deleted_at FROM communities WHERE id = $1`,
+      [body.communityId],
+    );
+    if (!community || community.deleted_at) notFound('Grup bulunamadı.');
+    if (community.visibility !== 'private') {
+      throw new ApiError(
+        422,
+        'MANAGER_REQUIRES_PRIVATE',
+        'Ortak yönetim yalnızca özel gruplara atanabilir.',
+      );
+    }
+    const membership = await queryOne<{ role: string }>(
+      `SELECT role FROM memberships
+       WHERE community_id = $1 AND user_id = $2 AND status = 'active'`,
+      [community.id, viewer.id],
+    );
+    if (!membership) {
+      forbidden('Yalnızca üyesi olduğunuz bir grubu ortak yönetici olarak atayabilirsiniz.');
+    }
+
+    await query(`UPDATE assets SET manager_community_id = $2 WHERE id = $1`, [
+      id,
+      community.id,
+    ]);
+    const assetTitle = await queryOne<{ title: string }>(
+      `SELECT title FROM assets WHERE id = $1`,
+      [id],
+    );
+    const members = await query<{ user_id: string }>(
+      `SELECT user_id FROM memberships
+       WHERE community_id = $1 AND status = 'active' AND user_id <> $2`,
+      [community.id, viewer.id],
+    );
+    for (const member of members) {
+      await notify({
+        userId: member.user_id,
+        actorId: viewer.id,
+        type: 'system',
+        entityType: 'asset',
+        entityId: id,
+        messageKey: '{actor}, "{asset}" varlığını {community} grubunda ortak yönetime açtı.',
+        messageParams: {
+          actor: viewer.displayName,
+          asset: assetTitle?.title ?? '',
+          community: community.name,
+        },
+      });
+    }
+    await audit(viewer.id, 'asset.manager_assigned', 'asset', id, {
+      communityId: community.id,
+    }, req.ip);
+    return {
+      data: {
+        manager: { id: community.id, slug: community.slug, name: community.name },
+      },
+    };
   });
 
   app.get('/:id/access', async (req) => {

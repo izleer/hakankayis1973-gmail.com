@@ -1207,6 +1207,25 @@ dd {
   box-shadow: 0 3px 12px rgba(20, 30, 22, 0.14);
 }
 
+.asset-manager-chip {
+  position: absolute;
+  right: 13px;
+  bottom: 13px;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 5px 9px;
+  border-radius: 999px;
+  background: rgba(79, 101, 73, 0.92);
+  color: #f4eee1;
+  font-size: 0.68rem;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  backdrop-filter: blur(4px);
+  box-shadow: 0 3px 12px rgba(20, 30, 22, 0.18);
+}
+
 .asset-public-dot {
   position: absolute;
   top: 13px;
@@ -2205,6 +2224,74 @@ dd {
 .entry-kind.type-photo,
 .entry-kind.type-document {
   background: rgba(31, 42, 35, 0.07);
+}
+
+.entry-kind.type-reminder {
+  background: rgba(180, 137, 63, 0.16);
+  color: #7d5a1e;
+}
+
+.reminder-status {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin: 4px 0 12px;
+  padding: 8px 11px;
+  border-radius: 10px;
+  border: 1px solid var(--line);
+  background: var(--paper-soft);
+  font-size: 0.8rem;
+  color: var(--ink-soft);
+}
+
+.reminder-status.is-planned {
+  border-color: rgba(180, 137, 63, 0.35);
+  background: rgba(180, 137, 63, 0.08);
+}
+
+.reminder-status.is-overdue {
+  border-color: rgba(172, 88, 59, 0.4);
+  background: rgba(172, 88, 59, 0.09);
+  color: var(--clay);
+}
+
+.reminder-status.is-done {
+  background: rgba(92, 114, 85, 0.1);
+}
+
+.reminder-status .reminder-due strong {
+  color: var(--ink);
+  font-weight: 600;
+}
+
+.reminder-state {
+  padding: 2px 8px;
+  border-radius: 999px;
+  background: rgba(31, 42, 35, 0.08);
+  font-size: 0.68rem;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+}
+
+.reminder-status.is-overdue .reminder-state {
+  background: rgba(172, 88, 59, 0.16);
+  color: var(--clay);
+}
+
+.reminder-status.is-done .reminder-state {
+  background: rgba(92, 114, 85, 0.18);
+  color: var(--forest-soft);
+}
+
+.reminder-done-at {
+  color: var(--ink-faint);
+  font-size: 0.74rem;
+}
+
+.reminder-toggle {
+  margin-left: auto;
 }
 
 .entry-privacy {

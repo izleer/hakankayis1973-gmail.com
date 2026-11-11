@@ -32,6 +32,13 @@
     <string name="entry_type_event">Olay</string>
     <string name="entry_type_document">Belge</string>
     <string name="entry_type_note">Not</string>
+    <string name="entry_type_reminder">Hatırlatma</string>
+
+    <!-- Hatırlatma bildirimi -->
+    <string name="reminder_channel_name">Hatırlatmalar</string>
+    <string name="reminder_channel_description">Varlık hatırlatmaları alarm sesi ve titreşimle bildirilir.</string>
+    <string name="reminder_notification_message">“%1$s” için hatırlatma: %2$s</string>
+    <string name="reminder_notification_fallback">“%1$s” için bir hatırlatmanın zamanı geldi.</string>
 
     <plurals name="common_entry_count">
         <item quantity="one">%1$d kayıt</item>
@@ -88,15 +95,23 @@
     <string name="error_file_unreadable">Dosya okunamadı.</string>
     <string name="error_file_empty">Dosya boş.</string>
     <string name="error_file_too_large">Dosya en fazla 10 MB olabilir.</string>
+    <string name="error_reminder_time_required">Hatırlatma için bir tarih ve saat seçin.</string>
+    <string name="error_reminder_time_future">Hatırlatma zamanı gelecekte olmalı.</string>
 
     <!-- İşlem bildirimleri -->
     <string name="notice_asset_added">“%1$s” hafızaya eklendi.</string>
     <string name="notice_entry_added">Kayıt zaman çizelgesine eklendi.</string>
     <string name="notice_entry_deleted">Kayıt silindi.</string>
+    <string name="notice_asset_deleted">Varlık silindi.</string>
     <string name="notice_entry_updated">Kayıt güncellendi.</string>
+    <string name="notice_reminder_done">Hatırlatma tamamlandı.</string>
+    <string name="notice_reminder_reopened">Hatırlatma yeniden açıldı.</string>
     <string name="notice_asset_updated">“%1$s” güncellendi.</string>
     <string name="notice_access_granted">@%1$s artık bu varlığı görebilir.</string>
     <string name="notice_access_removed">Erişim kaldırıldı.</string>
+    <string name="asset_manager_chip">Ortak</string>
+    <string name="notice_manager_assigned">Ortak yönetim grubu atandı.</string>
+    <string name="notice_manager_removed">Ortak yönetim kapatıldı.</string>
     <string name="notice_unfollowed">@%1$s takipten çıkarıldı.</string>
     <string name="notice_following">@%1$s takip ediliyor.</string>
     <string name="notice_friend_requested">%1$s kullanıcısına arkadaşlık isteği gönderildi.</string>

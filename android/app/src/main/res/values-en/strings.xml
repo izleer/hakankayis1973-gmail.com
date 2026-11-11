@@ -32,6 +32,13 @@
     <string name="entry_type_event">Event</string>
     <string name="entry_type_document">Document</string>
     <string name="entry_type_note">Note</string>
+    <string name="entry_type_reminder">Reminder</string>
+
+    <!-- Reminder notification -->
+    <string name="reminder_channel_name">Reminders</string>
+    <string name="reminder_channel_description">Asset reminders alert you with an alarm sound and vibration.</string>
+    <string name="reminder_notification_message">Reminder for “%1$s”: %2$s</string>
+    <string name="reminder_notification_fallback">It’s time for a reminder about “%1$s”.</string>
 
     <plurals name="common_entry_count">
         <item quantity="one">%1$d entry</item>
@@ -88,15 +95,23 @@
     <string name="error_file_unreadable">Could not read the file.</string>
     <string name="error_file_empty">The file is empty.</string>
     <string name="error_file_too_large">The file can be at most 10 MB.</string>
+    <string name="error_reminder_time_required">Choose a date and time for the reminder.</string>
+    <string name="error_reminder_time_future">The reminder time must be in the future.</string>
 
     <!-- Notices -->
     <string name="notice_asset_added">“%1$s” was added to your memory.</string>
     <string name="notice_entry_added">The entry was added to the timeline.</string>
     <string name="notice_entry_deleted">The entry was deleted.</string>
+    <string name="notice_asset_deleted">The asset was deleted.</string>
     <string name="notice_entry_updated">The entry was updated.</string>
+    <string name="notice_reminder_done">Reminder completed.</string>
+    <string name="notice_reminder_reopened">Reminder reopened.</string>
     <string name="notice_asset_updated">“%1$s” was updated.</string>
     <string name="notice_access_granted">@%1$s can now see this asset.</string>
     <string name="notice_access_removed">Access removed.</string>
+    <string name="asset_manager_chip">Shared</string>
+    <string name="notice_manager_assigned">Shared management group assigned.</string>
+    <string name="notice_manager_removed">Shared management turned off.</string>
     <string name="notice_unfollowed">Unfollowed @%1$s.</string>
     <string name="notice_following">Now following @%1$s.</string>
     <string name="notice_friend_requested">Friend request sent to %1$s.</string>

@@ -13,17 +13,22 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Add
+import androidx.compose.material.icons.outlined.Alarm
+import androidx.compose.material.icons.outlined.Check
 import androidx.compose.material.icons.outlined.Delete
 import androidx.compose.material.icons.outlined.Edit
+import androidx.compose.material.icons.outlined.Groups
 import androidx.compose.material.icons.outlined.Place
 import androidx.compose.material.icons.outlined.Share
 import androidx.compose.material3.AlertDialog
@@ -42,6 +47,7 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
@@ -80,6 +86,7 @@ import app.varlikhafizasi.ui.theme.Sage
 import app.varlikhafizasi.ui.theme.SageLight
 import app.varlikhafizasi.ui.theme.Ivory
 import coil.compose.AsyncImage
+import java.time.Instant
 
 private val tabs = listOf(
     R.string.asset_detail_tab_story,
@@ -97,8 +104,10 @@ fun AssetDetailScreen(
     onEditAsset: () -> Unit,
     onAddEntry: () -> Unit,
     onEditEntry: (String) -> Unit,
+    onDeleted: () -> Unit,
 ) {
     val state by vm.detail.collectAsStateWithLifecycle()
+    val privateGroups by vm.privateGroups.collectAsStateWithLifecycle()
     val formError by vm.formError.collectAsStateWithLifecycle()
     val formBusy by vm.formBusy.collectAsStateWithLifecycle()
     val context = LocalContext.current
@@ -106,12 +115,21 @@ fun AssetDetailScreen(
     var pendingDelete by rememberSaveable { mutableStateOf<String?>(null) }
     var lightboxUrl by rememberSaveable { mutableStateOf<String?>(null) }
     var accessName by rememberSaveable { mutableStateOf("") }
+    var managerDialogOpen by rememberSaveable { mutableStateOf(false) }
+    var confirmDeleteAsset by rememberSaveable { mutableStateOf(false) }
 
     LaunchedEffect(assetId) { vm.loadDetail(assetId) }
     LaunchedEffect(assetId) { vm.clearFormError() }
 
     val data = state.data
     val asset = data?.detail?.asset
+    val isOwner = data?.detail?.access?.isOwner == true
+    val canEdit = isOwner || data?.detail?.access?.canEdit == true
+
+    // Ortak yönetim grubu yalnızca sahip tarafından atanır; listeyi sekme açılınca getir.
+    LaunchedEffect(selectedTab, isOwner) {
+        if (selectedTab == 3 && isOwner) vm.loadPrivateGroups()
+    }
 
     Box(Modifier.fillMaxSize().background(Paper)) {
         LazyColumn(
@@ -124,7 +142,7 @@ fun AssetDetailScreen(
                     onBack = onBack,
                     subtitle = asset?.type?.label,
                     actions = {
-                        if (data?.detail?.access?.isOwner == true) {
+                        if (canEdit) {
                             IconButton(onClick = onEditAsset) {
                                 Icon(
                                     Icons.Outlined.Edit,
@@ -176,6 +194,31 @@ fun AssetDetailScreen(
                                     color = Forest,
                                     modifier = Modifier.padding(horizontal = 10.dp, vertical = 6.dp),
                                 )
+                            }
+                            Spacer(Modifier.height(10.dp))
+                        }
+                        if (data.detail.access.isManager && data.detail.access.manager != null) {
+                            Surface(color = SageLight, shape = RoundedCornerShape(8.dp)) {
+                                Row(
+                                    modifier = Modifier.padding(horizontal = 10.dp, vertical = 6.dp),
+                                    verticalAlignment = Alignment.CenterVertically,
+                                ) {
+                                    Icon(
+                                        Icons.Outlined.Groups,
+                                        contentDescription = null,
+                                        tint = Forest,
+                                        modifier = Modifier.size(14.dp),
+                                    )
+                                    Spacer(Modifier.width(6.dp))
+                                    Text(
+                                        stringResource(
+                                            R.string.asset_detail_manager_note,
+                                            data.detail.access.manager?.name ?: "",
+                                        ),
+                                        style = MaterialTheme.typography.bodySmall,
+                                        color = Forest,
+                                    )
+                                }
                             }
                             Spacer(Modifier.height(10.dp))
                         }
@@ -252,7 +295,7 @@ fun AssetDetailScreen(
                         }
                         Spacer(Modifier.height(14.dp))
                         Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                            if (data.detail.access.isOwner) {
+                            if (canEdit) {
                                 Surface(
                                     color = Forest,
                                     shape = RoundedCornerShape(50),
@@ -315,23 +358,28 @@ fun AssetDetailScreen(
                                 EmptyState(
                                     title = stringResource(R.string.asset_detail_story_empty_title),
                                     body = stringResource(R.string.asset_detail_story_empty_body),
-                                    actionLabel = if (data.detail.access.isOwner) {
+                                    actionLabel = if (canEdit) {
                                         stringResource(R.string.asset_detail_add_entry)
                                     } else {
                                         null
                                     },
-                                    onAction = if (data.detail.access.isOwner) onAddEntry else null,
+                                    onAction = if (canEdit) onAddEntry else null,
                                 )
                             }
                         }
                         items(data.detail.entries, key = { it.id }) { entry ->
-                            val canManage = data.detail.access.isOwner || entry.author?.id == viewer.id
+                            val canManage = canEdit || entry.author?.id == viewer.id
                             EntryCard(
                                 entry = entry,
                                 canEdit = canManage,
                                 canDelete = canManage,
                                 onEdit = { onEditEntry(entry.id) },
                                 onDelete = { pendingDelete = entry.id },
+                                onToggleReminder = { done ->
+                                    if (done != (entry.reminderDoneAt != null)) {
+                                        vm.setReminderDone(assetId, entry.id, done)
+                                    }
+                                },
                                 onOpenMedia = { lightboxUrl = it },
                             )
                         }
@@ -434,6 +482,75 @@ fun AssetDetailScreen(
                     }
 
                     3 -> {
+                        if (isOwner) {
+                            item {
+                                Column(Modifier.padding(horizontal = 20.dp, vertical = 8.dp)) {
+                                    SectionLabel(stringResource(R.string.asset_detail_manager_section))
+                                    Row(verticalAlignment = Alignment.CenterVertically) {
+                                        Icon(
+                                            Icons.Outlined.Groups,
+                                            contentDescription = null,
+                                            tint = Forest,
+                                            modifier = Modifier.size(16.dp),
+                                        )
+                                        Spacer(Modifier.width(6.dp))
+                                        Text(
+                                            data.detail.access.manager?.name
+                                                ?: stringResource(R.string.asset_detail_manager_off),
+                                            style = MaterialTheme.typography.titleSmall,
+                                            color = Forest,
+                                        )
+                                    }
+                                    Spacer(Modifier.height(4.dp))
+                                    Text(
+                                        stringResource(R.string.asset_detail_manager_hint),
+                                        style = MaterialTheme.typography.bodySmall,
+                                        color = Muted,
+                                    )
+                                    Spacer(Modifier.height(8.dp))
+                                    TextButton(
+                                        onClick = { managerDialogOpen = true },
+                                        enabled = !formBusy,
+                                    ) {
+                                        Text(
+                                            stringResource(R.string.asset_detail_manager_change),
+                                            color = Forest,
+                                        )
+                                    }
+                                    if (formError != null) {
+                                        Text(
+                                            formError ?: "",
+                                            style = MaterialTheme.typography.bodySmall,
+                                            color = Danger,
+                                        )
+                                    }
+                                    Spacer(Modifier.height(10.dp))
+                                }
+                            }
+                        }
+                        if (isOwner) {
+                            item {
+                                Column(Modifier.padding(horizontal = 20.dp, vertical = 2.dp)) {
+                                    TextButton(
+                                        onClick = { confirmDeleteAsset = true },
+                                        enabled = !formBusy,
+                                    ) {
+                                        Icon(
+                                            Icons.Outlined.Delete,
+                                            contentDescription = null,
+                                            tint = Danger,
+                                            modifier = Modifier.size(18.dp),
+                                        )
+                                        Spacer(Modifier.width(6.dp))
+                                        Text(
+                                            stringResource(R.string.asset_detail_delete_asset),
+                                            color = Danger,
+                                        )
+                                    }
+                                    Spacer(Modifier.height(6.dp))
+                                }
+                            }
+                        }
                         item {
                             Column(Modifier.padding(horizontal = 20.dp, vertical = 8.dp)) {
                                 SectionLabel(stringResource(R.string.asset_detail_access_section))
@@ -593,6 +710,81 @@ fun AssetDetailScreen(
         )
     }
 
+    if (confirmDeleteAsset && isOwner) {
+        AlertDialog(
+            onDismissRequest = { confirmDeleteAsset = false },
+            title = { Text(stringResource(R.string.asset_detail_delete_asset_title)) },
+            text = { Text(stringResource(R.string.asset_detail_delete_asset_body)) },
+            confirmButton = {
+                TextButton(onClick = {
+                    confirmDeleteAsset = false
+                    vm.deleteAsset(assetId) { onDeleted() }
+                }) { Text(stringResource(R.string.asset_detail_delete_asset), color = Danger) }
+            },
+            dismissButton = {
+                TextButton(onClick = { confirmDeleteAsset = false }) {
+                    Text(stringResource(R.string.asset_detail_cancel), color = Forest)
+                }
+            },
+        )
+    }
+
+    if (managerDialogOpen) {
+        val currentManager = data?.detail?.access?.manager
+        val groups = privateGroups.data.orEmpty()
+        AlertDialog(
+            onDismissRequest = { managerDialogOpen = false },
+            title = { Text(stringResource(R.string.asset_detail_manager_pick)) },
+            text = {
+                Column(
+                    Modifier
+                        .heightIn(max = 320.dp)
+                        .verticalScroll(rememberScrollState()),
+                ) {
+                    ManagerChoice(
+                        label = stringResource(R.string.asset_detail_manager_off),
+                        selected = currentManager == null,
+                        onClick = {
+                            managerDialogOpen = false
+                            vm.setAssetManager(assetId, null)
+                        },
+                    )
+                    if (privateGroups.loading) {
+                        Text(
+                            stringResource(R.string.assets_viewers_loading),
+                            style = MaterialTheme.typography.bodySmall,
+                            color = Muted,
+                            modifier = Modifier.padding(8.dp),
+                        )
+                    } else if (groups.isEmpty()) {
+                        Text(
+                            stringResource(R.string.asset_detail_manager_no_groups),
+                            style = MaterialTheme.typography.bodySmall,
+                            color = Muted,
+                            modifier = Modifier.padding(8.dp),
+                        )
+                    } else {
+                        groups.forEach { group ->
+                            ManagerChoice(
+                                label = group.name,
+                                selected = currentManager?.id == group.id,
+                                onClick = {
+                                    managerDialogOpen = false
+                                    vm.setAssetManager(assetId, group.id)
+                                },
+                            )
+                        }
+                    }
+                }
+            },
+            confirmButton = {
+                TextButton(onClick = { managerDialogOpen = false }) {
+                    Text(stringResource(R.string.asset_detail_cancel), color = Forest)
+                }
+            },
+        )
+    }
+
     lightboxUrl?.let { url ->
         Dialog(onDismissRequest = { lightboxUrl = null }) {
             Box(
@@ -727,6 +919,7 @@ private fun EntryCard(
     canDelete: Boolean,
     onEdit: () -> Unit,
     onDelete: () -> Unit,
+    onToggleReminder: (Boolean) -> Unit,
     onOpenMedia: (String?) -> Unit,
 ) {
     Column(
@@ -787,6 +980,10 @@ private fun EntryCard(
                 style = MaterialTheme.typography.bodyMedium,
                 color = Forest.copy(alpha = 0.9f),
             )
+        }
+        if (entry.type == "reminder" && entry.dueAt != null) {
+            Spacer(Modifier.height(8.dp))
+            ReminderStatus(entry = entry, canEdit = canEdit, onToggle = onToggleReminder)
         }
         if (!entry.locationName.isNullOrBlank() || entry.latitude != null) {
             Spacer(Modifier.height(6.dp))
@@ -852,6 +1049,115 @@ private fun EntryCard(
                 color = Muted,
             )
         }
+    }
+}
+
+@Composable
+private fun ReminderStatus(
+    entry: Entry,
+    canEdit: Boolean,
+    onToggle: (Boolean) -> Unit,
+) {
+    val due = entry.dueAt ?: return
+    val done = entry.reminderDoneAt != null
+    val overdue = !done && runCatching { Instant.parse(due).toEpochMilli() }.getOrNull()
+        ?.let { it < System.currentTimeMillis() } == true
+    val tint = when {
+        done -> Muted
+        overdue -> Danger
+        else -> Clay
+    }
+    Surface(
+        color = PaperDeep,
+        shape = RoundedCornerShape(10.dp),
+        border = BorderStroke(1.dp, Line),
+        modifier = Modifier.fillMaxWidth(),
+    ) {
+        Column(Modifier.padding(horizontal = 12.dp, vertical = 10.dp)) {
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Icon(
+                    Icons.Outlined.Alarm,
+                    contentDescription = null,
+                    tint = tint,
+                    modifier = Modifier.size(16.dp),
+                )
+                Spacer(Modifier.width(6.dp))
+                Column(Modifier.weight(1f)) {
+                    Text(
+                        stringResource(
+                            R.string.asset_detail_reminder_due,
+                            formatDate(due, withTime = true),
+                        ),
+                        style = MaterialTheme.typography.bodySmall,
+                        color = Forest,
+                    )
+                    Text(
+                        stringResource(
+                            when {
+                                done -> R.string.asset_detail_reminder_done
+                                overdue -> R.string.asset_detail_reminder_overdue
+                                else -> R.string.asset_detail_reminder_planned
+                            },
+                        ),
+                        style = MaterialTheme.typography.labelSmall,
+                        color = tint,
+                    )
+                }
+                if (canEdit) {
+                    TextButton(onClick = { onToggle(!done) }) {
+                        Text(
+                            stringResource(
+                                if (done) {
+                                    R.string.asset_detail_reminder_reopen
+                                } else {
+                                    R.string.asset_detail_reminder_complete
+                                },
+                            ),
+                            style = MaterialTheme.typography.labelSmall,
+                            color = Forest,
+                        )
+                    }
+                }
+            }
+            val doneAt = entry.reminderDoneAt
+            if (doneAt != null) {
+                Spacer(Modifier.height(2.dp))
+                Text(
+                    stringResource(
+                        R.string.asset_detail_reminder_done_at,
+                        formatDate(doneAt, withTime = true),
+                    ),
+                    style = MaterialTheme.typography.labelSmall,
+                    color = Muted,
+                )
+            }
+        }
+    }
+}
+
+@Composable
+private fun ManagerChoice(label: String, selected: Boolean, onClick: () -> Unit) {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clip(RoundedCornerShape(8.dp))
+            .clickable { onClick() }
+            .padding(horizontal = 8.dp, vertical = 10.dp),
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        Icon(
+            if (selected) Icons.Outlined.Check else Icons.Outlined.Groups,
+            contentDescription = null,
+            tint = if (selected) Forest else Muted,
+            modifier = Modifier.size(18.dp),
+        )
+        Spacer(Modifier.width(10.dp))
+        Text(
+            text = label,
+            style = MaterialTheme.typography.bodyMedium,
+            color = Forest,
+            modifier = Modifier.weight(1f),
+        )
     }
 }
 

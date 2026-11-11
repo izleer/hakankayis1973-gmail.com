@@ -35,6 +35,7 @@ const entryIcons: Record<EntryType, IconName> = {
   health: 'heart',
   event: 'sparkles',
   document: 'file',
+  reminder: 'clock',
 };
 
 const scopeLabels: Record<GroupAssetScope, string> = {
@@ -135,7 +136,9 @@ export default async function SharedAssetPage({ params }: { params: Params }) {
         <div className="group-shared-info">
           <div className="detail-kicker">
             <span className="group-category">{asset.type.label}</span>
-            <span className="status-pill">{t(scopeLabels[share.scope])}</span>
+            <span className="status-pill">
+              {share.managed ? t('Ortak yönetim') : t(scopeLabels[share.scope])}
+            </span>
             <span className="visibility-pill is-selected">
               <Icon name="users" size={13} />
               {community.name}
@@ -193,12 +196,22 @@ export default async function SharedAssetPage({ params }: { params: Params }) {
               {t('{date} tarihinde paylaştı', { date: formatDate(share.sharedAt, locale) })}
             </span>
           </p>
+          {share.managed ? (
+            <div className="detail-actions">
+              <Link href={`/varliklar/${asset.id}`} className="btn btn-primary">
+                <Icon name="edit" size={16} />
+                {t('Varlığı yönet')}
+              </Link>
+            </div>
+          ) : null}
         </div>
       </header>
 
       <p className="group-scope-note">
-        <Icon name="lock" size={16} />
-        {t(scopeNotes[share.scope])}
+        <Icon name="users" size={16} />
+        {share.managed
+          ? t('Bu varlık grubun ortak yönetiminde. Tüm üyeler kayıtları düzenleyebilir.')
+          : t(scopeNotes[share.scope])}
       </p>
 
       <section className="story">

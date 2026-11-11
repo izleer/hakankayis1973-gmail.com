@@ -1,4 +1,10 @@
 const messages = {
+  '“{asset}” için hatırlatma: {title}': '“{asset}” reminder: {title}',
+  '“{asset}” için bir hatırlatma zamanı geldi.': 'It is time for a reminder for “{asset}”.',
+  'Hatırlatma zamanı yalnızca hatırlatma kayıtlarında kullanılabilir.':
+    'A reminder time can only be used on reminder entries.',
+  'Hatırlatma için bir tarih ve saat seçin.': 'Choose a date and time for the reminder.',
+  'Hatırlatma zamanı gelecekte olmalı.': 'The reminder time must be in the future.',
   '{actor} gönderine yorum yaptı.': '{actor} commented on your post.',
   '{actor} gönderini beğendi.': '{actor} liked your post.',
   '{actor} seni takip etmeye başladı.': '{actor} started following you.',
@@ -14,6 +20,8 @@ const messages = {
   '{actor}, sizi {community} grubuna davet etti.': '{actor} invited you to the {community} group.',
   '{community} grubuna katılım isteğiniz onaylandı.': 'Your request to join the {community} group was approved.',
   '{community} grubundaki rolünüz güncellendi.': 'Your role in the {community} group was updated.',
+  '{actor}, "{asset}" varlığını {community} grubunda ortak yönetime açtı.':
+    '{actor} opened "{asset}" for shared management in the {community} group.',
   '{method} {url} bulunamadı.': '{method} {url} not found.',
   'Bağlantı isteğinin süresi doldu. Lütfen yeniden deneyin.': 'The connection request expired. Please try again.',
   'Beklenmeyen bir hata oluştu.': 'An unexpected error occurred.',

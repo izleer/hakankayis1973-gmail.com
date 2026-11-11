@@ -171,6 +171,43 @@ const assetDetail = {
   'Raporlara dön': 'Zurück zu den Berichten',
   'Bir varlık seç ve ayrıntılı raporunu yazdır ya da PDF olarak indir.':
     'Wähle ein Objekt und drucke den ausführlichen Bericht oder lade ihn als PDF herunter.',
+
+  // Hatırlatmalar
+  Hatırlatma: 'Erinnerung',
+  'Hatırlatma zamanı': 'Erinnerungszeit',
+  'Zamanı geldiğinde uygulamada bildirim ve alarm oluşur.':
+    'Wenn die Zeit gekommen ist, erscheinen in der App eine Benachrichtigung und ein Alarm.',
+  'Hatırlatma zamanını değiştirmek hatırlatmayı yeniden açar.':
+    'Eine geänderte Erinnerungszeit öffnet die Erinnerung erneut.',
+  'Hatırlatma için bir tarih ve saat seçin.':
+    'Wähle ein Datum und eine Uhrzeit für die Erinnerung.',
+  'Hatırlatma zamanı gelecekte olmalı.': 'Die Erinnerungszeit muss in der Zukunft liegen.',
+  'Hatırlatma tamamlandı.': 'Erinnerung abgeschlossen.',
+  'Hatırlatma yeniden açıldı.': 'Erinnerung wieder geöffnet.',
+  'Hatırlatma güncellenemedi.': 'Die Erinnerung konnte nicht aktualisiert werden.',
+  Tamamlandı: 'Abgeschlossen',
+  'Zamanı geçti': 'Überfällig',
+  Planlandı: 'Geplant',
+  '{date} tarihinde tamamlandı': 'Abgeschlossen am {date}',
+  'Yeniden aç': 'Wieder öffnen',
+  'Tamamlandı işaretle': 'Als erledigt markieren',
+
+  // Gemeinsame Verwaltung
+  Ortak: 'Geteilt',
+  'Ortak yönetim': 'Gemeinsame Verwaltung',
+  'Ortak yönetim: {group}': 'Gemeinsame Verwaltung: {group}',
+  'Varlığı özel bir gruba atadığında grubun tüm etkin üyeleri varlığı ve kayıtlarını düzenleyebilir. Sahiplik sende kalır.':
+    'Wenn du das Objekt einer privaten Gruppe zuweist, können alle aktiven Mitglieder das Objekt und seine Einträge bearbeiten. Das Eigentum bleibt bei dir.',
+  Grup: 'Gruppe',
+  'Kapalı — yalnızca ben': 'Aus — nur ich',
+  'Önce özel bir grup oluşturmalısın.': 'Du musst zuerst eine private Gruppe erstellen.',
+  'Grup oluştur': 'Gruppe erstellen',
+  'Grubu aç': 'Gruppe öffnen',
+  'Ortak yönetim grubu atandı.': 'Gruppe für gemeinsame Verwaltung zugewiesen.',
+  'Ortak yönetim kapatıldı.': 'Gemeinsame Verwaltung deaktiviert.',
+  'Ortak yönetim ayarlanamadı.': 'Gemeinsame Verwaltung konnte nicht eingerichtet werden.',
+  'Kişi listesini yalnızca varlık sahibi yönetir.':
+    'Nur der Eigentümer des Objekts verwaltet die Personenliste.',
 } as const;
 
 export default assetDetail;

@@ -17,6 +17,7 @@ const meta: Record<string, { label: string; icon: IconName }> = {
   friend_accept: { label: 'Arkadaşlık', icon: 'users' },
   community_join: { label: 'Topluluk', icon: 'users' },
   community_post: { label: 'Topluluk', icon: 'users' },
+  reminder: { label: 'Hatırlatma', icon: 'clock' },
   system: { label: 'Sistem', icon: 'bell' },
 };
 

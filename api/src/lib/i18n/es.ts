@@ -1,4 +1,10 @@
 const messages = {
+  '“{asset}” için hatırlatma: {title}': 'Recordatorio para «{asset}»: {title}',
+  '“{asset}” için bir hatırlatma zamanı geldi.': 'Es hora de un recordatorio para «{asset}».',
+  'Hatırlatma zamanı yalnızca hatırlatma kayıtlarında kullanılabilir.':
+    'La hora del recordatorio solo puede usarse en entradas de recordatorio.',
+  'Hatırlatma için bir tarih ve saat seçin.': 'Elige una fecha y una hora para el recordatorio.',
+  'Hatırlatma zamanı gelecekte olmalı.': 'La hora del recordatorio debe estar en el futuro.',
   '{actor} gönderine yorum yaptı.': '{actor} comentó tu publicación.',
   '{actor} gönderini beğendi.': 'A {actor} le gusta tu publicación.',
   '{actor} seni takip etmeye başladı.': '{actor} empezó a seguirte.',
@@ -14,6 +20,8 @@ const messages = {
   '{actor}, sizi {community} grubuna davet etti.': '{actor} te invitó al grupo {community}.',
   '{community} grubuna katılım isteğiniz onaylandı.': 'Tu solicitud para unirte al grupo {community} fue aprobada.',
   '{community} grubundaki rolünüz güncellendi.': 'Tu rol en el grupo {community} se actualizó.',
+  '{actor}, "{asset}" varlığını {community} grubunda ortak yönetime açtı.':
+    '{actor} abrió «{asset}» para la gestión compartida en el grupo {community}.',
   '{method} {url} bulunamadı.': '{method} {url} no encontrado.',
   'Bağlantı isteğinin süresi doldu. Lütfen yeniden deneyin.': 'La solicitud de conexión caducó. Inténtalo de nuevo.',
   'Beklenmeyen bir hata oluştu.': 'Se produjo un error inesperado.',
