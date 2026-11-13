@@ -39,6 +39,10 @@
     <string name="reminder_channel_description">Los recordatorios de bienes se avisan con sonido de alarma y vibración.</string>
     <string name="reminder_notification_message">Recordatorio de «%1$s»: %2$s</string>
     <string name="reminder_notification_fallback">Es hora de un recordatorio de «%1$s».</string>
+    <string name="reminder_alert_title">Hora del recordatorio</string>
+    <string name="reminder_alert_fallback">El recordatorio ya ha vencido.</string>
+    <string name="reminder_alert_open">Ir al objeto</string>
+    <string name="reminder_alert_dismiss">Vale</string>
 
     <plurals name="common_entry_count">
         <item quantity="one">%1$d entrada</item>

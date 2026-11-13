@@ -1,0 +1,204 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="local_name">Yerel</string>
+    <string name="local_tagline">Hesapsız, cihazında</string>
+    <string name="local_offline_badge">İNTERNETSİZ ÇALIŞIR</string>
+    <string name="local_cancel">Vazgeç</string>
+    <string name="local_delete">Sil</string>
+    <string name="local_nav_reminders">Hatırlatmalar</string>
+    <string name="local_nav_settings">Ayarlar</string>
+
+    <!-- İlk açılış -->
+    <string name="local_onboarding_eyebrow">NASIL BAŞLAMAK İSTERSİN?</string>
+    <string name="local_onboarding_title">Hafızan seninle kalsın.</string>
+    <string name="local_onboarding_body">izleer Local tamamen telefonunda çalışır. Hesap açmadan kayıt tutabilir, fotoğraf ekleyebilir, hatırlatma kurabilirsin.</string>
+    <string name="local_onboarding_local_title">Hesapsız başla</string>
+    <string name="local_onboarding_local_body">Ücretsiz. Veriler yalnızca bu cihazda; internet gerekmez. İstediğin an JSON, CSV veya fotoğraflı ZIP olarak dışa aktar.</string>
+    <string name="local_onboarding_local_cta">Yerel moda başla</string>
+    <string name="local_onboarding_cloud_title">Bulut hesabıyla gir</string>
+    <string name="local_onboarding_cloud_body">Cihazlar arası eşitleme, web erişimi, gruplar, topluluk ve sosyal paylaşım.</string>
+    <string name="local_onboarding_cloud_cta">Bulut hesabı</string>
+    <string name="local_onboarding_note">Local’de oluşturduğun kayıtları daha sonra buluta kayıpsız aktarabilirsin.</string>
+
+    <!-- Panel -->
+    <string name="local_home_eyebrow">YEREL HAFIZA</string>
+    <string name="local_home_title">Hafızan cihazında</string>
+    <string name="local_home_body">Hesap yok, sunucu yok. Kayıtların bu telefonda kalır; istediğin an dışa aktarabilirsin.</string>
+    <string name="local_stat_assets">Varlık</string>
+    <string name="local_stat_entries">Kayıt</string>
+    <string name="local_stat_photos">Fotoğraf</string>
+    <string name="local_stat_reminders">Hatırlatma</string>
+    <string name="local_section_assets">Varlıkların</string>
+    <string name="local_section_reminders">Yaklaşan hatırlatmalar</string>
+    <string name="local_reminders_empty">Yaklaşan hatırlatma yok.</string>
+    <string name="local_reminders_all">Tümü</string>
+    <string name="local_empty_title">İlk varlığını ekle</string>
+    <string name="local_empty_body">Bonsai, bitki, evcil hayvan ya da bir eşya… Fotoğrafını çek, bakım geçmişini tut.</string>
+    <string name="local_new_asset">Yeni varlık</string>
+    <string name="local_new_entry">Kayıt ekle</string>
+    <string name="local_upgrade_banner_title">Buluta geç</string>
+    <string name="local_upgrade_banner_body">Cihazlar arası eşitleme, web ve gruplar için bulut hesabı.</string>
+
+    <!-- Varlık listesi -->
+    <string name="local_assets_title">Varlıklar</string>
+    <string name="local_assets_search">Varlıklarda ara</string>
+    <string name="local_assets_empty">Henüz varlık yok. İlk kaydını oluştur.</string>
+    <plurals name="local_assets_count">
+        <item quantity="one">%d varlık</item>
+        <item quantity="other">%d varlık</item>
+    </plurals>
+    <plurals name="local_entries_count">
+        <item quantity="one">%d kayıt</item>
+        <item quantity="other">%d kayıt</item>
+    </plurals>
+    <plurals name="local_photos_count">
+        <item quantity="one">%d fotoğraf</item>
+        <item quantity="other">%d fotoğraf</item>
+    </plurals>
+
+    <!-- Varlık detayı -->
+    <string name="local_asset_timeline">Zaman çizelgesi</string>
+    <string name="local_asset_no_entries">Henüz kayıt yok. İlk bakımı veya notu ekle.</string>
+    <string name="local_asset_edit">Varlığı düzenle</string>
+    <string name="local_asset_delete">Varlığı sil</string>
+    <string name="local_asset_delete_confirm">Bu varlık, kayıtları ve fotoğrafları cihazdan silinsin mi?</string>
+    <string name="local_entry_delete_confirm">Bu kayıt ve fotoğrafı silinsin mi?</string>
+    <string name="local_entry_open_reminder">Hatırlatma</string>
+
+    <!-- Formlar -->
+    <string name="local_form_name">Varlık adı</string>
+    <string name="local_form_name_placeholder">Örn. Delice zeytin</string>
+    <string name="local_form_category">Kategori</string>
+    <string name="local_form_description">Açıklama</string>
+    <string name="local_form_description_placeholder">Kısa bir not ekle (isteğe bağlı)</string>
+    <string name="local_form_cover">Kapak fotoğrafı</string>
+    <string name="local_form_cover_add">Fotoğraf ekle</string>
+    <string name="local_form_cover_remove">Kapak fotoğrafını kaldır</string>
+    <string name="local_form_camera">Fotoğraf çek</string>
+    <string name="local_form_gallery">Galeriden seç</string>
+    <string name="local_form_save">Kaydet</string>
+    <string name="local_form_edit_title">Varlığı düzenle</string>
+    <string name="local_form_new_title">Yeni varlık</string>
+    <string name="local_form_name_required">Varlık adı gerekli</string>
+    <string name="local_form_camera_error">Kamera açılamadı</string>
+
+    <!-- Kayıt formu -->
+    <string name="local_entry_new_title">Yeni kayıt</string>
+    <string name="local_entry_edit_title">Kaydı düzenle</string>
+    <string name="local_entry_kind">Kayıt türü</string>
+    <string name="local_entry_title_label">Başlık</string>
+    <string name="local_entry_title_placeholder">Örn. Saksı değişimi</string>
+    <string name="local_entry_body_label">Not</string>
+    <string name="local_entry_body_placeholder">Ne yaptın, ne gözlemledin?</string>
+    <string name="local_entry_date">Tarih</string>
+    <string name="local_entry_photo">Fotoğraf</string>
+    <string name="local_entry_photo_remove">Fotoğrafı kaldır</string>
+    <string name="local_entry_reminder_on">Hatırlatma ekle</string>
+    <string name="local_entry_reminder_time">Hatırlatma zamanı</string>
+    <string name="local_entry_reminder_required">Hatırlatma için tarih seç</string>
+    <string name="local_entry_empty_notice">Başlık veya not gerekli</string>
+    <string name="local_entry_past_notice">Hatırlatma zamanı gelecekte olmalı</string>
+    <string name="local_kind_note">Not</string>
+    <string name="local_kind_maintenance">Bakım</string>
+    <string name="local_kind_health">Sağlık</string>
+    <string name="local_kind_photo">Fotoğraf</string>
+    <string name="local_kind_event">Olay</string>
+    <string name="local_kind_acquisition">Edinim</string>
+    <string name="local_cat_bonsai">Bonsai</string>
+    <string name="local_cat_plant">Bitki</string>
+    <string name="local_cat_pet">Evcil hayvan</string>
+    <string name="local_cat_place">Konum</string>
+    <string name="local_cat_vehicle">Araç</string>
+    <string name="local_cat_document">Belge</string>
+    <string name="local_cat_collection">Koleksiyon</string>
+    <string name="local_cat_other">Diğer</string>
+
+    <!-- Hatırlatmalar -->
+    <string name="local_reminders_title">Hatırlatmalar</string>
+    <string name="local_reminders_upcoming">Yaklaşan</string>
+    <string name="local_reminders_done">Tamamlanan</string>
+    <string name="local_reminders_mark_done">Tamamla</string>
+    <string name="local_reminders_reopen">Geri al</string>
+    <string name="local_reminders_none_title">Hatırlatma yok</string>
+    <string name="local_reminders_none_body">Bir kayda tarih ekleyerek hatırlatma oluşturabilirsin.</string>
+
+    <!-- Ayarlar -->
+    <string name="local_settings_title">Ayarlar</string>
+    <string name="local_storage_title">Yerel depolama</string>
+    <string name="local_storage_body">%1$d varlık · %2$d kayıt · %3$d fotoğraf</string>
+    <string name="local_export_title">Verini dışa aktar</string>
+    <string name="local_export_body">Verin sana ait. Ücretsiz sürümde de istediğin an dışa aktarabilirsin; hiçbir kayıt kilitli değil.</string>
+    <string name="local_export_zip">Tam yedek (ZIP)</string>
+    <string name="local_export_zip_desc">JSON + CSV + fotoğraflar. Başka cihaza taşımak için.</string>
+    <string name="local_export_json">JSON</string>
+    <string name="local_export_json_desc">Tüm veriler tek dosyada, makine okunur.</string>
+    <string name="local_export_csv">CSV</string>
+    <string name="local_export_csv_desc">Excel’de açılabilen kayıt listesi.</string>
+    <string name="local_export_share_title">izleer yedeğini paylaş</string>
+    <string name="local_export_preparing">Yedek hazırlanıyor…</string>
+    <string name="local_export_error">Dışa aktarma başarısız</string>
+    <string name="local_cloud_title">Bulut hesabı</string>
+    <string name="local_cloud_body">Yerel kayıtların girişten sonra fotoğraflarıyla buluta aktarılır. Kaynak veriler cihazda kalır.</string>
+    <string name="local_cloud_cta">Bulut’a geç</string>
+    <string name="local_login_cta">Hesabınla giriş yap</string>
+    <string name="local_login_cta_body">Cloud şifrenle giriş yap, yerel kayıtlarını aktar.</string>
+    <string name="local_plan_limits">Ücretsiz plan: en fazla 5 varlık, varlık başına 10 kayıt, kayıt başına 1 fotoğraf.</string>
+    <string name="local_limit_assets_body">Ücretsiz sürümde en fazla 5 varlık ekleyebilirsin. Sınırsız varlık için bulut hesabına geç.</string>
+    <string name="local_limit_entries_body">Ücretsiz sürümde bir varlığa en fazla 10 kayıt ekleyebilirsin. Sınırsız kayıt için bulut hesabına geç.</string>
+    <string name="local_limit_photo_hint">Ücretsiz sürümde kayıt başına 1 fotoğraf veya belge eklenebilir.</string>
+    <string name="local_data_title">Verileri yönet</string>
+    <string name="local_data_delete">Tüm yerel veriyi sil</string>
+    <string name="local_data_delete_confirm">Bütün varlıklar, kayıtlar ve fotoğraflar cihazdan silinsin mi? Önce yedek almanı öneririz.</string>
+    <string name="local_footer">izleer Local · veriler yalnızca bu cihazda</string>
+
+    <!-- Bulut / premium -->
+    <string name="local_upgrade_title">Cloud’a geç</string>
+    <string name="local_upgrade_body">Local ücretsiz kalır; ücretsiz planda 5 varlık, varlık başına 10 kayıt ve kayıt başına 1 fotoğraf vardır. Bulut; sınırsız varlık, eşitleme, web, gruplar ve topluluk özelliklerini açar.</string>
+    <string name="local_matrix_feature">Özellik</string>
+    <string name="local_matrix_local">Local · Ücretsiz</string>
+    <string name="local_matrix_cloud">Cloud · Premium</string>
+    <string name="local_matrix_included">Dahil</string>
+    <string name="local_matrix_none">—</string>
+    <string name="local_matrix_basic">Temel</string>
+    <string name="local_matrix_advanced">Gelişmiş</string>
+    <string name="local_matrix_export">Dışa aktarım</string>
+    <string name="local_matrix_inapp">Uygulama içi</string>
+    <string name="local_matrix_max_5">En fazla 5</string>
+    <string name="local_matrix_max_10">En fazla 10</string>
+    <string name="local_matrix_per_entry_1">Kayıt başına 1</string>
+    <string name="local_matrix_unlimited">Sınırsız</string>
+    <string name="local_feature_assets">Varlık oluşturma</string>
+    <string name="local_feature_timeline">Geçmiş / timeline</string>
+    <string name="local_feature_photos">Fotoğraf / belge ekleme</string>
+    <string name="local_feature_compare">Fotoğraf karşılaştırma</string>
+    <string name="local_feature_reminders">Hatırlatıcı</string>
+    <string name="local_feature_offline">İnternetsiz çalışma</string>
+    <string name="local_feature_backup">Bulut yedekleme</string>
+    <string name="local_feature_sync">Telefon + tablet eşitleme</string>
+    <string name="local_feature_web">Web uygulamasından erişim</string>
+    <string name="local_feature_social">Sosyal paylaşım</string>
+    <string name="local_feature_community">Takip ve topluluk</string>
+    <string name="local_feature_groups">Grup yönetimi</string>
+    <string name="local_feature_reports">Gelişmiş raporlar</string>
+    <string name="local_feature_export">Veri dışa aktarma</string>
+    <string name="local_upgrade_cta">Bulut hesabıyla giriş</string>
+    <string name="local_upgrade_note">Girişte hesabın bulut veritabanında doğrulanır. Geçişte yerel kayıtların fotoğraflarıyla birlikte aktarılır; hiçbir kayıt kaybolmaz. Kaynak veriler cihazda kalır.</string>
+    <string name="local_login_local_hint">Hesapsız yerel moda dön</string>
+
+    <!-- Bulut girişi -->
+    <string name="local_login_eyebrow">PREMIUM GEÇİŞİ</string>
+    <string name="local_login_title">Bulut hesabıyla giriş</string>
+    <string name="local_login_body">Kullanıcı adı veya e-postan ve şifren bulut veritabanındaki hesabınla doğrulanır. Giriş yaptığında yerel kayıtların fotoğraflarıyla birlikte premium hesabına aktarılır.</string>
+    <string name="local_login_action">Giriş yap ve buluta geç</string>
+    <string name="local_login_note">Giriş yapmazsan yerel mod hesapsız çalışmaya devam eder; veriler cihazda kalır.</string>
+
+    <!-- Buluta aktarım -->
+    <string name="local_migration_running">Yerel kayıtlar buluta aktarılıyor</string>
+    <string name="local_migration_progress">İşlenen: %1$s</string>
+    <string name="local_migration_done_title">Aktarım tamamlandı</string>
+    <string name="local_migration_done_body">%1$d varlık ve %2$d kayıt buluta eklendi. Yerel kopyalar cihazda duruyor.</string>
+    <string name="local_migration_error">Aktarım tamamlanamadı</string>
+    <string name="local_migration_retry">Tekrar dene</string>
+    <string name="local_migration_later">Daha sonra</string>
+    <string name="local_migration_keep">Yerel veriler cihazda kalır; dilediğin an yeniden aktarabilirsin.</string>
+</resources>

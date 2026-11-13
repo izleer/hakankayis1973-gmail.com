@@ -2,6 +2,8 @@ import { query } from '../db.js';
 import { iso } from './http.js';
 import type { Locale } from './locale.js';
 import { mediaRefUrl, mediaUrl } from './storage.js';
+import type { CategoryTemplate } from './templates.js';
+import { templateForType } from './templates.js';
 import { translateTypeLabel } from './taxonomy.js';
 
 type Row = Record<string, any>;
@@ -110,6 +112,13 @@ export function mapUser(row: Row): {
   };
 }
 
+export type CustomFieldDto = {
+  key: string;
+  label: string;
+  type: 'text' | 'number' | 'date';
+  value: string | null;
+};
+
 export type AssetDto = {
   id: string;
   title: string;
@@ -122,9 +131,11 @@ export type AssetDto = {
   longitude: number | null;
   acquiredAt: string | null;
   attributes: Record<string, unknown>;
+  customFields: CustomFieldDto[];
   owner: ReturnType<typeof mapUserMini>;
   manager: { id: string; slug: string; name: string } | null;
   type: { id: string; label: string; parentId: string | null; icon: string | null };
+  template: CategoryTemplate;
   entryCount: number;
   createdAt: string;
   updatedAt: string;
@@ -153,6 +164,7 @@ export async function mapAsset(row: Row, locale: Locale = 'tr'): Promise<AssetDt
     longitude: row.longitude == null ? null : Number(row.longitude),
     acquiredAt: dateOnly(row.acquired_at),
     attributes: row.attributes ?? {},
+    customFields: Array.isArray(row.custom_fields) ? row.custom_fields : [],
     owner: mapUserMini(row, 'owner_'),
     manager: row.manager_id
       ? { id: row.manager_id, slug: row.manager_slug, name: row.manager_name }
@@ -163,6 +175,9 @@ export async function mapAsset(row: Row, locale: Locale = 'tr'): Promise<AssetDt
       parentId: row.type_parent_id,
       icon: row.type_icon,
     },
+    // Kategori şablonu generic modele uygulanan konfigürasyondur; istemciler
+    // işlem, ölçüm ve hatırlatma önerilerini buradan okur.
+    template: await templateForType(row.type_id, locale),
     entryCount: Number(row.entry_count ?? 0),
     createdAt: iso(row.created_at)!,
     updatedAt: iso(row.updated_at)!,

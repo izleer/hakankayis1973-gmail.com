@@ -1,10 +1,65 @@
 import type { FastifyInstance } from 'fastify';
 import { query, queryOne } from '../db.js';
+import { iso } from '../lib/http.js';
 import { requireViewer } from '../lib/session.js';
 import { mapEntry, mediaForEntries } from '../lib/serialize.js';
+import { mediaRefUrl } from '../lib/storage.js';
 import { translateTypeLabel } from '../lib/taxonomy.js';
 
 export async function statsRoutes(app: FastifyInstance): Promise<void> {
+  // Paneldeki grup özeti: üyenin grupları ve son ziyaretinden bu yana
+  // okunmamış akış ile eklenen/çıkarılan varlık sayıları.
+  app.get('/groups', async (req) => {
+    const viewer = await requireViewer(req);
+
+    const rows = await query<Record<string, any>>(
+      `SELECT * FROM (
+         SELECT c.id, c.slug, c.name, c.cover_url, m.last_seen_at,
+                (SELECT count(*) FROM memberships mm
+                 WHERE mm.community_id = c.id AND mm.status = 'active') AS member_count,
+                (SELECT count(*) FROM posts p
+                 WHERE p.community_id = c.id AND p.status = 'visible'
+                   AND p.author_id <> $1
+                   AND p.created_at > m.last_seen_at
+                   AND NOT EXISTS (
+                     SELECT 1 FROM blocks b
+                     WHERE (b.blocker_id = $1 AND b.blocked_id = p.author_id)
+                        OR (b.blocker_id = p.author_id AND b.blocked_id = $1)
+                   )) AS unread_posts,
+                (SELECT count(*) FROM group_assets ga
+                 WHERE ga.community_id = c.id AND ga.status = 'active'
+                   AND ga.shared_at > m.last_seen_at) AS added_assets,
+                (SELECT count(*) FROM group_assets ga
+                 WHERE ga.community_id = c.id AND ga.status = 'removed'
+                   AND ga.removed_at > m.last_seen_at) AS removed_assets
+         FROM memberships m
+         JOIN communities c ON c.id = m.community_id AND c.deleted_at IS NULL
+         WHERE m.user_id = $1 AND m.status = 'active'
+       ) s
+       ORDER BY (s.unread_posts + s.added_assets + s.removed_assets) DESC,
+                s.name ASC
+       LIMIT 50`,
+      [viewer.id],
+    );
+
+    return {
+      data: {
+        total: rows.length,
+        items: rows.map((row) => ({
+          id: row.id,
+          slug: row.slug,
+          name: row.name,
+          coverUrl: mediaRefUrl(row.cover_url),
+          memberCount: Number(row.member_count ?? 0),
+          lastSeenAt: iso(row.last_seen_at),
+          unreadPosts: Number(row.unread_posts ?? 0),
+          addedAssets: Number(row.added_assets ?? 0),
+          removedAssets: Number(row.removed_assets ?? 0),
+        })),
+      },
+    };
+  });
+
   app.get('/', async (req) => {
     const viewer = await requireViewer(req);
 

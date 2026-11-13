@@ -1,7 +1,7 @@
 export function buildAssetSelect(extraColumns = ''): string {
   return `
   SELECT a.id, a.owner_id, a.type_id, a.title, a.description, a.cover_url,
-         a.visibility, a.status, a.attributes, a.location_name, a.latitude, a.longitude,
+         a.visibility, a.status, a.attributes, a.custom_fields, a.location_name, a.latitude, a.longitude,
          a.acquired_at, a.created_at, a.updated_at,
          ${extraColumns}
          t.label AS type_label, t.parent_id AS type_parent_id, t.icon AS type_icon,

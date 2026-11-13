@@ -53,7 +53,11 @@ import app.varlikhafizasi.ui.theme.Paper
 import app.varlikhafizasi.ui.theme.Ivory
 
 @Composable
-fun LoginScreen(vm: VhViewModel, sessionError: String? = null) {
+fun LoginScreen(
+    vm: VhViewModel,
+    sessionError: String? = null,
+    onUseLocal: (() -> Unit)? = null,
+) {
     val busy by vm.authBusy.collectAsStateWithLifecycle()
     val error by vm.authError.collectAsStateWithLifecycle()
 
@@ -275,6 +279,19 @@ fun LoginScreen(vm: VhViewModel, sessionError: String? = null) {
             textAlign = TextAlign.Center,
             modifier = Modifier.fillMaxWidth(),
         )
+        if (onUseLocal != null) {
+            Spacer(Modifier.height(14.dp))
+            Text(
+                text = stringResource(R.string.local_login_local_hint),
+                style = MaterialTheme.typography.labelLarge,
+                color = Forest,
+                textAlign = TextAlign.Center,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .clickable { onUseLocal() }
+                    .padding(vertical = 8.dp),
+            )
+        }
         Spacer(Modifier.height(36.dp))
     }
 }

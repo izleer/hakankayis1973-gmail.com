@@ -85,6 +85,9 @@ class VhRepository(
         }
     }
 
+    /** Açılışta yerel/bulut seçimini yapmak için kayıtlı oturum var mı? */
+    suspend fun hasStoredSession(): Boolean = !store.readToken().isNullOrBlank()
+
     suspend fun login(identifier: String, password: String): User {
         val payload = call { api.login(LoginRequest(identifier.trim(), password)) }
         store.saveToken(payload.token)
@@ -126,6 +129,8 @@ class VhRepository(
     // -----------------------------------------------------------------------
 
     suspend fun stats(): Stats = call { api.stats() }
+
+    suspend fun groupSummary(): GroupSummaryPayload = call { api.groupSummary() }
 
     suspend fun assets(query: String? = null): AssetPage =
         call { api.assets(q = query?.takeIf { it.isNotBlank() }) }
@@ -222,7 +227,68 @@ class VhRepository(
 
     suspend fun community(slug: String): GroupDetailPayload = call { api.community(slug) }
 
+    suspend fun markGroupSeen(slug: String): GroupSeenPayload = call { api.markGroupSeen(slug) }
+
     suspend fun groupAssets(slug: String): List<Asset> = call { api.groupAssets(slug) }.items
+
+    suspend fun groupFeed(slug: String): List<FeedPost> =
+        call { api.feed(limit = 30, community = slug) }.items
+
+    suspend fun groupAssetEntries(slug: String, assetId: String): List<Entry> =
+        call { api.groupAssetDetail(slug, assetId) }.entries
+
+    suspend fun groupAssetDetail(slug: String, assetId: String): GroupAssetDetailPayload =
+        call { api.groupAssetDetail(slug, assetId) }
+
+    suspend fun createGroupPost(
+        communityId: String,
+        body: String,
+        mediaUris: List<Uri> = emptyList(),
+        assetId: String? = null,
+        entryId: String? = null,
+    ): FeedPost {
+        val mediaIds = mediaUris.take(4).map { uploadImage(it).id }
+        return call {
+            api.createPost(
+                CreatePostRequest(
+                    body = body.trim(),
+                    audience = "community",
+                    communityId = communityId,
+                    assetId = assetId,
+                    entryId = entryId,
+                    mediaIds = mediaIds.takeIf { it.isNotEmpty() },
+                ),
+            )
+        }.post
+    }
+
+    suspend fun deletePost(postId: String) {
+        try {
+            api.deletePost(postId)
+        } catch (error: HttpException) {
+            throw error.asVh()
+        } catch (error: IOException) {
+            throw offline()
+        }
+    }
+
+    suspend fun shareGroupAsset(slug: String, assetId: String, scope: String) {
+        call { api.shareGroupAsset(slug, GroupAssetShareRequest(assetId, scope)) }
+    }
+
+    suspend fun updateGroupAssetScope(slug: String, assetId: String, scope: String) {
+        call { api.updateGroupAssetScope(slug, assetId, GroupAssetScopeRequest(scope)) }
+    }
+
+    suspend fun removeGroupAsset(slug: String, assetId: String) {
+        try {
+            api.removeGroupAsset(slug, assetId)
+        } catch (error: HttpException) {
+            throw error.asVh()
+        } catch (error: IOException) {
+            throw offline()
+        }
+    }
 
     suspend fun joinGroup(slug: String): GroupJoinResult = call { api.joinCommunity(slug) }
 
@@ -271,6 +337,9 @@ class VhRepository(
         locationName: String? = null,
         latitude: Double? = null,
         longitude: Double? = null,
+        acquiredAt: String? = null,
+        attributes: Map<String, String> = emptyMap(),
+        customFields: List<CustomField> = emptyList(),
     ): Asset {
         val cover = coverUri?.let { uploadImage(it) }
         val payload = call {
@@ -285,6 +354,9 @@ class VhRepository(
                     locationName = locationName?.trim()?.takeIf { it.isNotEmpty() },
                     latitude = latitude,
                     longitude = longitude,
+                    acquiredAt = acquiredAt,
+                    attributes = attributes,
+                    customFields = customFields,
                 ),
             )
         }
@@ -303,6 +375,9 @@ class VhRepository(
         longitude: Double?,
         clearLocation: Boolean,
         viewerIds: List<String> = emptyList(),
+        acquiredAt: String? = null,
+        attributes: Map<String, String>? = null,
+        customFields: List<CustomField>? = null,
     ): Asset {
         val cover = coverUri?.let { uploadImage(it) }
         val payload = call {
@@ -320,6 +395,9 @@ class VhRepository(
                     latitude = if (clearLocation) null else latitude,
                     longitude = if (clearLocation) null else longitude,
                     clearLocation = clearLocation.takeIf { it },
+                    acquiredAt = acquiredAt,
+                    attributes = attributes,
+                    customFields = customFields,
                 ),
             )
         }

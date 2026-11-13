@@ -36,7 +36,6 @@ class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         pendingAssetId = intent?.getStringExtra(ReminderNotifier.EXTRA_ASSET_ID)
-        requestNotificationPermission()
 
         setContent {
             VhTheme {
@@ -53,6 +52,7 @@ class MainActivity : ComponentActivity() {
                         vm = vm,
                         pendingAssetId = pendingAssetId,
                         onPendingAssetConsumed = { pendingAssetId = null },
+                        onModeChosen = { requestNotificationPermission() },
                     )
                 }
             }

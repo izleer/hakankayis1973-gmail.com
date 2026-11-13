@@ -49,6 +49,17 @@ const home = {
   'Son eklenenler': 'Recently added',
   Arşivden: 'From the archive',
   'Tüm arşiv': 'Full archive',
+
+  // Grup özeti
+  Grupların: 'Your groups',
+  'Grup özeti': 'Group summary',
+  'Tüm gruplar': 'All groups',
+  '{count} üye': { one: '{count} member', other: '{count} members' },
+  'Okunmamış akış': 'Unread feed',
+  'Eklenen varlık': 'Assets added',
+  'Çıkarılan varlık': 'Assets removed',
+  'Sayaçlar grubu son açtığından bu yana birikenleri gösterir.':
+    'Counters show what has accumulated since you last opened the group.',
 } as const;
 
 export default home;

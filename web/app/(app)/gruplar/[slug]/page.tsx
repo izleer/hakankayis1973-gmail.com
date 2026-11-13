@@ -1,6 +1,6 @@
 import type { Metadata } from 'next';
 import { notFound } from 'next/navigation';
-import { GroupDetail } from '@/components/GroupDetail';
+import { GroupDetail, type Tab } from '@/components/GroupDetail';
 import { ApiError, api, requireViewer } from '@/lib/api';
 import { getT } from '@/lib/i18n/server';
 import type {
@@ -14,6 +14,7 @@ import type {
 } from '@/lib/types';
 
 type Params = Promise<{ slug: string }>;
+type SearchParams = Promise<{ tab?: string }>;
 
 async function loadGroup(slug: string): Promise<GroupDetailData | null> {
   try {
@@ -41,11 +42,27 @@ export async function generateMetadata({ params }: { params: Params }): Promise<
   }
 }
 
-export default async function GroupDetailPage({ params }: { params: Params }) {
+export default async function GroupDetailPage({
+  params,
+  searchParams,
+}: {
+  params: Params;
+  searchParams: SearchParams;
+}) {
   const viewer = await requireViewer();
   const { slug } = await params;
   const data = await loadGroup(slug);
   if (!data) notFound();
+
+  // Panel özetindeki akış/varlık sayıları grubu doğrudan ilgili sekmede açar.
+  const { tab } = await searchParams;
+  const requestedTab = tab as Tab | undefined;
+  const initialTab: Tab =
+    requestedTab === 'assets' ||
+    requestedTab === 'members' ||
+    (requestedTab === 'manage' && data.canManage)
+      ? requestedTab
+      : 'feed';
 
   const [feed, sharedAssets, requests, ownAssets] = await Promise.all([
     data.isMember
@@ -81,6 +98,7 @@ export default async function GroupDetailPage({ params }: { params: Params }) {
         (asset) => asset.owner.id === viewer.id && asset.manager?.id !== data.community.id,
       )}
       viewer={viewer}
+      initialTab={initialTab}
     />
   );
 }

@@ -40,6 +40,7 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import app.varlikhafizasi.R
 import app.varlikhafizasi.data.Entry
+import app.varlikhafizasi.data.GroupSummary
 import app.varlikhafizasi.data.User
 import app.varlikhafizasi.ui.VhViewModel
 import app.varlikhafizasi.ui.components.AssetRow
@@ -74,6 +75,8 @@ fun HomeScreen(
     onOpenNotifications: () -> Unit,
     onNewAsset: () -> Unit,
     onOpenFriends: () -> Unit,
+    onOpenGroup: (String, String) -> Unit,
+    onOpenGroups: () -> Unit,
 ) {
     val home by vm.home.collectAsStateWithLifecycle()
     val notifications by vm.notifications.collectAsStateWithLifecycle()
@@ -178,6 +181,54 @@ fun HomeScreen(
                             label = stringResource(R.string.home_stat_media),
                             modifier = Modifier.weight(1f),
                         )
+                    }
+
+                    val groups = home.data?.groups.orEmpty()
+                    if (groups.isNotEmpty()) {
+                        Spacer(Modifier.height(16.dp))
+                        GoldRule(Modifier.background(TerracottaSoft))
+                        Spacer(Modifier.height(12.dp))
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            Text(
+                                stringResource(R.string.home_groups_label),
+                                style = MaterialTheme.typography.labelSmall,
+                                color = TerracottaSoft,
+                            )
+                            Spacer(Modifier.weight(1f))
+                            Text(
+                                pluralStringResource(
+                                    R.plurals.home_groups_count,
+                                    groups.size,
+                                    groups.size,
+                                ),
+                                style = MaterialTheme.typography.labelSmall,
+                                color = Sage,
+                                modifier = Modifier
+                                    .clickable { onOpenGroups() }
+                                    .padding(2.dp),
+                            )
+                        }
+                        Spacer(Modifier.height(8.dp))
+                        Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
+                            groups.take(4).forEach { group ->
+                                GroupSummaryCard(
+                                    group = group,
+                                    onOpenFeed = { onOpenGroup(group.slug, "feed") },
+                                    onOpenAssets = { onOpenGroup(group.slug, "assets") },
+                                )
+                            }
+                        }
+                        if (groups.size > 4) {
+                            Spacer(Modifier.height(6.dp))
+                            Text(
+                                stringResource(R.string.home_groups_all),
+                                style = MaterialTheme.typography.labelLarge,
+                                color = TerracottaSoft,
+                                modifier = Modifier
+                                    .clickable { onOpenGroups() }
+                                    .padding(vertical = 2.dp),
+                            )
+                        }
                     }
                 }
             }
@@ -387,6 +438,95 @@ private fun DarkStat(value: String, label: String, modifier: Modifier = Modifier
             label.uppercase(),
             style = MaterialTheme.typography.labelSmall,
             color = Sage,
+        )
+    }
+}
+
+@Composable
+private fun GroupSummaryCard(
+    group: GroupSummary,
+    onOpenFeed: () -> Unit,
+    onOpenAssets: () -> Unit,
+) {
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .background(Paper.copy(alpha = 0.06f), RoundedCornerShape(10.dp))
+            .padding(horizontal = 10.dp, vertical = 8.dp),
+    ) {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .clickable(onClick = onOpenFeed),
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            Text(
+                group.name,
+                style = MaterialTheme.typography.titleSmall,
+                color = Paper,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis,
+                modifier = Modifier.weight(1f),
+            )
+            Icon(
+                Icons.Outlined.ChevronRight,
+                contentDescription = null,
+                tint = Sage,
+                modifier = Modifier.size(15.dp),
+            )
+        }
+        Spacer(Modifier.height(6.dp))
+        Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+            GroupCount(
+                count = group.unreadPosts,
+                label = stringResource(R.string.home_groups_unread),
+                onClick = onOpenFeed,
+                modifier = Modifier.weight(1f),
+            )
+            GroupCount(
+                count = group.addedAssets,
+                label = stringResource(R.string.home_groups_added),
+                onClick = onOpenAssets,
+                modifier = Modifier.weight(1f),
+            )
+            GroupCount(
+                count = group.removedAssets,
+                label = stringResource(R.string.home_groups_removed),
+                onClick = onOpenAssets,
+                modifier = Modifier.weight(1f),
+            )
+        }
+    }
+}
+
+@Composable
+private fun GroupCount(
+    count: Int,
+    label: String,
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    Column(
+        modifier = modifier
+            .clickable(onClick = onClick)
+            .background(
+                Paper.copy(alpha = if (count > 0) 0.12f else 0.05f),
+                RoundedCornerShape(8.dp),
+            )
+            .padding(vertical = 5.dp),
+        horizontalAlignment = Alignment.CenterHorizontally,
+    ) {
+        Text(
+            count.toString(),
+            style = MaterialTheme.typography.titleMedium,
+            color = if (count > 0) TerracottaSoft else Sage,
+        )
+        Text(
+            label.uppercase(),
+            style = MaterialTheme.typography.labelSmall,
+            color = if (count > 0) Paper.copy(alpha = 0.8f) else Sage.copy(alpha = 0.75f),
+            maxLines = 1,
+            overflow = TextOverflow.Ellipsis,
         )
     }
 }

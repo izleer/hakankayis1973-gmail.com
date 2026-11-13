@@ -6,6 +6,10 @@
     <string name="add_entry_intro">Un mantenimiento, un momento, una medición… Sea lo que sea, que quede con su fecha.</string>
 
     <string name="add_entry_section_type">Tipo de entrada</string>
+    <string name="add_entry_select_action">Elegir una acción</string>
+    <string name="add_entry_reminder_option">Recordatorio: %1$s</string>
+    <string name="add_entry_reminder_pick">Elegir fecha y hora</string>
+    <string name="add_entry_reminder_required">Debes elegir una fecha y hora para el recordatorio.</string>
     <string name="add_entry_field_title">Título (opcional)</string>
     <string name="add_entry_field_notes">Notas</string>
     <string name="add_entry_notes_placeholder">¿Qué hiciste, qué cambió, qué sentiste?</string>

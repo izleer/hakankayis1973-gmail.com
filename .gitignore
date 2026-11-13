@@ -30,9 +30,15 @@ android/**/build/
 android/local.properties
 android/.idea/
 *.iml
+
+# Release imzalama anahtarı (yalnızca yerelde tutulur)
+android/keystore.properties
+android/*.jks
+android/*.keystore
 .DS_Store
 
 # Yerel test ve ekran görüntüsü çıktıları
 android/*.png
 android/build-screens/
 api/storage-test/
+.device-shots/

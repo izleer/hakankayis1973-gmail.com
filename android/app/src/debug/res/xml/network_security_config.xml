@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+    Yalnızca debug derlemeleri için geçerlidir. Geliştirme API'sine LAN
+    üzerinden (ör. http://192.168.1.7:4000) şifresiz HTTP ile erişebilmek
+    için cleartext trafiğine izin verir. Release derlemesi main kaynağındaki
+    kısıtlayıcı yapılandırmayı kullanmaya devam eder.
+-->
+<network-security-config>
+    <base-config cleartextTrafficPermitted="true" />
+</network-security-config>

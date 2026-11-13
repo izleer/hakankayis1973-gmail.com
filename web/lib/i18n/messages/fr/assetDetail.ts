@@ -208,6 +208,13 @@ const assetDetail = {
   'Ortak yönetim ayarlanamadı.': 'La gestion partagée n’a pas pu être configurée.',
   'Kişi listesini yalnızca varlık sahibi yönetir.':
     'Seul le propriétaire de l’objet gère la liste des personnes.',
+  'İşleminiz': 'Votre action',
+  '{label} hatırlatması': 'Rappel : {label}',
+  'İşlem seç': 'Choisir une action',
+  '{days} günde bir': 'tous les {days} jours',
+  'Kategori ölçümü': 'Mesure de catégorie',
+  'Ölçüm değeri': 'Valeur de mesure',
+  'Ölçüm değeri sayı olmalı.': 'La valeur de mesure doit être un nombre.',
 } as const;
 
 export default assetDetail;

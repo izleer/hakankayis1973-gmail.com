@@ -1,6 +1,7 @@
 package app.varlikhafizasi.data
 
 import kotlinx.serialization.Serializable
+import kotlinx.serialization.json.JsonObject
 
 // ---------------------------------------------------------------------------
 // Zarflar
@@ -82,7 +83,60 @@ data class AssetType(
     val label: String,
     val icon: String? = null,
     val sortOrder: Int = 0,
+    val isSelectable: Boolean = false,
+    val attributesSchema: CategoryTemplate = CategoryTemplate(),
     val children: List<AssetType> = emptyList(),
+)
+
+// ---------------------------------------------------------------------------
+// Kategori şablonu — generic varlık modelinin üzerine binen konfigürasyon
+// ---------------------------------------------------------------------------
+
+@Serializable
+data class TemplateField(
+    val key: String,
+    val label: String,
+    val type: String = "text",
+    val unit: String? = null,
+    val options: List<String> = emptyList(),
+)
+
+@Serializable
+data class TemplateAction(
+    val key: String,
+    val label: String,
+    val entryType: String = "event",
+    val reminderDays: Int? = null,
+)
+
+@Serializable
+data class TemplateMeasurement(
+    val key: String,
+    val label: String,
+    val unit: String = "",
+)
+
+@Serializable
+data class TemplateReminder(
+    val key: String,
+    val label: String,
+    val intervalDays: Int = 0,
+)
+
+@Serializable
+data class CategoryTemplate(
+    val fields: List<TemplateField> = emptyList(),
+    val actions: List<TemplateAction> = emptyList(),
+    val measurements: List<TemplateMeasurement> = emptyList(),
+    val reminders: List<TemplateReminder> = emptyList(),
+)
+
+@Serializable
+data class CustomField(
+    val key: String = "",
+    val label: String = "",
+    val type: String = "text",
+    val value: String? = null,
 )
 
 @Serializable
@@ -104,6 +158,9 @@ data class Asset(
     val latitude: Double? = null,
     val longitude: Double? = null,
     val acquiredAt: String? = null,
+    val attributes: JsonObject = JsonObject(emptyMap()),
+    val customFields: List<CustomField> = emptyList(),
+    val template: CategoryTemplate = CategoryTemplate(),
     val owner: UserMini? = null,
     val type: AssetTypeRef? = null,
     val entryCount: Int = 0,
@@ -349,6 +406,21 @@ data class FeedPage(
 )
 
 @Serializable
+data class CreatePostRequest(
+    val body: String = "",
+    // Varsayılan bırakılırsa encodeDefaults=false nedeniyle alan isteğe
+    // eklenmiyor ve API gönderiyi herkese açık sanıyor.
+    val audience: String,
+    val communityId: String? = null,
+    val assetId: String? = null,
+    val entryId: String? = null,
+    val mediaIds: List<String>? = null,
+)
+
+@Serializable
+data class PostPayload(val post: FeedPost)
+
+@Serializable
 data class LikeResult(val liked: Boolean = false, val likeCount: Int = 0)
 
 @Serializable
@@ -559,6 +631,29 @@ data class GroupPage(
     val total: Int = 0,
 )
 
+/** Paneldeki grup özeti; sayaçlar üyenin son grup ziyaretinden sonrasını sayar. */
+@Serializable
+data class GroupSummary(
+    val id: String,
+    val slug: String,
+    val name: String,
+    val coverUrl: String? = null,
+    val memberCount: Int = 0,
+    val lastSeenAt: String? = null,
+    val unreadPosts: Int = 0,
+    val addedAssets: Int = 0,
+    val removedAssets: Int = 0,
+)
+
+@Serializable
+data class GroupSummaryPayload(
+    val items: List<GroupSummary> = emptyList(),
+    val total: Int = 0,
+)
+
+@Serializable
+data class GroupSeenPayload(val seenAt: String? = null)
+
 @Serializable
 data class GroupMember(
     val user: UserMini,
@@ -579,6 +674,34 @@ data class GroupDetailPayload(
 
 @Serializable
 data class GroupAssetsPayload(val items: List<Asset> = emptyList())
+
+@Serializable
+data class GroupAssetShareRequest(
+    val assetId: String,
+    val scope: String = "summary",
+)
+
+@Serializable
+data class GroupAssetScopeRequest(val scope: String)
+
+@Serializable
+data class GroupAssetShare(
+    val id: String? = null,
+    val scope: String = "summary",
+    val sharedAt: String? = null,
+    val managed: Boolean = false,
+)
+
+@Serializable
+data class GroupAssetSharePayload(val share: GroupAssetShare)
+
+@Serializable
+data class GroupAssetDetailPayload(
+    val asset: Asset,
+    val share: GroupAssetShare? = null,
+    val community: FeedCommunityRef,
+    val entries: List<Entry> = emptyList(),
+)
 
 @Serializable
 data class GroupJoinResult(
@@ -624,6 +747,9 @@ data class CreateAssetRequest(
     val locationName: String? = null,
     val latitude: Double? = null,
     val longitude: Double? = null,
+    val acquiredAt: String? = null,
+    val attributes: Map<String, String> = emptyMap(),
+    val customFields: List<CustomField> = emptyList(),
 )
 
 /**
@@ -642,6 +768,9 @@ data class UpdateAssetRequest(
     val latitude: Double? = null,
     val longitude: Double? = null,
     val clearLocation: Boolean? = null,
+    val acquiredAt: String? = null,
+    val attributes: Map<String, String>? = null,
+    val customFields: List<CustomField>? = null,
 )
 
 @Serializable

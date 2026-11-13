@@ -1,3 +1,5 @@
+import java.util.Properties
+
 plugins {
     id("com.android.application")
     id("org.jetbrains.kotlin.android")
@@ -10,9 +12,28 @@ plugins {
 //   gradle assembleDebug -PAPI_BASE_URL=http://192.168.1.20:4000/ (aynı ağ)
 val apiBaseUrl = (findProperty("API_BASE_URL") as String?) ?: "http://10.0.2.2:4000/"
 
+// Release imzalama bilgileri gitignore'da tutulan keystore.properties'ten okunur.
+// Dosya yoksa release derlemesi imzasız üretilir.
+val keystoreProperties = Properties().apply {
+    val file = rootProject.file("keystore.properties")
+    if (file.exists()) file.inputStream().use { load(it) }
+}
+val hasReleaseKeystore = keystoreProperties.getProperty("storeFile") != null
+
 android {
     namespace = "app.varlikhafizasi"
     compileSdk = 35
+
+    signingConfigs {
+        if (hasReleaseKeystore) {
+            create("release") {
+                storeFile = rootProject.file(keystoreProperties.getProperty("storeFile"))
+                storePassword = keystoreProperties.getProperty("storePassword")
+                keyAlias = keystoreProperties.getProperty("keyAlias")
+                keyPassword = keystoreProperties.getProperty("keyPassword")
+            }
+        }
+    }
 
     defaultConfig {
         applicationId = "app.varlikhafizasi"
@@ -28,8 +49,9 @@ android {
         release {
             isMinifyEnabled = false
             proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro")
-            // Üretimde HTTPS tabanlı adres verin:
-            // buildConfigField("String", "API_BASE_URL", "\"https://api.ornek.com/\"")
+            if (hasReleaseKeystore) {
+                signingConfig = signingConfigs.getByName("release")
+            }
         }
         debug {
             applicationIdSuffix = ".debug"

@@ -6,6 +6,10 @@
     <string name="add_entry_intro">Eine Wartung, ein Moment, eine Messung… Was auch immer es ist – es bleibt mit seinem Datum erhalten.</string>
 
     <string name="add_entry_section_type">Eintragstyp</string>
+    <string name="add_entry_select_action">Aktion wählen</string>
+    <string name="add_entry_reminder_option">Erinnerung: %1$s</string>
+    <string name="add_entry_reminder_pick">Datum und Uhrzeit wählen</string>
+    <string name="add_entry_reminder_required">Für die Erinnerung musst du Datum und Uhrzeit wählen.</string>
     <string name="add_entry_field_title">Titel (optional)</string>
     <string name="add_entry_field_notes">Notizen</string>
     <string name="add_entry_notes_placeholder">Was hast du gemacht, was hat sich verändert, wie hast du dich gefühlt?</string>

@@ -6,6 +6,10 @@
     <string name="add_entry_intro">Bir bakım, bir an, bir ölçüm… Ne olursa olsun, tarihiyle birlikte kalsın.</string>
 
     <string name="add_entry_section_type">Kayıt türü</string>
+    <string name="add_entry_select_action">İşlem seç</string>
+    <string name="add_entry_reminder_option">%1$s hatırlatması</string>
+    <string name="add_entry_reminder_pick">Tarih ve saat seç</string>
+    <string name="add_entry_reminder_required">Hatırlatma için tarih ve saat seçmelisin.</string>
     <string name="add_entry_field_title">Başlık (isteğe bağlı)</string>
     <string name="add_entry_field_notes">Notlar</string>
     <string name="add_entry_notes_placeholder">Ne yaptın, ne değişti, ne hissettin?</string>

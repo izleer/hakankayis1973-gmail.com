@@ -1,5 +1,9 @@
 package app.varlikhafizasi.ui.navigation
 
+import android.content.BroadcastReceiver
+import android.content.Context
+import android.content.Intent
+import android.content.IntentFilter
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -12,11 +16,13 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.outlined.List
+import androidx.compose.material.icons.outlined.Alarm
 import androidx.compose.material.icons.outlined.Explore
 import androidx.compose.material.icons.outlined.Groups
 import androidx.compose.material.icons.outlined.Home
 import androidx.compose.material.icons.outlined.Person
 import androidx.compose.material.icons.outlined.PhotoLibrary
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -27,18 +33,24 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
+import androidx.core.content.ContextCompat
 import androidx.navigation.NavGraph.Companion.findStartDestination
 import androidx.navigation.NavHostController
 import androidx.navigation.NavType
@@ -48,15 +60,23 @@ import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.lifecycle.viewmodel.compose.viewModel
+import app.varlikhafizasi.AppGraph
 import app.varlikhafizasi.R
 import app.varlikhafizasi.data.User
+import app.varlikhafizasi.data.local.AppMode
+import app.varlikhafizasi.reminders.ReminderReceiver
 import app.varlikhafizasi.ui.VhViewModel
+import app.varlikhafizasi.ui.local.LocalNavigator
+import app.varlikhafizasi.ui.local.LocalOnboardingScreen
+import app.varlikhafizasi.ui.local.LocalViewModel
 import app.varlikhafizasi.ui.screens.AddEntryScreen
 import app.varlikhafizasi.ui.screens.AssetDetailScreen
 import app.varlikhafizasi.ui.screens.ArchiveScreen
 import app.varlikhafizasi.ui.screens.AssetsScreen
 import app.varlikhafizasi.ui.screens.ExploreScreen
 import app.varlikhafizasi.ui.screens.FriendsScreen
+import app.varlikhafizasi.ui.screens.GroupAssetScreen
 import app.varlikhafizasi.ui.screens.GroupDetailScreen
 import app.varlikhafizasi.ui.screens.GroupsScreen
 import app.varlikhafizasi.ui.screens.HomeScreen
@@ -65,12 +85,14 @@ import app.varlikhafizasi.ui.screens.NewAssetScreen
 import app.varlikhafizasi.ui.screens.NewGroupScreen
 import app.varlikhafizasi.ui.screens.NotificationsScreen
 import app.varlikhafizasi.ui.screens.ProfileScreen
+import app.varlikhafizasi.ui.theme.Clay
 import app.varlikhafizasi.ui.theme.Forest
 import app.varlikhafizasi.ui.theme.Line
 import app.varlikhafizasi.ui.theme.Muted
 import app.varlikhafizasi.ui.theme.Paper
 import app.varlikhafizasi.ui.theme.TerracottaPale
 import app.varlikhafizasi.ui.theme.Ivory
+import java.time.Instant
 
 private object Routes {
     const val HOME = "home"
@@ -84,13 +106,15 @@ private object Routes {
     const val NEW_ASSET = "newAsset"
     const val NEW_GROUP = "newGroup"
     const val ASSET_DETAIL = "asset/{id}"
-    const val GROUP_DETAIL = "group/{slug}"
+    const val GROUP_DETAIL = "group/{slug}?tab={tab}"
+    const val GROUP_ASSET = "group/{slug}/asset/{assetId}"
     const val EDIT_ASSET = "editAsset/{id}"
     const val ADD_ENTRY = "addEntry/{assetId}"
     const val EDIT_ENTRY = "editEntry/{assetId}/{entryId}"
 
     fun asset(id: String) = "asset/$id"
-    fun group(slug: String) = "group/$slug"
+    fun group(slug: String, tab: String = "feed") = "group/$slug?tab=$tab"
+    fun groupAsset(slug: String, assetId: String) = "group/$slug/asset/$assetId"
     fun editAsset(id: String) = "editAsset/$id"
     fun addEntry(id: String) = "addEntry/$id"
     fun editEntry(assetId: String, entryId: String) = "editEntry/$assetId/$entryId"
@@ -101,13 +125,47 @@ fun VhRoot(
     vm: VhViewModel,
     pendingAssetId: String? = null,
     onPendingAssetConsumed: () -> Unit = {},
+    onModeChosen: () -> Unit = {},
 ) {
+    val mode by vm.mode.collectAsStateWithLifecycle()
+    // Bildirim izni, ilk açılışta değil kullanıcı bir mod seçtikten sonra istenir.
+    LaunchedEffect(mode) {
+        val current = mode
+        if (current == AppMode.LOCAL || current == AppMode.CLOUD) onModeChosen()
+    }
     val session by vm.session.collectAsStateWithLifecycle()
+    val context = LocalContext.current
 
-    when {
-        session.checking -> Splash()
-        session.user == null -> LoginScreen(vm, session.error)
-        else -> MainNavigator(vm, session.user!!, pendingAssetId, onPendingAssetConsumed)
+    when (mode) {
+        null -> Splash()
+        AppMode.UNSET -> LocalOnboardingScreen(
+            onLocal = { vm.chooseMode(AppMode.LOCAL) },
+            onCloud = { vm.chooseMode(AppMode.CLOUD) },
+        )
+        AppMode.LOCAL -> {
+            val localVm: LocalViewModel = viewModel(
+                factory = LocalViewModel.factory(
+                    AppGraph.localStore,
+                    AppGraph.localExporter,
+                    context,
+                ),
+            )
+            LocalNavigator(
+                vm = localVm,
+                cloudVm = vm,
+                pendingAssetId = pendingAssetId,
+                onPendingAssetConsumed = onPendingAssetConsumed,
+            )
+        }
+        AppMode.CLOUD -> when {
+            session.checking -> Splash()
+            session.user == null -> LoginScreen(
+                vm = vm,
+                sessionError = session.error,
+                onUseLocal = { vm.chooseMode(AppMode.LOCAL) },
+            )
+            else -> MainNavigator(vm, session.user!!, pendingAssetId, onPendingAssetConsumed)
+        }
     }
 }
 
@@ -166,6 +224,11 @@ private fun MainNavigator(
     val route = backStack?.destination?.route
     val snackbar = remember { SnackbarHostState() }
     val notice by vm.notice.collectAsStateWithLifecycle()
+    val reminders by vm.reminders.collectAsStateWithLifecycle()
+    val context = LocalContext.current
+    var dueAlert by remember { mutableStateOf<DueAlert?>(null) }
+    // Aynı hatırlatma için uyarı bir oturumda yalnızca bir kez gösterilir.
+    val announcedAlerts = remember { mutableSetOf<String>() }
 
     LaunchedEffect(notice) {
         val message = notice ?: return@LaunchedEffect
@@ -175,6 +238,58 @@ private fun MainNavigator(
 
     // Oturum açıkken hatırlatmaları tazele; alarm planı sunucuyla eşitlenir.
     LaunchedEffect(viewer.id) { vm.loadReminders() }
+    // Yerel moddan gelen kayıtlar varsa giriş sonrası otomatik aktarılır.
+    LaunchedEffect(viewer.id) { vm.startLocalMigrationIfPending() }
+    val migration by vm.migration.collectAsStateWithLifecycle()
+
+    // Alarm çaldığında uygulama açıksa ekran uyarısı da gösterilir.
+    DisposableEffect(context) {
+        val filter = IntentFilter(ReminderReceiver.ACTION_DUE)
+        val receiver = object : BroadcastReceiver() {
+            override fun onReceive(receiverContext: Context?, intent: Intent?) {
+                val data = intent ?: return
+                val entryId = data.getStringExtra(ReminderReceiver.EXTRA_ENTRY_ID) ?: return
+                val assetId = data.getStringExtra(ReminderReceiver.EXTRA_ASSET_ID) ?: return
+                if (!announcedAlerts.add(entryId)) return
+                dueAlert = DueAlert(
+                    entryId = entryId,
+                    assetId = assetId,
+                    assetTitle = data.getStringExtra(ReminderReceiver.EXTRA_ASSET_TITLE),
+                    title = data.getStringExtra(ReminderReceiver.EXTRA_TITLE),
+                    body = data.getStringExtra(ReminderReceiver.EXTRA_BODY),
+                )
+            }
+        }
+        ContextCompat.registerReceiver(
+            context,
+            receiver,
+            filter,
+            ContextCompat.RECEIVER_NOT_EXPORTED,
+        )
+        onDispose { runCatching { context.unregisterReceiver(receiver) } }
+    }
+
+    // Uygulama kapalıyken kaçırılan hatırlatmalar açılışta yakalanır.
+    LaunchedEffect(reminders.data) {
+        val items = reminders.data.orEmpty()
+        if (items.isEmpty()) return@LaunchedEffect
+        val now = System.currentTimeMillis()
+        val next = items.firstOrNull { item ->
+            if (item.doneAt != null || item.id in announcedAlerts) return@firstOrNull false
+            val due = item.dueAt
+                ?.let { runCatching { Instant.parse(it).toEpochMilli() }.getOrNull() }
+                ?: return@firstOrNull false
+            due <= now
+        } ?: return@LaunchedEffect
+        announcedAlerts += next.id
+        dueAlert = DueAlert(
+            entryId = next.id,
+            assetId = next.assetId,
+            assetTitle = next.assetTitle,
+            title = next.title,
+            body = next.body,
+        )
+    }
 
     // Bildirimden gelen varlık bağlantısı bir kez açılır.
     LaunchedEffect(pendingAssetId) {
@@ -218,6 +333,8 @@ private fun MainNavigator(
                     onOpenNotifications = { nav.navigate(Routes.NOTIFICATIONS) },
                     onNewAsset = { nav.navigate(Routes.NEW_ASSET) },
                     onOpenFriends = { nav.navigate(Routes.FRIENDS) },
+                    onOpenGroup = { slug, tab -> nav.navigate(Routes.group(slug, tab)) },
+                    onOpenGroups = { nav.navigateTop(Routes.GROUPS) },
                 )
             }
             composable(Routes.ASSETS) {
@@ -256,7 +373,13 @@ private fun MainNavigator(
             }
             composable(
                 route = Routes.GROUP_DETAIL,
-                arguments = listOf(navArgument("slug") { type = NavType.StringType }),
+                arguments = listOf(
+                    navArgument("slug") { type = NavType.StringType },
+                    navArgument("tab") {
+                        type = NavType.StringType
+                        defaultValue = "feed"
+                    },
+                ),
             ) { entry ->
                 val slug = entry.arguments?.getString("slug").orEmpty()
                 GroupDetailScreen(
@@ -265,6 +388,24 @@ private fun MainNavigator(
                     viewerId = viewer.id,
                     onBack = { nav.popBackStack() },
                     onOpenAsset = { nav.navigate(Routes.asset(it)) },
+                    onOpenGroupAsset = { nav.navigate(Routes.groupAsset(slug, it)) },
+                    initialTab = entry.arguments?.getString("tab") ?: "feed",
+                )
+            }
+            composable(
+                route = Routes.GROUP_ASSET,
+                arguments = listOf(
+                    navArgument("slug") { type = NavType.StringType },
+                    navArgument("assetId") { type = NavType.StringType },
+                ),
+            ) { entry ->
+                val slug = entry.arguments?.getString("slug").orEmpty()
+                val assetId = entry.arguments?.getString("assetId").orEmpty()
+                GroupAssetScreen(
+                    vm = vm,
+                    slug = slug,
+                    assetId = assetId,
+                    onBack = { nav.popBackStack() },
                 )
             }
             composable(Routes.PROFILE) {
@@ -361,7 +502,174 @@ private fun MainNavigator(
             }
         }
     }
+
+    dueAlert?.let { alert ->
+        AlertDialog(
+            onDismissRequest = { dueAlert = null },
+            icon = {
+                Icon(
+                    Icons.Outlined.Alarm,
+                    contentDescription = null,
+                    tint = Clay,
+                    modifier = Modifier.size(26.dp),
+                )
+            },
+            title = {
+                Text(
+                    stringResource(R.string.reminder_alert_title),
+                    style = MaterialTheme.typography.headlineSmall,
+                    color = Forest,
+                )
+            },
+            text = {
+                val assetName = alert.assetTitle?.trim()?.takeIf { it.isNotEmpty() }
+                    ?: stringResource(R.string.common_asset)
+                val detail = alert.title?.trim()?.takeIf { it.isNotEmpty() }
+                    ?: alert.body
+                        ?.trim()
+                        ?.replace(Regex("\\s+"), " ")
+                        ?.take(160)
+                        ?.takeIf { it.isNotEmpty() }
+                Column {
+                    Text(
+                        assetName,
+                        style = MaterialTheme.typography.titleMedium,
+                        color = Forest,
+                    )
+                    Text(
+                        detail ?: stringResource(R.string.reminder_alert_fallback),
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = Muted,
+                        modifier = Modifier.padding(top = 4.dp),
+                    )
+                }
+            },
+            confirmButton = {
+                TextButton(
+                    onClick = {
+                        val assetId = alert.assetId
+                        dueAlert = null
+                        nav.navigate(Routes.asset(assetId))
+                    },
+                ) {
+                    Text(stringResource(R.string.reminder_alert_open), color = Forest)
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { dueAlert = null }) {
+                    Text(stringResource(R.string.reminder_alert_dismiss), color = Muted)
+                }
+            },
+        )
+    }
+
+    // Buluta geçişte yerel kayıtların aktarım durumu.
+    if (migration.running || migration.done || migration.error != null) {
+        AlertDialog(
+            onDismissRequest = {
+                if (!migration.running) vm.dismissMigration()
+            },
+            title = {
+                Text(
+                    when {
+                        migration.running -> stringResource(R.string.local_migration_running)
+                        migration.done -> stringResource(R.string.local_migration_done_title)
+                        else -> stringResource(R.string.local_migration_error)
+                    },
+                    color = Forest,
+                    style = MaterialTheme.typography.headlineSmall,
+                )
+            },
+            text = {
+                Column {
+                    if (migration.running) {
+                        val progress = migration.progress
+                        Text(
+                            if (progress != null) {
+                                stringResource(R.string.local_migration_progress, progress)
+                            } else {
+                                stringResource(R.string.local_migration_keep)
+                            },
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = Muted,
+                        )
+                        androidx.compose.foundation.layout.Spacer(
+                            androidx.compose.ui.Modifier.height(14.dp),
+                        )
+                        CircularProgressIndicator(
+                            color = Forest,
+                            strokeWidth = 2.dp,
+                            modifier = Modifier.size(24.dp),
+                        )
+                    } else if (migration.done) {
+                        val summary = migration.summary
+                        Text(
+                            stringResource(
+                                R.string.local_migration_done_body,
+                                summary?.assets ?: 0,
+                                summary?.entries ?: 0,
+                            ),
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = Muted,
+                        )
+                    } else {
+                        Text(
+                            migration.error ?: "",
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = Muted,
+                        )
+                        androidx.compose.foundation.layout.Spacer(
+                            androidx.compose.ui.Modifier.height(8.dp),
+                        )
+                        Text(
+                            stringResource(R.string.local_migration_keep),
+                            style = MaterialTheme.typography.bodySmall,
+                            color = Muted,
+                        )
+                    }
+                }
+            },
+            confirmButton = {
+                if (!migration.running) {
+                    TextButton(
+                        onClick = {
+                            if (migration.error != null) {
+                                vm.retryLocalMigration()
+                            } else {
+                                vm.dismissMigration()
+                            }
+                        },
+                    ) {
+                        Text(
+                            if (migration.error != null) {
+                                stringResource(R.string.local_migration_retry)
+                            } else {
+                                stringResource(R.string.common_back)
+                            },
+                            color = Forest,
+                        )
+                    }
+                }
+            },
+            dismissButton = {
+                if (!migration.running && migration.error != null) {
+                    TextButton(onClick = { vm.dismissMigration() }) {
+                        Text(stringResource(R.string.local_migration_later), color = Muted)
+                    }
+                }
+            },
+        )
+    }
 }
+
+/** Ekranda gösterilecek zamanı gelmiş hatırlatma bilgisi. */
+private data class DueAlert(
+    val entryId: String,
+    val assetId: String,
+    val assetTitle: String?,
+    val title: String?,
+    val body: String?,
+)
 
 private fun NavHostController.navigateTop(route: String) {
     navigate(route) {

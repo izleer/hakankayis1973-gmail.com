@@ -67,6 +67,20 @@ const assets = {
   Vazgeç: 'Cancel',
   'Kaydediliyor…': 'Saving…',
   'Hafızaya ekle': 'Add to memory',
+  'Kategori alanları': 'Category fields',
+  'Seçtiğin kategorinin hazır alanları.':
+    'Predefined fields for the category you chose.',
+  'Özel alanlar': 'Custom fields',
+  'Hazır alanların dışında kendi bilgilerini ekleyebilirsin.':
+    'You can add your own details beyond the predefined fields.',
+  'Henüz özel alan yok. İhtiyacına göre kendi alanını ekleyebilirsin.':
+    'No custom fields yet. Add your own fields as needed.',
+  'Alan adı': 'Field name',
+  'Alan türü': 'Field type',
+  Metin: 'Text',
+  Sayı: 'Number',
+  'Alanı kaldır': 'Remove field',
+  'Özel alan ekle': 'Add custom field',
 } as const;
 
 export default assets;

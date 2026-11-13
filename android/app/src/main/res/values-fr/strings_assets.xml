@@ -64,4 +64,21 @@
     <string name="assets_viewers_loading">Chargement des personnes…</string>
     <string name="assets_viewers_empty">Personne dans votre liste d\'amis pour le moment. Vous pouvez d\'abord ajouter des amis.</string>
     <string name="error_asset_viewers_required">Choisissez au moins une personne pour la visibilité « Sélectionné ».</string>
+    <string name="assets_template_fields">Champs de catégorie</string>
+    <string name="assets_template_fields_hint">Champs prêts pour la catégorie choisie.</string>
+    <string name="assets_field_with_unit">%1$s (%2$s)</string>
+    <string name="assets_custom_fields">Champs personnalisés</string>
+    <string name="assets_custom_fields_hint">Ajoutez vos propres informations en plus des champs prêts.</string>
+    <string name="assets_custom_field_name">Nom du champ</string>
+    <string name="assets_custom_field_value">Valeur</string>
+    <string name="assets_custom_field_type_label">Type</string>
+    <string name="assets_custom_field_type_text">Texte</string>
+    <string name="assets_custom_field_type_number">Nombre</string>
+    <string name="assets_custom_field_type_date">Date</string>
+    <string name="assets_custom_field_add">Ajouter un champ personnalisé</string>
+    <string name="assets_custom_field_remove">Supprimer le champ personnalisé</string>
+    <string name="assets_template_actions">Votre action</string>
+    <string name="assets_template_reminders">Rappels suggérés</string>
+    <string name="assets_template_every_days">Tous les %1$d jours</string>
+    <string name="assets_template_measurement">Mesure de catégorie</string>
 </resources>

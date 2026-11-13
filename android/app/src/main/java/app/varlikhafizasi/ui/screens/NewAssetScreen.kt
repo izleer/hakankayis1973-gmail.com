@@ -26,6 +26,7 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.outlined.Add
 import androidx.compose.material.icons.outlined.AddPhotoAlternate
 import androidx.compose.material.icons.outlined.ArrowDropDown
 import androidx.compose.material.icons.outlined.Check
@@ -38,6 +39,7 @@ import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
@@ -50,6 +52,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.Saver
+import androidx.compose.runtime.saveable.listSaver
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
@@ -66,6 +69,8 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import app.varlikhafizasi.R
 import app.varlikhafizasi.data.AssetType
+import app.varlikhafizasi.data.CategoryTemplate
+import app.varlikhafizasi.data.CustomField
 import app.varlikhafizasi.data.MediaUrl
 import app.varlikhafizasi.data.UserMini
 import app.varlikhafizasi.ui.VhViewModel
@@ -89,9 +94,15 @@ import app.varlikhafizasi.ui.theme.SageLight
 import app.varlikhafizasi.ui.theme.Ivory
 import coil.compose.AsyncImage
 import kotlinx.coroutines.delay
+import kotlinx.serialization.json.JsonPrimitive
 import kotlin.math.roundToInt
 
-private data class TypeOption(val id: String, val label: String, val parent: String?)
+private data class TypeOption(
+    val id: String,
+    val label: String,
+    val path: List<String>,
+    val template: CategoryTemplate,
+)
 
 private val UriStateSaver = Saver<Uri?, String>(
     save = { it?.toString().orEmpty() },
@@ -103,14 +114,72 @@ private val ViewerIdsSaver = Saver<List<String>, String>(
     restore = { value -> value.split(",").filter { it.isNotBlank() } },
 )
 
-private fun flattenTypes(types: List<AssetType>): List<TypeOption> =
-    types.flatMap { root ->
-        if (root.children.isEmpty()) {
-            listOf(TypeOption(root.id, root.label, null))
-        } else {
-            root.children.map { child -> TypeOption(child.id, child.label, root.label) }
+private val AttributesSaver = listSaver<Map<String, String>, String>(
+    save = { values -> values.entries.flatMap { entry -> listOf(entry.key, entry.value) } },
+    restore = { flat ->
+        flat.chunked(2).filter { it.size == 2 }.associate { it[0] to it[1] }
+    },
+)
+
+private val CustomFieldsSaver = listSaver<List<CustomField>, String>(
+    save = { fields ->
+        fields.flatMap { field -> listOf(field.key, field.label, field.type, field.value.orEmpty()) }
+    },
+    restore = { flat ->
+        flat.chunked(4).filter { it.size == 4 }.map { parts ->
+            CustomField(
+                key = parts[0],
+                label = parts[1],
+                type = parts[2].ifBlank { "text" },
+                value = parts[3].ifBlank { null },
+            )
         }
+    },
+)
+
+private fun collectTypes(
+    types: List<AssetType>,
+    path: List<String> = emptyList(),
+): List<TypeOption> =
+    types.flatMap { type ->
+        val self = if (type.isSelectable || type.children.isEmpty()) {
+            listOf(TypeOption(type.id, type.label, path, type.attributesSchema))
+        } else {
+            emptyList()
+        }
+        self + collectTypes(type.children, path + type.label)
     }
+
+private fun slugifyKey(label: String): String {
+    val map = mapOf(
+        'ç' to "c", 'ğ' to "g", 'ı' to "i", 'ö' to "o", 'ş' to "s", 'ü' to "u",
+        'â' to "a", 'î' to "i", 'û' to "u",
+    )
+    return label.lowercase()
+        .map { map[it] ?: it.toString() }
+        .joinToString("")
+        .replace(Regex("[^a-z0-9]+"), "_")
+        .trim('_')
+        .take(40)
+}
+
+private fun prepareCustomFields(fields: List<CustomField>): List<CustomField> {
+    val used = mutableSetOf<String>()
+    return fields.mapIndexedNotNull { index, field ->
+        val label = field.label.trim()
+        val value = field.value?.trim().orEmpty()
+        if (label.isEmpty() || value.isEmpty()) return@mapIndexedNotNull null
+        val base = field.key.trim().ifEmpty { slugifyKey(label).ifEmpty { "ozel_alan_${index + 1}" } }
+        var key = base
+        var suffix = 2
+        while (used.contains(key)) {
+            key = "${base}_$suffix"
+            suffix += 1
+        }
+        used.add(key)
+        CustomField(key = key, label = label, type = field.type, value = value)
+    }
+}
 
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
@@ -140,6 +209,12 @@ fun NewAssetScreen(
         mutableStateOf(emptyList<String>())
     }
     var selectedId by rememberSaveable { mutableStateOf<String?>(null) }
+    var attributes by rememberSaveable(assetId, stateSaver = AttributesSaver) {
+        mutableStateOf<Map<String, String>>(emptyMap())
+    }
+    var customFields by rememberSaveable(assetId, stateSaver = CustomFieldsSaver) {
+        mutableStateOf<List<CustomField>>(emptyList())
+    }
     var menuOpen by rememberSaveable { mutableStateOf(false) }
     var coverUri by rememberSaveable(stateSaver = UriStateSaver) { mutableStateOf<Uri?>(null) }
     var pendingCoverUri by rememberSaveable(stateSaver = UriStateSaver) { mutableStateOf<Uri?>(null) }
@@ -156,8 +231,9 @@ fun NewAssetScreen(
     val cameraUnavailable = stringResource(R.string.media_camera_unavailable)
     val scrollTopPadding = with(LocalDensity.current) { 16.dp.roundToPx() }
 
-    val options = remember(types) { flattenTypes(types) }
+    val options = remember(types) { collectTypes(types) }
     val selected = options.firstOrNull { it.id == selectedId }
+    val templateFields = selected?.template?.fields.orEmpty()
     val typeRequiredNotice = stringResource(R.string.assets_error_type_required)
     val nameRequiredNotice = stringResource(R.string.assets_error_name_required)
     val viewersRequiredNotice = stringResource(R.string.error_asset_viewers_required)
@@ -233,6 +309,10 @@ fun NewAssetScreen(
         locationName = asset.locationName.orEmpty()
         latitude = asset.latitude
         longitude = asset.longitude
+        attributes = asset.attributes.entries.mapNotNull { (key, json) ->
+            (json as? JsonPrimitive)?.content?.takeIf { it.isNotBlank() }?.let { key to it }
+        }.toMap()
+        customFields = asset.customFields.map { it.copy(value = it.value.orEmpty()) }
         clearLocation = false
         seeded = true
     }
@@ -326,11 +406,12 @@ fun NewAssetScreen(
                     modifier = Modifier.fillMaxWidth(),
                 ) {
                     Text(
-                        text = selected?.let {
-                            if (it.parent != null) {
-                                stringResource(R.string.assets_type_parent_format, it.parent, it.label)
+                        text = selected?.let { option ->
+                            val path = option.path.joinToString(" · ")
+                            if (path.isNotEmpty()) {
+                                stringResource(R.string.assets_type_parent_format, path, option.label)
                             } else {
-                                it.label
+                                option.label
                             }
                         } ?: stringResource(R.string.assets_type_placeholder),
                         color = if (selected != null) Forest else Muted,
@@ -349,9 +430,9 @@ fun NewAssetScreen(
                             text = {
                                 Column {
                                     Text(option.label, color = Forest)
-                                    if (option.parent != null) {
+                                    if (option.path.isNotEmpty()) {
                                         Text(
-                                            option.parent,
+                                            option.path.joinToString(" · "),
                                             style = MaterialTheme.typography.bodySmall,
                                             color = Muted,
                                         )
@@ -359,6 +440,7 @@ fun NewAssetScreen(
                                 }
                             },
                             onClick = {
+                                if (selectedId != option.id) attributes = emptyMap()
                                 selectedId = option.id
                                 menuOpen = false
                             },
@@ -404,6 +486,167 @@ fun NewAssetScreen(
                 enabled = !busy,
                 modifier = Modifier.fillMaxWidth(),
             )
+
+            if (templateFields.isNotEmpty()) {
+                Spacer(Modifier.height(18.dp))
+                SectionLabel(stringResource(R.string.assets_template_fields))
+                Text(
+                    stringResource(R.string.assets_template_fields_hint),
+                    style = MaterialTheme.typography.bodySmall,
+                    color = Muted,
+                    modifier = Modifier.padding(bottom = 8.dp),
+                )
+                templateFields.forEach { field ->
+                    val label = if (field.unit.isNullOrBlank()) {
+                        field.label
+                    } else {
+                        stringResource(R.string.assets_field_with_unit, field.label, field.unit)
+                    }
+                    if (field.type == "select" && field.options.isNotEmpty()) {
+                        Text(
+                            label,
+                            style = MaterialTheme.typography.labelMedium,
+                            color = Forest,
+                            modifier = Modifier.padding(bottom = 6.dp),
+                        )
+                        FlowRow(
+                            horizontalArrangement = Arrangement.spacedBy(7.dp),
+                            verticalArrangement = Arrangement.spacedBy(7.dp),
+                        ) {
+                            field.options.forEach { option ->
+                                Pill(
+                                    text = option,
+                                    selected = attributes[field.key] == option,
+                                    onClick = {
+                                        attributes = attributes + (field.key to option)
+                                    },
+                                )
+                            }
+                        }
+                    } else {
+                        OutlinedTextField(
+                            value = attributes[field.key].orEmpty(),
+                            onValueChange = { value ->
+                                attributes = attributes + (field.key to value.take(500))
+                            },
+                            label = { Text(label) },
+                            singleLine = true,
+                            enabled = !busy,
+                            modifier = Modifier.fillMaxWidth(),
+                        )
+                    }
+                    Spacer(Modifier.height(10.dp))
+                }
+            }
+
+            Spacer(Modifier.height(8.dp))
+            SectionLabel(stringResource(R.string.assets_custom_fields))
+            Text(
+                stringResource(R.string.assets_custom_fields_hint),
+                style = MaterialTheme.typography.bodySmall,
+                color = Muted,
+                modifier = Modifier.padding(bottom = 8.dp),
+            )
+            customFields.forEachIndexed { index, field ->
+                Surface(
+                    color = PaperDeep,
+                    shape = RoundedCornerShape(14.dp),
+                    border = BorderStroke(1.dp, Line),
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(bottom = 8.dp),
+                ) {
+                    Column(Modifier.padding(12.dp)) {
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            OutlinedTextField(
+                                value = field.label,
+                                onValueChange = { value ->
+                                    customFields = customFields.toMutableList().also {
+                                        it[index] = field.copy(label = value.take(80))
+                                    }
+                                },
+                                label = { Text(stringResource(R.string.assets_custom_field_name)) },
+                                singleLine = true,
+                                enabled = !busy,
+                                modifier = Modifier.weight(1f),
+                            )
+                            IconButton(
+                                onClick = {
+                                    customFields = customFields.filterIndexed { current, _ ->
+                                        current != index
+                                    }
+                                },
+                                enabled = !busy,
+                            ) {
+                                Icon(
+                                    Icons.Outlined.Close,
+                                    contentDescription = stringResource(
+                                        R.string.assets_custom_field_remove,
+                                    ),
+                                    tint = Muted,
+                                )
+                            }
+                        }
+                        Text(
+                            stringResource(R.string.assets_custom_field_type_label),
+                            style = MaterialTheme.typography.labelSmall,
+                            color = Muted,
+                            modifier = Modifier.padding(top = 6.dp, bottom = 4.dp),
+                        )
+                        FlowRow(horizontalArrangement = Arrangement.spacedBy(7.dp)) {
+                            listOf("text", "number", "date").forEach { typeKey ->
+                                Pill(
+                                    text = stringResource(
+                                        when (typeKey) {
+                                            "number" -> R.string.assets_custom_field_type_number
+                                            "date" -> R.string.assets_custom_field_type_date
+                                            else -> R.string.assets_custom_field_type_text
+                                        },
+                                    ),
+                                    selected = field.type == typeKey,
+                                    onClick = {
+                                        customFields = customFields.toMutableList().also {
+                                            it[index] = field.copy(type = typeKey)
+                                        }
+                                    },
+                                )
+                            }
+                        }
+                        Spacer(Modifier.height(8.dp))
+                        OutlinedTextField(
+                            value = field.value.orEmpty(),
+                            onValueChange = { value ->
+                                customFields = customFields.toMutableList().also {
+                                    it[index] = field.copy(value = value.take(500))
+                                }
+                            },
+                            label = { Text(stringResource(R.string.assets_custom_field_value)) },
+                            singleLine = true,
+                            enabled = !busy,
+                            modifier = Modifier.fillMaxWidth(),
+                        )
+                    }
+                }
+            }
+            OutlinedButton(
+                onClick = { customFields = customFields + CustomField() },
+                enabled = !busy && customFields.size < 30,
+                shape = RoundedCornerShape(12.dp),
+                border = BorderStroke(1.dp, Line),
+            ) {
+                Icon(
+                    Icons.Outlined.Add,
+                    contentDescription = null,
+                    tint = Forest,
+                    modifier = Modifier.size(16.dp),
+                )
+                Spacer(Modifier.size(6.dp))
+                Text(
+                    stringResource(R.string.assets_custom_field_add),
+                    style = MaterialTheme.typography.labelMedium,
+                    color = Forest,
+                )
+            }
 
             Spacer(Modifier.height(20.dp))
             SectionLabel(stringResource(R.string.assets_visibility_label))
@@ -776,6 +1019,8 @@ fun NewAssetScreen(
                     ) {
                         return@Button
                     }
+                    val attributesPayload = attributes.filterValues { it.isNotBlank() }
+                    val customFieldsPayload = prepareCustomFields(customFields)
                     if (assetId != null) {
                         vm.updateAsset(
                             assetId = assetId,
@@ -789,6 +1034,8 @@ fun NewAssetScreen(
                             longitude = longitude,
                             clearLocation = clearLocation,
                             viewerIds = viewerIds,
+                            attributes = attributesPayload,
+                            customFields = customFieldsPayload,
                             onSaved = onCreated,
                         )
                     } else {
@@ -802,6 +1049,8 @@ fun NewAssetScreen(
                             latitude = latitude,
                             longitude = longitude,
                             viewerIds = viewerIds,
+                            attributes = attributesPayload,
+                            customFields = customFieldsPayload,
                             onCreated = onCreated,
                         )
                     }

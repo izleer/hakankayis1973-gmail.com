@@ -86,6 +86,8 @@ import app.varlikhafizasi.ui.theme.Sage
 import app.varlikhafizasi.ui.theme.SageLight
 import app.varlikhafizasi.ui.theme.Ivory
 import coil.compose.AsyncImage
+import kotlinx.serialization.json.JsonPrimitive
+import kotlinx.serialization.json.contentOrNull
 import java.time.Instant
 
 private val tabs = listOf(
@@ -182,6 +184,28 @@ fun AssetDetailScreen(
 
             if (data != null) {
                 val asset = data.detail.asset
+                val attributeRows = buildList {
+                    val seen = mutableSetOf<String>()
+                    asset.template.fields.forEach { field ->
+                        val raw = (asset.attributes[field.key] as? JsonPrimitive)?.contentOrNull
+                        if (!raw.isNullOrBlank()) {
+                            seen += field.key
+                            val shown = if (field.type == "date") formatDate(raw) else raw
+                            val unit = field.unit?.takeIf { it.isNotBlank() }
+                            add(field.label to if (unit != null) "$shown $unit" else shown)
+                        }
+                    }
+                    asset.attributes.forEach { (key, element) ->
+                        if (key !in seen) {
+                            val raw = (element as? JsonPrimitive)?.contentOrNull
+                            if (!raw.isNullOrBlank()) add(key to raw)
+                        }
+                    }
+                }
+                val customFieldRows = asset.customFields.mapNotNull { field ->
+                    val value = field.value?.takeIf { it.isNotBlank() } ?: return@mapNotNull null
+                    field.label to if (field.type == "date") formatDate(value) else value
+                }
                 item { Cover(asset.title, asset.coverUrl, asset.type?.label, asset.visibility) }
 
                 item {
@@ -291,6 +315,40 @@ fun AssetDetailScreen(
                                     style = MaterialTheme.typography.labelMedium,
                                     color = Forest,
                                 )
+                            }
+                        }
+                        if (attributeRows.isNotEmpty() || customFieldRows.isNotEmpty()) {
+                            Spacer(Modifier.height(12.dp))
+                            Surface(
+                                color = PaperDeep,
+                                shape = RoundedCornerShape(10.dp),
+                                modifier = Modifier.fillMaxWidth(),
+                            ) {
+                                Column(Modifier.padding(horizontal = 12.dp, vertical = 10.dp)) {
+                                    if (attributeRows.isNotEmpty()) {
+                                        Text(
+                                            stringResource(R.string.assets_template_fields),
+                                            style = MaterialTheme.typography.labelMedium,
+                                            color = Muted,
+                                        )
+                                        Spacer(Modifier.height(4.dp))
+                                        attributeRows.forEach { (label, value) ->
+                                            FactRow(label, value)
+                                        }
+                                    }
+                                    if (customFieldRows.isNotEmpty()) {
+                                        if (attributeRows.isNotEmpty()) Spacer(Modifier.height(8.dp))
+                                        Text(
+                                            stringResource(R.string.assets_custom_fields),
+                                            style = MaterialTheme.typography.labelMedium,
+                                            color = Muted,
+                                        )
+                                        Spacer(Modifier.height(4.dp))
+                                        customFieldRows.forEach { (label, value) ->
+                                            FactRow(label, value)
+                                        }
+                                    }
+                                }
                             }
                         }
                         Spacer(Modifier.height(14.dp))
@@ -436,6 +494,7 @@ fun AssetDetailScreen(
 
                     2 -> {
                         val measurements = data.measurements
+                        val measureLabels = asset.template.measurements.associate { it.key to it.label }
                         if (measurements.isEmpty()) {
                             item {
                                 EmptyState(
@@ -461,7 +520,7 @@ fun AssetDetailScreen(
                                 ) {
                                     Column(Modifier.weight(1f)) {
                                         Text(
-                                            measurement.metric,
+                                            measureLabels[measurement.metric] ?: measurement.metric,
                                             style = MaterialTheme.typography.titleMedium,
                                             color = Forest,
                                         )
@@ -913,7 +972,31 @@ private fun MiniMeta(value: String, label: String, modifier: Modifier = Modifier
 }
 
 @Composable
-private fun EntryCard(
+private fun FactRow(label: String, value: String) {
+    Row(
+        verticalAlignment = Alignment.Top,
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(vertical = 3.dp),
+    ) {
+        Text(
+            label,
+            style = MaterialTheme.typography.bodySmall,
+            color = Muted,
+            modifier = Modifier.weight(1f),
+        )
+        Spacer(Modifier.width(10.dp))
+        Text(
+            value,
+            style = MaterialTheme.typography.bodyMedium,
+            color = Forest,
+            modifier = Modifier.weight(1.4f),
+        )
+    }
+}
+
+@Composable
+internal fun EntryCard(
     entry: Entry,
     canEdit: Boolean,
     canDelete: Boolean,
@@ -921,6 +1004,7 @@ private fun EntryCard(
     onDelete: () -> Unit,
     onToggleReminder: (Boolean) -> Unit,
     onOpenMedia: (String?) -> Unit,
+    showVisibility: Boolean = true,
 ) {
     Column(
         modifier = Modifier
@@ -1043,11 +1127,13 @@ private fun EntryCard(
                 )
             }
             Spacer(Modifier.weight(1f))
-            Text(
-                visibilityLabel(entry.visibility),
-                style = MaterialTheme.typography.labelSmall,
-                color = Muted,
-            )
+            if (showVisibility) {
+                Text(
+                    visibilityLabel(entry.visibility),
+                    style = MaterialTheme.typography.labelSmall,
+                    color = Muted,
+                )
+            }
         }
     }
 }

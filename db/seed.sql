@@ -3,26 +3,65 @@
 
 BEGIN;
 
+-- ---------------------------------------------------------------------------
+-- Varlık kategorileri ve kategori şablonları
+--
+-- Her kategori şablonu generic varlık modeline uygulanan bir konfigürasyondur:
+--   fields       → varlık formunda gösterilen alanlar
+--   actions      → kayıt eklerken önerilen işlemler; entryType generic kayıt
+--                  türüne eşlenir, reminderDays hatırlatma önerisi üretir
+--   measurements → ölçüm önerileri (etiket + birim)
+--
+-- Alt kategoriler üst kategorinin şablonunu devralır; API zinciri birleştirir.
+-- Hazır şablonlar (P0/P1): bitkiler, evcil hayvanlar, araçlar, gayrimenkul,
+-- elektronik ve ev eşyaları. Koleksiyon/sanat şablonu P2 olduğu için generic
+-- özel alanlarla ilerler.
+-- ---------------------------------------------------------------------------
 INSERT INTO asset_types (id, parent_id, label, icon, sort_order, attributes_schema) VALUES
   ('canli', NULL, 'Canlılar', 'leaf', 10, '{}'),
-  ('canli-bitki', 'canli', 'Bitkiler', 'sprout', 11,
-    '{"fields":[{"key":"species","label":"Tür","type":"text"},{"key":"age","label":"Yaş","type":"text"}]}'),
-  ('canli-hayvan', 'canli', 'Hayvanlar', 'paw', 12,
-    '{"fields":[{"key":"species","label":"Tür","type":"text"},{"key":"birth_date","label":"Doğum tarihi","type":"date"}]}'),
-  ('tasit', NULL, 'Taşıtlar', 'car', 20, '{}'),
-  ('tasit-otomobil', 'tasit', 'Otomobil', 'car', 21,
-    '{"fields":[{"key":"brand","label":"Marka","type":"text"},{"key":"model","label":"Model","type":"text"},{"key":"year","label":"Model yılı","type":"number"},{"key":"plate","label":"Plaka","type":"text"}]}'),
-  ('tasit-motosiklet', 'tasit', 'Motosiklet', 'bike', 22,
-    '{"fields":[{"key":"brand","label":"Marka","type":"text"},{"key":"model","label":"Model","type":"text"},{"key":"year","label":"Model yılı","type":"number"}]}'),
-  ('tasit-bisiklet', 'tasit', 'Bisiklet', 'bike', 23,
-    '{"fields":[{"key":"brand","label":"Marka","type":"text"},{"key":"frame_size","label":"Kadro ölçüsü","type":"text"}]}'),
+
+  ('canli-bitki', 'canli', 'Bitkiler ve ağaçlar', 'sprout', 11,
+    '{"fields":[{"key":"species","label":"Tür","type":"text","labels":{"en":"Species","de":"Art","fr":"Espèce","es":"Especie"}},{"key":"scientific_name","label":"Bilimsel ad","type":"text","labels":{"en":"Scientific name","de":"Wissenschaftlicher Name","fr":"Nom scientifique","es":"Nombre científico"}},{"key":"pot","label":"Saksı","type":"text","labels":{"en":"Pot","de":"Topf","fr":"Pot","es":"Maceta"}},{"key":"light","label":"Işık ihtiyacı","type":"text","labels":{"en":"Light needs","de":"Lichtbedarf","fr":"Besoins en lumière","es":"Necesidad de luz"}},{"key":"soil","label":"Toprak","type":"text","labels":{"en":"Soil","de":"Erde","fr":"Sol","es":"Sustrato"}},{"key":"age","label":"Yaş","type":"text","labels":{"en":"Age","de":"Alter","fr":"Âge","es":"Edad"}}],"actions":[{"key":"watering","label":"Sulama","entryType":"maintenance","reminderDays":7,"labels":{"en":"Watering","de":"Gießen","fr":"Arrosage","es":"Riego"}},{"key":"fertilizing","label":"Gübreleme","entryType":"maintenance","reminderDays":30,"labels":{"en":"Fertilizing","de":"Düngen","fr":"Fertilisation","es":"Fertilización"}},{"key":"pruning","label":"Budama","entryType":"maintenance","reminderDays":90,"labels":{"en":"Pruning","de":"Beschneiden","fr":"Taille","es":"Poda"}},{"key":"repotting","label":"Saksı değişimi","entryType":"maintenance","reminderDays":365,"labels":{"en":"Repotting","de":"Umtopfen","fr":"Rempotage","es":"Trasplante"}},{"key":"disease","label":"Hastalık","entryType":"health","labels":{"en":"Disease","de":"Krankheit","fr":"Maladie","es":"Enfermedad"}},{"key":"inspection","label":"Kontrol","entryType":"health","labels":{"en":"Inspection","de":"Kontrolle","fr":"Contrôle","es":"Revisión"}}],"measurements":[{"key":"height","label":"Boy","unit":"cm","labels":{"en":"Height","de":"Höhe","fr":"Hauteur","es":"Altura"}},{"key":"trunk_diameter","label":"Gövde çapı","unit":"cm","labels":{"en":"Trunk diameter","de":"Stammdurchmesser","fr":"Diamètre du tronc","es":"Diámetro del tronco"}},{"key":"nebari","label":"Nebari","unit":"cm","labels":{"en":"Nebari","de":"Nebari","fr":"Nebari","es":"Nebari"}},{"key":"pot_diameter","label":"Saksı çapı","unit":"cm","labels":{"en":"Pot diameter","de":"Topfdurchmesser","fr":"Diamètre du pot","es":"Diámetro de la maceta"}},{"key":"leaf_count","label":"Yaprak sayısı","unit":"adet","labels":{"en":"Leaf count","de":"Blattzahl","fr":"Nombre de feuilles","es":"Número de hojas"}}]}'),
+  ('canli-bitki-bonsai', 'canli-bitki', 'Bonsai', 'sprout', 111,
+    '{"fields":[{"key":"style","label":"Stil","type":"text","labels":{"en":"Style","de":"Stil","fr":"Style","es":"Estilo"}},{"key":"soil_mix","label":"Toprak karışımı","type":"text","labels":{"en":"Soil mix","de":"Substratmischung","fr":"Mélange de sol","es":"Mezcla de sustrato"}},{"key":"pot_style","label":"Saksı stili","type":"text","labels":{"en":"Pot style","de":"Topfstil","fr":"Style de pot","es":"Estilo de maceta"}}],"actions":[{"key":"wiring","label":"Telleme","entryType":"maintenance","reminderDays":120,"labels":{"en":"Wiring","de":"Drahten","fr":"Ligaturage","es":"Alambrado"}}]}'),
+  ('canli-bitki-agac', 'canli-bitki', 'Ağaç', 'sprout', 112,
+    '{"fields":[{"key":"planting_site","label":"Dikim yeri","type":"text","labels":{"en":"Planting site","de":"Standort","fr":"Site de plantation","es":"Lugar de plantación"}},{"key":"age_years","label":"Yaş (yıl)","type":"number","labels":{"en":"Age (years)","de":"Alter (Jahre)","fr":"Âge (ans)","es":"Edad (años)"}}]}'),
+  ('canli-bitki-ic-mekan', 'canli-bitki', 'İç mekân bitkisi', 'sprout', 113,
+    '{"fields":[{"key":"window","label":"Pencere yönü","type":"text","labels":{"en":"Window direction","de":"Fensterausrichtung","fr":"Orientation de la fenêtre","es":"Orientación de la ventana"}}],"actions":[{"key":"leaf_cleaning","label":"Yaprak temizliği","entryType":"maintenance","reminderDays":30,"labels":{"en":"Leaf cleaning","de":"Blattreinigung","fr":"Nettoyage des feuilles","es":"Limpieza de hojas"}}]}'),
+
+  ('canli-hayvan', 'canli', 'Evcil hayvanlar', 'paw', 12,
+    '{"fields":[{"key":"species","label":"Tür","type":"text","labels":{"en":"Species","de":"Art","fr":"Espèce","es":"Especie"}},{"key":"breed","label":"Irk","type":"text","labels":{"en":"Breed","de":"Rasse","fr":"Race","es":"Raza"}},{"key":"birth_date","label":"Doğum tarihi","type":"date","labels":{"en":"Date of birth","de":"Geburtsdatum","fr":"Date de naissance","es":"Fecha de nacimiento"}},{"key":"sex","label":"Cinsiyet","type":"text","labels":{"en":"Sex","de":"Geschlecht","fr":"Sexe","es":"Sexo"}},{"key":"microchip","label":"Mikroçip","type":"text","labels":{"en":"Microchip","de":"Mikrochip","fr":"Puce électronique","es":"Microchip"}},{"key":"color","label":"Renk","type":"text","labels":{"en":"Color","de":"Farbe","fr":"Couleur","es":"Color"}}],"actions":[{"key":"vaccination","label":"Aşı","entryType":"health","reminderDays":365,"labels":{"en":"Vaccination","de":"Impfung","fr":"Vaccination","es":"Vacunación"}},{"key":"vet_visit","label":"Veteriner ziyareti","entryType":"health","reminderDays":180,"labels":{"en":"Vet visit","de":"Tierarztbesuch","fr":"Visite vétérinaire","es":"Visita al veterinario"}},{"key":"treatment","label":"Tedavi","entryType":"health","labels":{"en":"Treatment","de":"Behandlung","fr":"Traitement","es":"Tratamiento"}},{"key":"grooming","label":"Bakım","entryType":"maintenance","reminderDays":60,"labels":{"en":"Grooming","de":"Pflege","fr":"Toilettage","es":"Cuidado"}},{"key":"deworming","label":"Parazit kontrolü","entryType":"health","reminderDays":90,"labels":{"en":"Deworming","de":"Entwurmung","fr":"Vermifuge","es":"Desparasitación"}}],"measurements":[{"key":"weight","label":"Kilo","unit":"kg","labels":{"en":"Weight","de":"Gewicht","fr":"Poids","es":"Peso"}},{"key":"height","label":"Boy","unit":"cm","labels":{"en":"Height","de":"Größe","fr":"Taille","es":"Altura"}},{"key":"temperature","label":"Sıcaklık","unit":"°C","labels":{"en":"Temperature","de":"Temperatur","fr":"Température","es":"Temperatura"}}]}'),
+  ('canli-hayvan-kopek', 'canli-hayvan', 'Köpek', 'paw', 121,
+    '{"fields":[{"key":"training","label":"Eğitim","type":"text","labels":{"en":"Training","de":"Training","fr":"Éducation","es":"Entrenamiento"}}],"actions":[{"key":"walk","label":"Yürüyüş","entryType":"maintenance","reminderDays":1,"labels":{"en":"Walk","de":"Spaziergang","fr":"Promenade","es":"Paseo"}}]}'),
+  ('canli-hayvan-kedi', 'canli-hayvan', 'Kedi', 'paw', 122,
+    '{"fields":[{"key":"indoor","label":"Ev içi","type":"text","labels":{"en":"Indoor","de":"Wohnungshaltung","fr":"Intérieur","es":"Interior"}},{"key":"litter","label":"Kum","type":"text","labels":{"en":"Litter","de":"Streu","fr":"Litière","es":"Arena"}}]}'),
+  ('canli-hayvan-diger', 'canli-hayvan', 'Diğer hayvan', 'paw', 123, '{}'),
+
+  ('tasinan', NULL, 'Taşınabilir varlıklar', 'sparkles', 20, '{}'),
+  ('tasit', 'tasinan', 'Araçlar', 'car', 21,
+    '{"fields":[{"key":"brand","label":"Marka","type":"text","labels":{"en":"Brand","de":"Marke","fr":"Marque","es":"Marca"}},{"key":"model","label":"Model","type":"text","labels":{"en":"Model","de":"Modell","fr":"Modèle","es":"Modelo"}},{"key":"year","label":"Model yılı","type":"number","labels":{"en":"Model year","de":"Baujahr","fr":"Année du modèle","es":"Año del modelo"}},{"key":"plate","label":"Plaka","type":"text","labels":{"en":"Plate","de":"Kennzeichen","fr":"Immatriculation","es":"Matrícula"}},{"key":"vin","label":"Şasi numarası","type":"text","labels":{"en":"VIN","de":"Fahrgestellnummer","fr":"Numéro de châssis","es":"Número de chasis"}},{"key":"fuel","label":"Yakıt türü","type":"text","labels":{"en":"Fuel type","de":"Kraftstoffart","fr":"Carburant","es":"Combustible"}},{"key":"odometer","label":"Kilometre","type":"number","labels":{"en":"Mileage","de":"Kilometerstand","fr":"Kilométrage","es":"Kilometraje"}}],"actions":[{"key":"maintenance","label":"Bakım","entryType":"maintenance","reminderDays":180,"labels":{"en":"Maintenance","de":"Wartung","fr":"Entretien","es":"Mantenimiento"}},{"key":"repair","label":"Onarım","entryType":"maintenance","labels":{"en":"Repair","de":"Reparatur","fr":"Réparation","es":"Reparación"}},{"key":"tire_change","label":"Lastik değişimi","entryType":"maintenance","reminderDays":180,"labels":{"en":"Tire change","de":"Reifenwechsel","fr":"Changement de pneus","es":"Cambio de neumáticos"}},{"key":"inspection","label":"Muayene","entryType":"event","reminderDays":365,"labels":{"en":"Inspection","de":"Hauptuntersuchung","fr":"Contrôle technique","es":"ITV"}},{"key":"insurance","label":"Sigorta","entryType":"event","reminderDays":365,"labels":{"en":"Insurance","de":"Versicherung","fr":"Assurance","es":"Seguro"}},{"key":"tax","label":"Vergi","entryType":"event","reminderDays":365,"labels":{"en":"Tax","de":"Steuer","fr":"Taxe","es":"Impuesto"}},{"key":"fueling","label":"Yakıt","entryType":"maintenance","labels":{"en":"Fuel","de":"Tanken","fr":"Carburant","es":"Combustible"}}],"measurements":[{"key":"odometer","label":"Kilometre","unit":"km","labels":{"en":"Mileage","de":"Kilometerstand","fr":"Kilométrage","es":"Kilometraje"}},{"key":"consumption","label":"Yakıt tüketimi","unit":"l/100km","labels":{"en":"Fuel consumption","de":"Verbrauch","fr":"Consommation","es":"Consumo"}}]}'),
+  ('tasit-otomobil', 'tasit', 'Otomobil', 'car', 211,
+    '{"fields":[{"key":"body_type","label":"Kasa tipi","type":"text","labels":{"en":"Body type","de":"Karosserie","fr":"Carrosserie","es":"Carrocería"}},{"key":"transmission","label":"Vites","type":"text","labels":{"en":"Transmission","de":"Getriebe","fr":"Transmission","es":"Transmisión"}}]}'),
+  ('tasit-motosiklet', 'tasit', 'Motosiklet', 'bike', 212,
+    '{"fields":[{"key":"engine_cc","label":"Motor hacmi (cc)","type":"number","labels":{"en":"Engine (cc)","de":"Hubraum (cc)","fr":"Cylindrée (cc)","es":"Cilindrada (cc)"}},{"key":"license","label":"Ehliyet sınıfı","type":"text","labels":{"en":"Licence class","de":"Führerscheinklasse","fr":"Classe de permis","es":"Clase de permiso"}}]}'),
+  ('tasit-bisiklet', 'tasit', 'Bisiklet', 'bike', 213,
+    '{"fields":[{"key":"frame_size","label":"Kadro ölçüsü","type":"text","labels":{"en":"Frame size","de":"Rahmengröße","fr":"Taille du cadre","es":"Tamaño del cuadro"}},{"key":"bike_type","label":"Bisiklet türü","type":"text","labels":{"en":"Bike type","de":"Fahrradtyp","fr":"Type de vélo","es":"Tipo de bicicleta"}}]}'),
+
+  ('elektronik', 'tasinan', 'Elektronik', 'sparkles', 22,
+    '{"fields":[{"key":"brand","label":"Marka","type":"text","labels":{"en":"Brand","de":"Marke","fr":"Marque","es":"Marca"}},{"key":"model","label":"Model","type":"text","labels":{"en":"Model","de":"Modell","fr":"Modèle","es":"Modelo"}},{"key":"serial","label":"Seri numarası","type":"text","labels":{"en":"Serial number","de":"Seriennummer","fr":"Numéro de série","es":"Número de serie"}},{"key":"warranty_until","label":"Garanti bitişi","type":"date","labels":{"en":"Warranty until","de":"Garantie bis","fr":"Fin de garantie","es":"Fin de garantía"}},{"key":"invoice_no","label":"Fatura numarası","type":"text","labels":{"en":"Invoice number","de":"Rechnungsnummer","fr":"Numéro de facture","es":"Número de factura"}},{"key":"seller","label":"Satıcı","type":"text","labels":{"en":"Seller","de":"Verkäufer","fr":"Vendeur","es":"Vendedor"}}],"actions":[{"key":"maintenance","label":"Bakım","entryType":"maintenance","reminderDays":180,"labels":{"en":"Maintenance","de":"Wartung","fr":"Entretien","es":"Mantenimiento"}},{"key":"repair","label":"Tamir","entryType":"maintenance","labels":{"en":"Repair","de":"Reparatur","fr":"Réparation","es":"Reparación"}},{"key":"part_replacement","label":"Parça değişimi","entryType":"maintenance","labels":{"en":"Part replacement","de":"Teiletausch","fr":"Remplacement de pièce","es":"Cambio de pieza"}},{"key":"cleaning","label":"Temizlik","entryType":"maintenance","labels":{"en":"Cleaning","de":"Reinigung","fr":"Nettoyage","es":"Limpieza"}},{"key":"warranty_check","label":"Garanti kontrolü","entryType":"event","reminderDays":330,"labels":{"en":"Warranty check","de":"Garantieprüfung","fr":"Contrôle de garantie","es":"Revisión de garantía"}}],"measurements":[{"key":"battery_health","label":"Batarya sağlığı","unit":"%","labels":{"en":"Battery health","de":"Akkuzustand","fr":"Santé de la batterie","es":"Salud de la batería"}}]}'),
+  ('ev-esyalari', 'tasinan', 'Ev eşyaları', 'home', 23,
+    '{"fields":[{"key":"brand","label":"Marka","type":"text","labels":{"en":"Brand","de":"Marke","fr":"Marque","es":"Marca"}},{"key":"model","label":"Model","type":"text","labels":{"en":"Model","de":"Modell","fr":"Modèle","es":"Modelo"}},{"key":"material","label":"Materyal","type":"text","labels":{"en":"Material","de":"Material","fr":"Matière","es":"Material"}},{"key":"warranty_until","label":"Garanti bitişi","type":"date","labels":{"en":"Warranty until","de":"Garantie bis","fr":"Fin de garantie","es":"Fin de garantía"}},{"key":"seller","label":"Satıcı","type":"text","labels":{"en":"Seller","de":"Verkäufer","fr":"Vendeur","es":"Vendedor"}}],"actions":[{"key":"maintenance","label":"Bakım","entryType":"maintenance","reminderDays":180,"labels":{"en":"Maintenance","de":"Wartung","fr":"Entretien","es":"Mantenimiento"}},{"key":"repair","label":"Onarım","entryType":"maintenance","labels":{"en":"Repair","de":"Reparatur","fr":"Réparation","es":"Reparación"}},{"key":"cleaning","label":"Temizlik","entryType":"maintenance","labels":{"en":"Cleaning","de":"Reinigung","fr":"Nettoyage","es":"Limpieza"}}]}'),
+
   ('gayrimenkul', NULL, 'Gayrimenkul', 'home', 30,
-    '{"fields":[{"key":"area_m2","label":"Alan (m²)","type":"number"},{"key":"rooms","label":"Oda sayısı","type":"text"}]}'),
-  ('gayrimenkul-konut', 'gayrimenkul', 'Konut', 'home', 31,
-    '{"fields":[{"key":"area_m2","label":"Alan (m²)","type":"number"},{"key":"rooms","label":"Oda sayısı","type":"text"},{"key":"year_built","label":"Yapım yılı","type":"number"}]}'),
-  ('gayrimenkul-arsa', 'gayrimenkul', 'Arsa', 'map', 32,
-    '{"fields":[{"key":"area_m2","label":"Alan (m²)","type":"number"},{"key":"zoning","label":"İmar durumu","type":"text"}]}'),
-  ('sanat', NULL, 'Sanat ve koleksiyon', 'frame', 40, '{}'),
+    '{"fields":[{"key":"area_m2","label":"Alan (m²)","type":"number","labels":{"en":"Area (m²)","de":"Fläche (m²)","fr":"Surface (m²)","es":"Superficie (m²)"}},{"key":"rooms","label":"Oda sayısı","type":"text","labels":{"en":"Rooms","de":"Zimmer","fr":"Pièces","es":"Habitaciones"}},{"key":"deed_no","label":"Tapu numarası","type":"text","labels":{"en":"Deed number","de":"Grundbuchnummer","fr":"Numéro de titre","es":"Número de escritura"}},{"key":"parcel","label":"Ada / parsel","type":"text","labels":{"en":"Block / parcel","de":"Grundstück / Parzelle","fr":"Îlot / parcelle","es":"Manzana / parcela"}},{"key":"year_built","label":"Yapım yılı","type":"number","labels":{"en":"Year built","de":"Baujahr","fr":"Année de construction","es":"Año de construcción"}},{"key":"usage","label":"Kullanım","type":"text","labels":{"en":"Usage","de":"Nutzung","fr":"Usage","es":"Uso"}}],"actions":[{"key":"renovation","label":"Tadilat","entryType":"maintenance","reminderDays":365,"labels":{"en":"Renovation","de":"Renovierung","fr":"Rénovation","es":"Reforma"}},{"key":"repair","label":"Onarım","entryType":"maintenance","labels":{"en":"Repair","de":"Reparatur","fr":"Réparation","es":"Reparación"}},{"key":"painting","label":"Boya","entryType":"maintenance","reminderDays":365,"labels":{"en":"Painting","de":"Anstrich","fr":"Peinture","es":"Pintura"}},{"key":"plumbing","label":"Tesisat","entryType":"maintenance","labels":{"en":"Plumbing","de":"Sanitär","fr":"Plomberie","es":"Fontanería"}},{"key":"appraisal","label":"Ekspertiz","entryType":"event","labels":{"en":"Appraisal","de":"Gutachten","fr":"Expertise","es":"Tasación"}},{"key":"rent","label":"Kira","entryType":"event","reminderDays":365,"labels":{"en":"Rent","de":"Miete","fr":"Loyer","es":"Alquiler"}},{"key":"insurance","label":"Sigorta","entryType":"event","reminderDays":365,"labels":{"en":"Insurance","de":"Versicherung","fr":"Assurance","es":"Seguro"}},{"key":"tax","label":"Vergi","entryType":"event","reminderDays":365,"labels":{"en":"Tax","de":"Steuer","fr":"Taxe","es":"Impuesto"}}],"measurements":[{"key":"area","label":"Alan","unit":"m²","labels":{"en":"Area","de":"Fläche","fr":"Surface","es":"Superficie"}},{"key":"valuation","label":"Değer","unit":"TRY","labels":{"en":"Value","de":"Wert","fr":"Valeur","es":"Valor"}}]}'),
+  ('gayrimenkul-konut', 'gayrimenkul', 'Konut', 'home', 301,
+    '{"fields":[{"key":"floor","label":"Kat","type":"text","labels":{"en":"Floor","de":"Etage","fr":"Étage","es":"Piso"}},{"key":"heating","label":"Isıtma","type":"text","labels":{"en":"Heating","de":"Heizung","fr":"Chauffage","es":"Calefacción"}}]}'),
+  ('gayrimenkul-arsa', 'gayrimenkul', 'Arsa', 'map', 302,
+    '{"fields":[{"key":"zoning","label":"İmar durumu","type":"text","labels":{"en":"Zoning status","de":"Bebauungsstatus","fr":"Statut d’urbanisme","es":"Situación urbanística"}}]}'),
+  ('gayrimenkul-is-yeri', 'gayrimenkul', 'İş yeri', 'home', 303,
+    '{"fields":[{"key":"usage_type","label":"Kullanım türü","type":"text","labels":{"en":"Usage type","de":"Nutzungsart","fr":"Type d’usage","es":"Tipo de uso"}}]}'),
+
+  ('sanat', NULL, 'Koleksiyon ve sanat', 'frame', 40, '{}'),
   ('sanat-tablo', 'sanat', 'Tablo', 'frame', 41,
     '{"fields":[{"key":"artist","label":"Sanatçı","type":"text"},{"key":"year","label":"Yıl","type":"number"},{"key":"technique","label":"Teknik","type":"text"}]}'),
   ('sanat-heykel', 'sanat', 'Heykel', 'frame', 42,
@@ -30,11 +69,35 @@ INSERT INTO asset_types (id, parent_id, label, icon, sort_order, attributes_sche
   ('sanat-antika', 'sanat', 'Antika', 'clock', 43,
     '{"fields":[{"key":"origin","label":"Köken","type":"text"},{"key":"year","label":"Yıl","type":"number"}]}'),
   ('diger', NULL, 'Diğer', 'sparkles', 50, '{}')
-ON CONFLICT (id) DO NOTHING;
+ON CONFLICT (id) DO UPDATE SET
+  parent_id = EXCLUDED.parent_id,
+  label = EXCLUDED.label,
+  icon = EXCLUDED.icon,
+  sort_order = EXCLUDED.sort_order,
+  attributes_schema = EXCLUDED.attributes_schema;
 
 -- Varlık türü çevirileri (004_i18n.sql içinde tanımlı). Türler bu dosyada
--- yüklendiği için taze kurulumda çeviriler burada tamamlanır.
+-- yüklendiği için taze kurulumda çeviriler burada tamamlanır. Yeni kategori ve
+-- değişen etiketler aşağıda; alan çevirileri şablon içindeki labels
+-- haritalarından gelir, eski alanlar 004 tablosundan okunmaya devam eder.
 SELECT sync_asset_type_translations();
+
+INSERT INTO asset_type_translations (type_id, locale, label) VALUES
+  ('tasinan', 'en', 'Portable belongings'), ('tasinan', 'de', 'Tragbare Dinge'), ('tasinan', 'fr', 'Objets transportables'), ('tasinan', 'es', 'Objetos portátiles'),
+  ('canli-bitki', 'en', 'Plants & trees'), ('canli-bitki', 'de', 'Pflanzen & Bäume'), ('canli-bitki', 'fr', 'Plantes et arbres'), ('canli-bitki', 'es', 'Plantas y árboles'),
+  ('canli-bitki-bonsai', 'en', 'Bonsai'), ('canli-bitki-bonsai', 'de', 'Bonsai'), ('canli-bitki-bonsai', 'fr', 'Bonsai'), ('canli-bitki-bonsai', 'es', 'Bonsai'),
+  ('canli-bitki-agac', 'en', 'Tree'), ('canli-bitki-agac', 'de', 'Baum'), ('canli-bitki-agac', 'fr', 'Arbre'), ('canli-bitki-agac', 'es', 'Árbol'),
+  ('canli-bitki-ic-mekan', 'en', 'Indoor plant'), ('canli-bitki-ic-mekan', 'de', 'Zimmerpflanze'), ('canli-bitki-ic-mekan', 'fr', 'Plante d’intérieur'), ('canli-bitki-ic-mekan', 'es', 'Planta de interior'),
+  ('canli-hayvan', 'en', 'Pets'), ('canli-hayvan', 'de', 'Haustiere'), ('canli-hayvan', 'fr', 'Animaux domestiques'), ('canli-hayvan', 'es', 'Mascotas'),
+  ('canli-hayvan-kopek', 'en', 'Dog'), ('canli-hayvan-kopek', 'de', 'Hund'), ('canli-hayvan-kopek', 'fr', 'Chien'), ('canli-hayvan-kopek', 'es', 'Perro'),
+  ('canli-hayvan-kedi', 'en', 'Cat'), ('canli-hayvan-kedi', 'de', 'Katze'), ('canli-hayvan-kedi', 'fr', 'Chat'), ('canli-hayvan-kedi', 'es', 'Gato'),
+  ('canli-hayvan-diger', 'en', 'Other animal'), ('canli-hayvan-diger', 'de', 'Anderes Tier'), ('canli-hayvan-diger', 'fr', 'Autre animal'), ('canli-hayvan-diger', 'es', 'Otro animal'),
+  ('tasit', 'en', 'Vehicles'), ('tasit', 'de', 'Fahrzeuge'), ('tasit', 'fr', 'Véhicules'), ('tasit', 'es', 'Vehículos'),
+  ('elektronik', 'en', 'Electronics'), ('elektronik', 'de', 'Elektronik'), ('elektronik', 'fr', 'Électronique'), ('elektronik', 'es', 'Electrónica'),
+  ('ev-esyalari', 'en', 'Home goods'), ('ev-esyalari', 'de', 'Haushaltswaren'), ('ev-esyalari', 'fr', 'Articles ménagers'), ('ev-esyalari', 'es', 'Artículos del hogar'),
+  ('gayrimenkul-is-yeri', 'en', 'Workplace'), ('gayrimenkul-is-yeri', 'de', 'Gewerbeobjekt'), ('gayrimenkul-is-yeri', 'fr', 'Local professionnel'), ('gayrimenkul-is-yeri', 'es', 'Local comercial'),
+  ('sanat', 'en', 'Collections & art'), ('sanat', 'de', 'Sammlungen & Kunst'), ('sanat', 'fr', 'Collections et art'), ('sanat', 'es', 'Colecciones y arte')
+ON CONFLICT (type_id, locale) DO UPDATE SET label = EXCLUDED.label;
 
 INSERT INTO users (id, email, username, password_hash, display_name, bio, role, interests, onboarded_at, created_at) VALUES
   ('11111111-1111-4111-8111-111111111111', 'ada@demo.local', 'ada', 'scrypt$16384$8$1$afb1a79ac72ff62783aa4c09496bbeff$71396fa05f11771a90a855dea3e4ac70088ba866a50a8dd35025383a6bdb2605e0745494917c7e1aefe9a77d31cf7eeeb57c3a145f792943e00801d9f531d7db', 'Ada Yıldız', 'Eski eşyaların izini sürer, balkonunda yeşil bir köşe büyütür.', 'user', ARRAY['motosiklet','bitkiler','tasarım'], now(), now() - interval '210 days'),

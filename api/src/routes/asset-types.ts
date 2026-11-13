@@ -1,10 +1,11 @@
 import type { FastifyInstance } from 'fastify';
 import { query } from '../db.js';
+import { ensureTaxonomy, translateTypeLabel } from '../lib/taxonomy.js';
 import {
-  ensureTaxonomy,
-  localizeAttributesSchema,
-  translateTypeLabel,
-} from '../lib/taxonomy.js';
+  buildCatalog,
+  isSelectableType,
+  templateFromCatalog,
+} from '../lib/templates.js';
 
 export async function assetTypeRoutes(app: FastifyInstance): Promise<void> {
   app.get('/', async (req) => {
@@ -16,10 +17,19 @@ export async function assetTypeRoutes(app: FastifyInstance): Promise<void> {
       label: string;
       icon: string | null;
       sort_order: number;
-      attributes_schema: Record<string, unknown>;
+      attributes_schema: unknown;
     }>(
       `SELECT id, parent_id, label, icon, sort_order, attributes_schema
        FROM asset_types WHERE is_active = true ORDER BY sort_order, label`,
+    );
+
+    const catalog = buildCatalog(
+      rows.map((row) => ({
+        id: row.id,
+        parent_id: row.parent_id,
+        label: row.label,
+        schema: row.attributes_schema,
+      })),
     );
 
     const byId = new Map<string, Record<string, unknown>>();
@@ -30,7 +40,9 @@ export async function assetTypeRoutes(app: FastifyInstance): Promise<void> {
         label: translateTypeLabel(locale, row.label),
         icon: row.icon,
         sortOrder: row.sort_order,
-        attributesSchema: localizeAttributesSchema(row.attributes_schema, locale, row.label),
+        // Kategori ve üst kategorilerinin alan, işlem ve ölçüm şablonları.
+        attributesSchema: templateFromCatalog(catalog, row.id, locale),
+        isSelectable: isSelectableType(catalog, row.id),
         children: [],
       });
     }

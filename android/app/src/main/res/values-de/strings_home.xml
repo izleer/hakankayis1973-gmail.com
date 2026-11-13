@@ -15,7 +15,16 @@
     <string name="home_entry_fallback">Eintrag</string>
     <string name="home_quote">„Etwas aufzubewahren,\num es wieder anzusehen.“</string>
     <string name="home_quote_attribution">izleer · tägliches Archiv</string>
+    <string name="home_groups_label">GRUPPEN</string>
+    <string name="home_groups_unread">Ungelesen</string>
+    <string name="home_groups_added">Hinzugefügt</string>
+    <string name="home_groups_removed">Entfernt</string>
+    <string name="home_groups_all">Alle Gruppen</string>
 
+    <plurals name="home_groups_count">
+        <item quantity="one">%1$d Gruppe</item>
+        <item quantity="other">%1$d Gruppen</item>
+    </plurals>
     <plurals name="home_summary_assets">
         <item quantity="one">%1$d Objekt</item>
         <item quantity="other">%1$d Objekte</item>

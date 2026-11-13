@@ -6,6 +6,10 @@
     <string name="add_entry_intro">A maintenance, a moment, a measurement… Whatever it is, let it stay with its date.</string>
 
     <string name="add_entry_section_type">Entry type</string>
+    <string name="add_entry_select_action">Choose an action</string>
+    <string name="add_entry_reminder_option">%1$s reminder</string>
+    <string name="add_entry_reminder_pick">Choose a date and time</string>
+    <string name="add_entry_reminder_required">You must choose a date and time for the reminder.</string>
     <string name="add_entry_field_title">Title (optional)</string>
     <string name="add_entry_field_notes">Notes</string>
     <string name="add_entry_notes_placeholder">What did you do, what changed, how did it feel?</string>

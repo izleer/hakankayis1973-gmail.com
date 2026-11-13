@@ -64,4 +64,21 @@
     <string name="assets_viewers_loading">Kişiler yükleniyor…</string>
     <string name="assets_viewers_empty">Arkadaş listende kişi yok. Önce arkadaş ekleyebilirsin.</string>
     <string name="error_asset_viewers_required">Seçili kişiler görünürlüğü için en az bir kişi seçin.</string>
+    <string name="assets_template_fields">Kategori alanları</string>
+    <string name="assets_template_fields_hint">Seçtiğin kategorinin hazır alanları.</string>
+    <string name="assets_field_with_unit">%1$s (%2$s)</string>
+    <string name="assets_custom_fields">Özel alanlar</string>
+    <string name="assets_custom_fields_hint">Hazır alanların dışında kendi bilgilerini ekleyebilirsin.</string>
+    <string name="assets_custom_field_name">Alan adı</string>
+    <string name="assets_custom_field_value">Değer</string>
+    <string name="assets_custom_field_type_label">Tür</string>
+    <string name="assets_custom_field_type_text">Metin</string>
+    <string name="assets_custom_field_type_number">Sayı</string>
+    <string name="assets_custom_field_type_date">Tarih</string>
+    <string name="assets_custom_field_add">Özel alan ekle</string>
+    <string name="assets_custom_field_remove">Özel alanı kaldır</string>
+    <string name="assets_template_actions">İşleminiz</string>
+    <string name="assets_template_reminders">Hatırlatma önerileri</string>
+    <string name="assets_template_every_days">%1$d günde bir</string>
+    <string name="assets_template_measurement">Kategori ölçümü</string>
 </resources>

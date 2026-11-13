@@ -12,10 +12,15 @@ import {
   formatMonthYear,
   formatNumber,
   mediaSrc,
-  typeIconName,
 } from '@/lib/format';
 import { getI18n, getT } from '@/lib/i18n/server';
-import type { ArchiveResponse, Asset, Paged, Stats } from '@/lib/types';
+import type {
+  ArchiveResponse,
+  Asset,
+  GroupSummaryResponse,
+  Paged,
+  Stats,
+} from '@/lib/types';
 
 export async function generateMetadata(): Promise<Metadata> {
   const t = await getT();
@@ -25,10 +30,11 @@ export async function generateMetadata(): Promise<Metadata> {
 export default async function DashboardPage() {
   const viewer = await requireViewer();
   const { t, locale, tag } = await getI18n();
-  const [stats, assets, media] = await Promise.all([
+  const [stats, assets, media, groups] = await Promise.all([
     api<Stats>('/v1/stats'),
     api<Paged<Asset>>('/v1/assets?limit=6&sort=updated'),
     api<ArchiveResponse>('/v1/media?limit=6&kind=image'),
+    api<GroupSummaryResponse>('/v1/stats/groups'),
   ]);
 
   const today = new Intl.DateTimeFormat(tag, {
@@ -39,7 +45,6 @@ export default async function DashboardPage() {
     timeZone: 'Europe/Istanbul',
   });
 
-  const heroAsset = assets.items.find((asset) => asset.coverUrl) ?? assets.items[0] ?? null;
   const firstName = viewer.displayName.split(' ')[0];
 
   return (
@@ -56,21 +61,23 @@ export default async function DashboardPage() {
               <br />
               {t('bir hafızası var.')}
             </h1>
-            <p>
-              {t(
-                '{name}, büyüttüğün, baktığın ya da biriktirdiğin her şeyin izini burada tut. Fotoğraflar, belgeler ve küçük notlar zamanla bir hikâyeye dönüşsün.',
-                { name: firstName },
-              )}
-            </p>
-            <div className="hero-actions">
-              <Link href="/varliklar/yeni" className="btn btn-paper">
-                <Icon name="plus" size={18} />
-                {t('Yeni varlık')}
-              </Link>
-              <Link href="/arsiv" className="btn btn-ghost-light">
-                {t('Arşivi gör')}
-                <Icon name="arrow-right" size={17} />
-              </Link>
+            <div className="hero-lead">
+              <p>
+                {t(
+                  '{name}, büyüttüğün, baktığın ya da biriktirdiğin her şeyin izini burada tut. Fotoğraflar, belgeler ve küçük notlar zamanla bir hikâyeye dönüşsün.',
+                  { name: firstName },
+                )}
+              </p>
+              <div className="hero-actions">
+                <Link href="/varliklar/yeni" className="btn btn-paper">
+                  <Icon name="plus" size={18} />
+                  {t('Yeni varlık')}
+                </Link>
+                <Link href="/arsiv" className="btn btn-ghost-light">
+                  {t('Arşivi gör')}
+                  <Icon name="arrow-right" size={17} />
+                </Link>
+              </div>
             </div>
           </div>
           <div className="hero-numbers">
@@ -84,34 +91,6 @@ export default async function DashboardPage() {
               <strong>{formatNumber(stats.images, locale)}</strong> {t('fotoğraf', { count: stats.images })}
             </span>
           </div>
-        </div>
-
-        <div className="hero-image">
-          {heroAsset ? (
-            <Link href={`/varliklar/${heroAsset.id}`} className="hero-image-link">
-              <MediaImage
-                src={heroAsset.coverUrl}
-                alt={heroAsset.title}
-                fallbackIcon={typeIconName(heroAsset.type.icon)}
-                loading="eager"
-              />
-              <span className="hero-image-caption">
-                <span className="eyebrow eyebrow-light">{t('Son iz')}</span>
-                <strong>{heroAsset.title}</strong>
-                <small>
-                  {heroAsset.type.label} · {formatDate(heroAsset.updatedAt, locale)}
-                </small>
-              </span>
-              <span className="hero-image-mark">
-                <Icon name="arrow-right" size={18} />
-              </span>
-            </Link>
-          ) : (
-            <div className="hero-image-empty">
-              <Icon name="leaf" size={40} />
-              <p>{t('İlk varlığını ekle, hafızan burada başlasın.')}</p>
-            </div>
-          )}
         </div>
       </section>
 
@@ -168,6 +147,61 @@ export default async function DashboardPage() {
           </small>
         </div>
       </section>
+
+      {groups.items.length > 0 ? (
+        <section className="section group-summary-section" aria-label={t('Grup özeti')}>
+          <div className="section-head">
+            <div>
+              <span className="eyebrow">{t('Grupların')}</span>
+              <h2>{t('Grup özeti')}</h2>
+            </div>
+            <Link href="/gruplar" className="text-link">
+              {t('Tüm gruplar')}
+              <Icon name="arrow-right" size={16} />
+            </Link>
+          </div>
+          <div className="group-summary">
+            {groups.items.map((group) => {
+              const base = `/gruplar/${encodeURIComponent(group.slug)}`;
+              return (
+                <div className="group-summary-row" key={group.id}>
+                  <Link href={base} className="group-summary-name">
+                    <strong>{group.name}</strong>
+                    <small>{t('{count} üye', { count: group.memberCount })}</small>
+                  </Link>
+                  <Link
+                    href={base}
+                    className={`group-summary-link${group.unreadPosts > 0 ? ' is-activity' : ''}`}
+                    title={t('Okunmamış akış')}
+                  >
+                    <strong>{formatNumber(group.unreadPosts, locale)}</strong>
+                    <small>{t('Okunmamış akış')}</small>
+                  </Link>
+                  <Link
+                    href={`${base}?tab=assets`}
+                    className={`group-summary-link${group.addedAssets > 0 ? ' is-activity' : ''}`}
+                    title={t('Eklenen varlık')}
+                  >
+                    <strong>{formatNumber(group.addedAssets, locale)}</strong>
+                    <small>{t('Eklenen varlık')}</small>
+                  </Link>
+                  <Link
+                    href={`${base}?tab=assets`}
+                    className={`group-summary-link${group.removedAssets > 0 ? ' is-activity' : ''}`}
+                    title={t('Çıkarılan varlık')}
+                  >
+                    <strong>{formatNumber(group.removedAssets, locale)}</strong>
+                    <small>{t('Çıkarılan varlık')}</small>
+                  </Link>
+                </div>
+              );
+            })}
+          </div>
+          <p className="group-summary-note">
+            {t('Sayaçlar grubu son açtığından bu yana birikenleri gösterir.')}
+          </p>
+        </section>
+      ) : null}
 
       <section className="section">
         <div className="section-head">

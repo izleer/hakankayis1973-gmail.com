@@ -15,7 +15,16 @@
     <string name="home_entry_fallback">Kayıt</string>
     <string name="home_quote">“Bir şeyi saklamak,\nonu yeniden bakmak içindir.”</string>
     <string name="home_quote_attribution">izleer · günlük arşiv</string>
+    <string name="home_groups_label">GRUPLAR</string>
+    <string name="home_groups_unread">Okunmamış</string>
+    <string name="home_groups_added">Eklenen</string>
+    <string name="home_groups_removed">Çıkarılan</string>
+    <string name="home_groups_all">Tüm gruplar</string>
 
+    <plurals name="home_groups_count">
+        <item quantity="one">%1$d grup</item>
+        <item quantity="other">%1$d grup</item>
+    </plurals>
     <plurals name="home_summary_assets">
         <item quantity="one">%1$d varlık</item>
         <item quantity="other">%1$d varlık</item>

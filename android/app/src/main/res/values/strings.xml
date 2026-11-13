@@ -39,6 +39,10 @@
     <string name="reminder_channel_description">Varlık hatırlatmaları alarm sesi ve titreşimle bildirilir.</string>
     <string name="reminder_notification_message">“%1$s” için hatırlatma: %2$s</string>
     <string name="reminder_notification_fallback">“%1$s” için bir hatırlatmanın zamanı geldi.</string>
+    <string name="reminder_alert_title">Hatırlatma zamanı</string>
+    <string name="reminder_alert_fallback">Hatırlatmanın zamanı geldi.</string>
+    <string name="reminder_alert_open">Varlığa git</string>
+    <string name="reminder_alert_dismiss">Tamam</string>
 
     <plurals name="common_entry_count">
         <item quantity="one">%1$d kayıt</item>

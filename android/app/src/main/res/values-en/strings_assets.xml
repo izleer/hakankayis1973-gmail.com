@@ -64,4 +64,21 @@
     <string name="assets_viewers_loading">Loading people…</string>
     <string name="assets_viewers_empty">No one in your friends list yet. You can add friends first.</string>
     <string name="error_asset_viewers_required">Choose at least one person for selected visibility.</string>
+    <string name="assets_template_fields">Category fields</string>
+    <string name="assets_template_fields_hint">Ready-made fields for the category you chose.</string>
+    <string name="assets_field_with_unit">%1$s (%2$s)</string>
+    <string name="assets_custom_fields">Custom fields</string>
+    <string name="assets_custom_fields_hint">Add your own details beyond the ready-made fields.</string>
+    <string name="assets_custom_field_name">Field name</string>
+    <string name="assets_custom_field_value">Value</string>
+    <string name="assets_custom_field_type_label">Type</string>
+    <string name="assets_custom_field_type_text">Text</string>
+    <string name="assets_custom_field_type_number">Number</string>
+    <string name="assets_custom_field_type_date">Date</string>
+    <string name="assets_custom_field_add">Add custom field</string>
+    <string name="assets_custom_field_remove">Remove custom field</string>
+    <string name="assets_template_actions">Your action</string>
+    <string name="assets_template_reminders">Suggested reminders</string>
+    <string name="assets_template_every_days">Every %1$d days</string>
+    <string name="assets_template_measurement">Category measurement</string>
 </resources>

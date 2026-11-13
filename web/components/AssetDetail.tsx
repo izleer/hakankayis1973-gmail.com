@@ -17,7 +17,6 @@ import {
   formatNumber,
   formatTime,
   mediaSrc,
-  resolveAttributeLabel,
   typeIconName,
   visibilityHints,
   visibilityLabels,
@@ -25,7 +24,10 @@ import {
 import type {
   Asset,
   AssetDetailData,
+  AttributeField,
+  CategoryTemplate,
   CursorPage,
+  CustomField,
   Entry,
   EntryType,
   Group,
@@ -41,6 +43,11 @@ import { Icon, type IconName } from './Icons';
 import { MediaImage } from './MediaImage';
 import { MiniMap } from './MiniMap';
 import { SocialShareModal } from './SocialShareModal';
+import {
+  CustomFieldsEditor,
+  prepareCustomFields,
+  TemplateFields,
+} from './TemplateFieldsEditor';
 import { useModalA11y } from './useModalA11y';
 import { ViewerPicker } from './ViewerPicker';
 
@@ -59,6 +66,35 @@ const entryIcons: Record<EntryType, IconName> = {
 const entryTypes = Object.keys(entryTypeLabels) as EntryType[];
 const visibilityOrder: Visibility[] = ['private', 'selected', 'friends', 'public'];
 
+function formatFieldValue(
+  field: AttributeField,
+  value: unknown,
+  locale: Parameters<typeof formatDate>[1],
+): string {
+  if (value === null || value === undefined) return '';
+  const text = String(value).trim();
+  if (!text) return '';
+  if (field.type === 'date' && /^\d{4}-\d{2}-\d{2}/.test(text)) {
+    return formatDate(text, locale);
+  }
+  if (field.type === 'number') {
+    const numeric = Number(text.replace(',', '.'));
+    if (!Number.isNaN(numeric)) {
+      return field.unit ? `${formatNumber(numeric, locale)} ${field.unit}` : formatNumber(numeric, locale);
+    }
+  }
+  return field.unit ? `${text} ${field.unit}` : text;
+}
+
+function customFieldValue(field: CustomField, locale: Parameters<typeof formatDate>[1]): string {
+  const value = String(field.value ?? '').trim();
+  if (!value) return '';
+  if (field.type === 'date' && /^\d{4}-\d{2}-\d{2}/.test(value)) {
+    return formatDate(value, locale);
+  }
+  return value;
+}
+
 function toLocalInput(date: Date): string {
   const offset = date.getTimezoneOffset();
   return new Date(date.getTime() - offset * 60 * 1000).toISOString().slice(0, 16);
@@ -70,14 +106,6 @@ function nowLocalInput(): string {
 
 function isoToLocalInput(value: string): string {
   return toLocalInput(new Date(value));
-}
-
-/** Yeni hatırlatma için makul bir başlangıç: yarın sabah 09:00. */
-function defaultReminderInput(): string {
-  const date = new Date();
-  date.setDate(date.getDate() + 1);
-  date.setHours(9, 0, 0, 0);
-  return toLocalInput(date);
 }
 
 export function AssetDetail({
@@ -124,6 +152,37 @@ export function AssetDetail({
   const images = media.filter((item) => item.kind === 'image');
   const videos = media.filter((item) => item.kind === 'video');
   const documents = media.filter((item) => item.kind === 'document');
+
+  const template = asset.template;
+  const detailAttributes = useMemo(() => {
+    const fields = template?.fields ?? [];
+    const known = new Set(fields.map((field) => field.key));
+    const fromTemplate = fields
+      .filter((field) => {
+        const value = asset.attributes?.[field.key];
+        return value !== null && value !== undefined && String(value).trim() !== '';
+      })
+      .map((field) => ({
+        key: field.key,
+        label: field.label,
+        value: formatFieldValue(field, asset.attributes[field.key], locale),
+      }));
+    const extras = Object.entries(asset.attributes ?? {})
+      .filter(
+        ([key, value]) =>
+          !known.has(key) && value !== null && value !== undefined && String(value).trim() !== '',
+      )
+      .map(([key, value]) => ({
+        key,
+        label: attributeLabel(key),
+        value: formatAttributeValue(key, value),
+      }));
+    return [...fromTemplate, ...extras];
+  }, [asset.attributes, template, locale]);
+
+  const assetCustomFields = (asset.customFields ?? []).filter(
+    (field) => String(field.value ?? '').trim() !== '',
+  );
 
   function flash(message: string) {
     setNotice(message);
@@ -233,15 +292,18 @@ export function AssetDetail({
                 {t('{count} belge', { count: documents.length })}
               </dd>
             </div>
-            {Object.entries(asset.attributes)
-              .filter(([, value]) => value !== null && value !== '')
-              .slice(0, 4)
-              .map(([key, value]) => (
-                <div key={key}>
-                  <dt>{resolveAttributeLabel(key, attributeLabels)}</dt>
-                  <dd>{formatAttributeValue(key, value)}</dd>
-                </div>
-              ))}
+            {detailAttributes.slice(0, 6).map((attribute) => (
+              <div key={attribute.key}>
+                <dt>{attribute.label}</dt>
+                <dd>{attribute.value}</dd>
+              </div>
+            ))}
+            {assetCustomFields.map((field) => (
+              <div key={`custom-${field.key}`}>
+                <dt>{field.label}</dt>
+                <dd>{customFieldValue(field, locale)}</dd>
+              </div>
+            ))}
           </dl>
 
           {asset.latitude !== null && asset.longitude !== null ? (
@@ -409,7 +471,9 @@ export function AssetDetail({
         />
       ) : null}
 
-      {tab === 'measurements' ? <MeasurementsPanel items={measurements} /> : null}
+      {tab === 'measurements' ? (
+        <MeasurementsPanel items={measurements} schema={template} />
+      ) : null}
 
       {tab === 'share' && isOwner ? (
         <SharePanel
@@ -792,9 +856,18 @@ function ArchivePanel({
   );
 }
 
-function MeasurementsPanel({ items }: { items: Measurement[] }) {
+function MeasurementsPanel({
+  items,
+  schema,
+}: {
+  items: Measurement[];
+  schema?: CategoryTemplate;
+}) {
   const t = useT();
   const { locale } = useI18n();
+  const labelFor = (metric: string) =>
+    schema?.measurements?.find((item) => item.key === metric)?.label ??
+    metric.replaceAll('_', ' ');
   const grouped = useMemo(() => {
     const map = new Map<string, Measurement[]>();
     for (const item of items) {
@@ -842,7 +915,7 @@ function MeasurementsPanel({ items }: { items: Measurement[] }) {
             <header>
               <div>
                 <span className="eyebrow">{t('Ölçüm')}</span>
-                <h3>{metric}</h3>
+                <h3>{labelFor(metric)}</h3>
               </div>
               <div className="metric-latest">
                 <strong>
@@ -856,7 +929,7 @@ function MeasurementsPanel({ items }: { items: Measurement[] }) {
                 ) : null}
               </div>
             </header>
-            <svg viewBox={`0 0 ${width} ${height}`} className="metric-chart" role="img" aria-label={t('{metric} değişimi', { metric })}>
+            <svg viewBox={`0 0 ${width} ${height}`} className="metric-chart" role="img" aria-label={t('{metric} değişimi', { metric: labelFor(metric) })}>
               <defs>
                 <linearGradient id={`fill-${metric.replace(/\s/g, '-')}`} x1="0" y1="0" x2="0" y2="1">
                   <stop offset="0%" stopColor="#5b6f55" stopOpacity="0.25" />
@@ -1078,10 +1151,14 @@ function EntryComposer({
 }) {
   const t = useT();
   const [type, setType] = useState<EntryType>('note');
+  const [actionChoiceKey, setActionChoiceKey] = useState('');
   const [title, setTitle] = useState('');
   const [body, setBody] = useState('');
   const [occurredAt, setOccurredAt] = useState(nowLocalInput());
-  const [dueAt, setDueAt] = useState(defaultReminderInput());
+  const [dueAt, setDueAt] = useState('');
+  const [metric, setMetric] = useState('');
+  const [metricValue, setMetricValue] = useState('');
+  const [metricUnit, setMetricUnit] = useState('');
   const [visibility, setVisibility] = useState<Visibility>(
     asset.visibility === 'public' ? 'private' : 'private',
   );
@@ -1095,6 +1172,53 @@ function EntryComposer({
   const allowedVisibilities = visibilityOrder.filter(
     (item) => visibilityOrder.indexOf(item) <= visibilityOrder.indexOf(asset.visibility),
   );
+  const templateActions = asset.template?.actions ?? [];
+  const templateReminders = asset.template?.reminders ?? [];
+  const templateMeasurements = asset.template?.measurements ?? [];
+
+  // "İşleminiz" listesi: normal şablon işlemleri ve hatırlatma varyantları
+  // tek seçimde toplanır; hatırlatma seçilirse tarih/saat sahibi belirler.
+  const actionChoices: {
+    key: string;
+    label: string;
+    hint: string | null;
+    entryType: EntryType;
+    title: string;
+    isReminder: boolean;
+  }[] = [
+    ...templateActions.map((action) => ({
+      key: `action-${action.key}`,
+      label: action.label,
+      hint: null,
+      entryType: action.entryType,
+      title: action.label,
+      isReminder: false,
+    })),
+    ...templateReminders.map((reminder) => ({
+      key: `reminder-${reminder.key}`,
+      label: t('{label} hatırlatması', { label: reminder.label }),
+      hint: t('{days} günde bir', { days: reminder.intervalDays }),
+      entryType: 'reminder' as EntryType,
+      title: reminder.label,
+      isReminder: true,
+    })),
+  ];
+  const selectedChoice = actionChoices.find((choice) => choice.key === actionChoiceKey);
+
+  function applyActionChoice(choice: (typeof actionChoices)[number]) {
+    setType(choice.entryType);
+    setActionChoiceKey(choice.key);
+    setError(null);
+    if (choice.isReminder) setDueAt('');
+    setTitle((current) => current || choice.title);
+  }
+
+  function chooseMetric(key: string) {
+    const item = templateMeasurements.find((measurement) => measurement.key === key);
+    setMetric(key);
+    setMetricUnit(item?.unit ?? '');
+    setType('measurement');
+  }
 
   async function submit(event: React.FormEvent) {
     event.preventDefault();
@@ -1116,6 +1240,10 @@ function EntryComposer({
       setError(t('Bir kayda en fazla 8 dosya eklenebilir.'));
       return;
     }
+    if (metric && metricValue.trim() && Number.isNaN(Number(metricValue))) {
+      setError(t('Ölçüm değeri sayı olmalı.'));
+      return;
+    }
     setBusy(true);
     setError(null);
     try {
@@ -1131,6 +1259,10 @@ function EntryComposer({
         mediaIds.push(media.id);
       }
       setProgress(t('Kayıt oluşturuluyor…'));
+      const measurements =
+        metric && metricValue.trim()
+          ? [{ metric, value: Number(metricValue), unit: metricUnit || '—' }]
+          : undefined;
       const data = await vh.post<{ entry: Entry }>(`assets/${asset.id}/entries`, {
         type,
         title: title || null,
@@ -1139,6 +1271,7 @@ function EntryComposer({
         dueAt: type === 'reminder' ? new Date(dueAt).toISOString() : null,
         visibility,
         mediaIds,
+        measurements,
       });
       onCreated(data.entry);
     } catch (caught) {
@@ -1176,19 +1309,82 @@ function EntryComposer({
         </header>
 
         <form className="modal-body" onSubmit={submit}>
-          <div className="entry-type-grid">
-            {entryTypes.map((item) => (
-              <button
-                type="button"
-                key={item}
-                className={`entry-type-option${type === item ? ' is-selected' : ''}`}
-                onClick={() => setType(item)}
+          {actionChoices.length > 0 ? (
+            <label className="field">
+              <span>{t('İşleminiz')}</span>
+              <select
+                className="select"
+                value={selectedChoice?.key ?? ''}
+                onChange={(event) => {
+                  const choice = actionChoices.find(
+                    (item) => item.key === event.target.value,
+                  );
+                  if (choice) applyActionChoice(choice);
+                }}
               >
-                <Icon name={entryIcons[item]} size={18} />
-                <span>{t(entryTypeLabels[item])}</span>
-              </button>
-            ))}
-          </div>
+                <option value="">{t('İşlem seç')}</option>
+                {actionChoices.map((choice) => (
+                  <option key={choice.key} value={choice.key}>
+                    {choice.label}
+                    {choice.hint ? ` · ${choice.hint}` : ''}
+                  </option>
+                ))}
+              </select>
+            </label>
+          ) : null}
+
+          <label className="field">
+            <span>{t('Kayıt türü')}</span>
+            <select
+              className="select"
+              value={type}
+              onChange={(event) => {
+                setType(event.target.value as EntryType);
+                setActionChoiceKey('');
+                setDueAt('');
+              }}
+            >
+              {entryTypes.map((item) => (
+                <option key={item} value={item}>
+                  {t(entryTypeLabels[item])}
+                </option>
+              ))}
+            </select>
+          </label>
+
+          {type === 'measurement' && templateMeasurements.length > 0 ? (
+            <div className="suggestion-block measurement-block">
+              <span className="eyebrow">{t('Kategori ölçümü')}</span>
+              <div className="suggestion-row">
+                {templateMeasurements.map((measurement) => (
+                  <button
+                    type="button"
+                    key={measurement.key}
+                    className={`suggestion-chip${metric === measurement.key ? ' is-selected' : ''}`}
+                    onClick={() => chooseMetric(measurement.key)}
+                  >
+                    <Icon name="ruler" size={14} />
+                    <span>{measurement.label}</span>
+                    <small>{measurement.unit}</small>
+                  </button>
+                ))}
+              </div>
+              {metric ? (
+                <div className="measurement-input">
+                  <input
+                    className="input"
+                    type="number"
+                    step="any"
+                    value={metricValue}
+                    onChange={(event) => setMetricValue(event.target.value)}
+                    placeholder={t('Değer')}
+                    aria-label={t('Ölçüm değeri')}
+                  />
+                  <span>{metricUnit}</span>
+                </div>
+              ) : null}
+            </div>
+          ) : null}
 
           <label className="field">
             <span>{t('Başlık')}</span>
@@ -1210,12 +1406,17 @@ function EntryComposer({
                 className="input"
                 type="datetime-local"
                 value={dueAt}
-                onChange={(event) => setDueAt(event.target.value)}
+                onChange={(event) => {
+                  setDueAt(event.target.value);
+                  setError(null);
+                }}
                 min={nowLocalInput()}
                 required
               />
               <p className="muted-note">
-                {t('Zamanı geldiğinde uygulamada bildirim ve alarm oluşur.')}
+                {dueAt
+                  ? t('Zamanı geldiğinde uygulamada bildirim ve alarm oluşur.')
+                  : t('Hatırlatma için bir tarih ve saat seçin.')}
               </p>
             </label>
           ) : null}
@@ -1338,7 +1539,7 @@ function EntryEditModal({
   const [body, setBody] = useState(entry.body ?? '');
   const [occurredAt, setOccurredAt] = useState(isoToLocalInput(entry.occurredAt));
   const [dueAt, setDueAt] = useState(
-    entry.dueAt ? isoToLocalInput(entry.dueAt) : defaultReminderInput(),
+    entry.dueAt ? isoToLocalInput(entry.dueAt) : '',
   );
   const [locationName, setLocationName] = useState(entry.locationName ?? '');
   const [visibility, setVisibility] = useState<Visibility>(entry.visibility);
@@ -1652,6 +1853,17 @@ function EditAssetModal({
   const [status, setStatus] = useState(asset.status);
   const [acquiredAt, setAcquiredAt] = useState(asset.acquiredAt ?? '');
   const [locationName, setLocationName] = useState(asset.locationName ?? '');
+  const [attributes, setAttributes] = useState<Record<string, string>>(() =>
+    Object.fromEntries(
+      Object.entries(asset.attributes ?? {}).map(([key, value]) => [
+        key,
+        value === null || value === undefined ? '' : String(value),
+      ]),
+    ),
+  );
+  const [customFields, setCustomFields] = useState<CustomField[]>(() =>
+    (asset.customFields ?? []).map((field) => ({ ...field, value: field.value ?? '' })),
+  );
   const [cover, setCover] = useState<File | null>(null);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -1681,6 +1893,10 @@ function EditAssetModal({
         status,
         acquiredAt: acquiredAt || null,
         locationName: locationName || null,
+        attributes: Object.fromEntries(
+          Object.entries(attributes).filter(([, value]) => value.trim() !== ''),
+        ),
+        customFields: prepareCustomFields(customFields),
         ...(coverMediaId ? { coverMediaId } : {}),
       });
       if (isOwner && visibility === 'selected') {
@@ -1800,6 +2016,33 @@ function EditAssetModal({
                 maxLength={160}
               />
             </label>
+          </div>
+
+          {asset.template?.fields?.length ? (
+            <div className="form-subsection">
+              <div>
+                <h3>{t('Kategori alanları')}</h3>
+                <p>{t('Seçtiğin kategorinin hazır alanları.')}</p>
+              </div>
+              <TemplateFields
+                fields={asset.template.fields}
+                values={attributes}
+                onChange={setAttributes}
+                disabled={busy}
+              />
+            </div>
+          ) : null}
+
+          <div className="form-subsection">
+            <div>
+              <h3>{t('Özel alanlar')}</h3>
+              <p>{t('Hazır alanların dışında kendi bilgilerini ekleyebilirsin.')}</p>
+            </div>
+            <CustomFieldsEditor
+              value={customFields}
+              onChange={setCustomFields}
+              disabled={busy}
+            />
           </div>
 
           {visibility === 'selected' && isOwner ? (

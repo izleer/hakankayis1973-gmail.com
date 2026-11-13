@@ -15,12 +15,15 @@ import app.varlikhafizasi.data.Asset
 import app.varlikhafizasi.data.AssetAccess
 import app.varlikhafizasi.data.AssetDetail
 import app.varlikhafizasi.data.AssetType
+import app.varlikhafizasi.data.CustomField
 import app.varlikhafizasi.data.Entry
 import app.varlikhafizasi.data.FeedPost
 import app.varlikhafizasi.data.Friend
 import app.varlikhafizasi.data.FriendRequest
 import app.varlikhafizasi.data.Group
+import app.varlikhafizasi.data.GroupAssetDetailPayload
 import app.varlikhafizasi.data.GroupDetailPayload
+import app.varlikhafizasi.data.GroupSummary
 import app.varlikhafizasi.data.Measurement
 import app.varlikhafizasi.data.MeasurementInput
 import app.varlikhafizasi.data.NotificationPage
@@ -32,6 +35,11 @@ import app.varlikhafizasi.data.User
 import app.varlikhafizasi.data.UserMini
 import app.varlikhafizasi.data.VhException
 import app.varlikhafizasi.data.VhRepository
+import app.varlikhafizasi.data.local.AppMode
+import app.varlikhafizasi.data.local.LocalImportSummary
+import app.varlikhafizasi.data.local.LocalMigrator
+import app.varlikhafizasi.data.local.LocalStore
+import app.varlikhafizasi.data.local.ModeStore
 import app.varlikhafizasi.reminders.ReminderScheduler
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -52,9 +60,20 @@ data class SessionUi(
     val error: String? = null,
 )
 
+/** Buluta geçişte yerel kayıtların aktarım durumu. */
+data class MigrationUi(
+    val pending: Boolean = false,
+    val running: Boolean = false,
+    val done: Boolean = false,
+    val progress: String? = null,
+    val summary: LocalImportSummary? = null,
+    val error: String? = null,
+)
+
 data class HomeData(
     val stats: Stats,
     val assets: List<Asset>,
+    val groups: List<GroupSummary> = emptyList(),
 )
 
 data class DetailData(
@@ -81,6 +100,7 @@ data class GroupsData(
 data class GroupDetailData(
     val payload: GroupDetailPayload,
     val assets: List<Asset>,
+    val posts: List<FeedPost> = emptyList(),
 )
 
 data class FriendsData(
@@ -94,10 +114,19 @@ data class FriendsData(
 class VhViewModel(
     private val repository: VhRepository,
     private val appContext: Context,
+    private val modeStore: ModeStore = ModeStore(appContext),
+    private val localStore: LocalStore = LocalStore(appContext),
 ) : ViewModel() {
 
     private fun str(@StringRes id: Int, vararg args: Any): String =
         AppLanguage.string(appContext, id, *args)
+
+    /** null: açılış seçimi henüz okunmadı. */
+    private val _mode = MutableStateFlow<AppMode?>(null)
+    val mode: StateFlow<AppMode?> = _mode.asStateFlow()
+
+    private val _migration = MutableStateFlow(MigrationUi())
+    val migration: StateFlow<MigrationUi> = _migration.asStateFlow()
 
     private val _session = MutableStateFlow(SessionUi())
     val session: StateFlow<SessionUi> = _session.asStateFlow()
@@ -163,6 +192,17 @@ class VhViewModel(
     private val _group = MutableStateFlow(Loadable<GroupDetailData>())
     val group: StateFlow<Loadable<GroupDetailData>> = _group.asStateFlow()
 
+    private val _groupPick = MutableStateFlow(Loadable<List<Asset>>())
+    val groupPick: StateFlow<Loadable<List<Asset>>> = _groupPick.asStateFlow()
+
+    /** Gönderi oluştururken seçilen grubun varlığına ait kayıtlar. */
+    private val _groupEntries = MutableStateFlow(Loadable<List<Entry>>())
+    val groupEntries: StateFlow<Loadable<List<Entry>>> = _groupEntries.asStateFlow()
+
+    /** Grupta paylaşılan varlığın kapsamına göre açılan hikâyesi. */
+    private val _groupAsset = MutableStateFlow(Loadable<GroupAssetDetailPayload>())
+    val groupAsset: StateFlow<Loadable<GroupAssetDetailPayload>> = _groupAsset.asStateFlow()
+
     private val _friends = MutableStateFlow(Loadable<FriendsData>())
     val friends: StateFlow<Loadable<FriendsData>> = _friends.asStateFlow()
 
@@ -195,15 +235,119 @@ class VhViewModel(
     }
 
     // -----------------------------------------------------------------------
+    // Yerel / bulut modu
+    // -----------------------------------------------------------------------
+
+    fun chooseMode(target: AppMode) {
+        viewModelScope.launch {
+            modeStore.setMode(target)
+            _mode.value = target
+            if (target == AppMode.CLOUD) checkMigrationPending()
+        }
+    }
+
+    /**
+     * Yerel moddan bulut hesabına geçiş. Yerel veri varsa giriş sonrası
+     * otomatik aktarım için işaret bırakılır; kaynak veri silinmez.
+     */
+    fun switchToCloud() {
+        viewModelScope.launch {
+            if (localStore.hasData()) modeStore.setMigrationPending(true)
+            modeStore.setMode(AppMode.CLOUD)
+            _mode.value = AppMode.CLOUD
+            checkMigrationPending()
+        }
+    }
+
+    /** Bulut hesabından hesapsız yerel moda dönüş. */
+    fun switchToLocal() {
+        viewModelScope.launch {
+            ReminderScheduler.cancelAll(appContext)
+            modeStore.setMode(AppMode.LOCAL)
+            _mode.value = AppMode.LOCAL
+        }
+    }
+
+    fun startLocalMigrationIfPending() {
+        viewModelScope.launch {
+            if (_migration.value.running || _migration.value.done) return@launch
+            if (!modeStore.readMigrationPending()) return@launch
+            runLocalMigration()
+        }
+    }
+
+    fun retryLocalMigration() {
+        viewModelScope.launch { runLocalMigration() }
+    }
+
+    fun dismissMigration() {
+        _migration.value = MigrationUi()
+    }
+
+    private fun checkMigrationPending() {
+        viewModelScope.launch {
+            if (modeStore.readMigrationPending()) {
+                _migration.value = MigrationUi(pending = true)
+            }
+        }
+    }
+
+    private suspend fun runLocalMigration() {
+        _migration.value = MigrationUi(pending = true, running = true)
+        try {
+            val summary = LocalMigrator(repository, localStore).migrate { progress ->
+                _migration.value = _migration.value.copy(progress = progress)
+            }
+            modeStore.setMigrationPending(false)
+            _migration.value = MigrationUi(
+                pending = false,
+                done = true,
+                summary = summary,
+            )
+            loadReminders()
+            loadHome(showSpinner = false)
+        } catch (error: Throwable) {
+            _migration.value = MigrationUi(pending = true, error = messageOf(error))
+        }
+    }
+
+    private suspend fun activateCloudAfterLogin() {
+        modeStore.setMode(AppMode.CLOUD)
+        _mode.value = AppMode.CLOUD
+        if (localStore.hasData()) modeStore.setMigrationPending(true)
+        checkMigrationPending()
+    }
+
+    // -----------------------------------------------------------------------
     // Oturum
     // -----------------------------------------------------------------------
 
     private fun restore() {
         viewModelScope.launch {
+            val stored = modeStore.readMode()
+            if (stored == AppMode.LOCAL) {
+                // Yerel mod çevrimdışı açılır; bulut oturumu hiç yoklanmaz.
+                _mode.value = AppMode.LOCAL
+                _session.value = SessionUi(checking = false)
+                return@launch
+            }
+            val effective = when {
+                stored != AppMode.UNSET -> stored
+                repository.hasStoredSession() -> AppMode.CLOUD
+                else -> AppMode.UNSET
+            }
+            if (effective == AppMode.UNSET) {
+                _mode.value = AppMode.UNSET
+                _session.value = SessionUi(checking = false)
+                return@launch
+            }
+            _mode.value = effective
+            if (stored == AppMode.UNSET) modeStore.setMode(AppMode.CLOUD)
             _session.value = SessionUi(checking = true)
             try {
                 val user = repository.restoreSession()
                 _session.value = SessionUi(checking = false, user = user)
+                if (user != null) checkMigrationPending()
             } catch (error: Throwable) {
                 _session.value = SessionUi(checking = false, error = messageOf(error))
             }
@@ -222,6 +366,7 @@ class VhViewModel(
             _authError.value = null
             try {
                 val user = repository.login(identifier, password)
+                activateCloudAfterLogin()
                 _session.value = SessionUi(checking = false, user = user)
                 loadHome()
             } catch (error: Throwable) {
@@ -246,6 +391,7 @@ class VhViewModel(
             _authError.value = null
             try {
                 val user = repository.register(email, username, displayName, password)
+                activateCloudAfterLogin()
                 _session.value = SessionUi(checking = false, user = user)
                 loadHome()
             } catch (error: Throwable) {
@@ -276,6 +422,8 @@ class VhViewModel(
             _social.value = Loadable()
             _groups.value = Loadable()
             _group.value = Loadable()
+            _groupEntries.value = Loadable()
+            _groupAsset.value = Loadable()
             _friends.value = Loadable()
             _friendsBusy.value = false
         }
@@ -295,7 +443,11 @@ class VhViewModel(
             try {
                 val stats = repository.stats()
                 val assets = repository.assets().items
-                _home.value = Loadable(data = HomeData(stats, assets))
+                // Grup özeti ayrı bir uçtan gelir; eski sunucuda ana panel
+                // bozulmasın diye hata sessizce boş özete dönüşür.
+                val groups = runCatching { repository.groupSummary().items }
+                    .getOrDefault(emptyList())
+                _home.value = Loadable(data = HomeData(stats, assets, groups))
             } catch (error: Throwable) {
                 _home.value = Loadable(error = messageOf(error))
             }
@@ -568,19 +720,232 @@ class VhViewModel(
         }
     }
 
-    fun loadGroup(slug: String) {
+    fun loadGroup(slug: String, silent: Boolean = false) {
         viewModelScope.launch {
-            _group.value = Loadable(loading = true)
+            if (!silent) {
+                _group.value = Loadable(loading = true)
+                _groupEntries.value = Loadable()
+            }
             try {
                 val payload = repository.community(slug)
                 val assets = if (payload.isMember) {
-                    runCatching { repository.groupAssets(slug) }.getOrDefault(emptyList())
+                    // Grup başlığı yüklenebilse bile varlık listesi ayrı bir
+                    // istektir; hatayı sessizce yutmak boş liste gibi görünür.
+                    try {
+                        repository.groupAssets(slug)
+                    } catch (error: Throwable) {
+                        _notice.value = messageOf(error)
+                        emptyList()
+                    }
                 } else {
                     emptyList()
                 }
-                _group.value = Loadable(data = GroupDetailData(payload, assets))
+                val posts = if (payload.isMember) {
+                    // Akış da ayrı bir istektir; başlık yüklense bile hata
+                    // sessizce boş akışa dönüşmemeli.
+                    try {
+                        repository.groupFeed(slug)
+                    } catch (error: Throwable) {
+                        _notice.value = messageOf(error)
+                        emptyList()
+                    }
+                } else {
+                    emptyList()
+                }
+                _group.value = Loadable(data = GroupDetailData(payload, assets, posts))
             } catch (error: Throwable) {
-                _group.value = Loadable(error = messageOf(error))
+                if (silent) {
+                    _notice.value = messageOf(error)
+                } else {
+                    _group.value = Loadable(error = messageOf(error))
+                }
+            }
+        }
+    }
+
+    /** Grubu görüntülemek, panel özetindeki bu gruba ait sayaçları sıfırlar. */
+    fun markGroupSeen(slug: String) {
+        viewModelScope.launch {
+            try {
+                repository.markGroupSeen(slug)
+                _home.update { loadable ->
+                    val data = loadable.data ?: return@update loadable
+                    loadable.copy(
+                        data = data.copy(
+                            groups = data.groups.map { group ->
+                                if (group.slug == slug) {
+                                    group.copy(
+                                        unreadPosts = 0,
+                                        addedAssets = 0,
+                                        removedAssets = 0,
+                                    )
+                                } else {
+                                    group
+                                }
+                            },
+                        ),
+                    )
+                }
+            } catch (_: Throwable) {
+                // Sayaç bir sonraki panel yenilemesinde sunucudan düzelir.
+            }
+        }
+    }
+
+    /** Gönderi oluştururken seçilen varlığın kayıtlarını getirir. */
+    fun loadGroupAssetEntries(slug: String, assetId: String?) {
+        if (assetId.isNullOrBlank()) {
+            _groupEntries.value = Loadable(data = emptyList())
+            return
+        }
+        viewModelScope.launch {
+            _groupEntries.value = Loadable(loading = true)
+            try {
+                _groupEntries.value = Loadable(data = repository.groupAssetEntries(slug, assetId))
+            } catch (error: Throwable) {
+                _groupEntries.value = Loadable(error = messageOf(error))
+            }
+        }
+    }
+
+    /** Grupta paylaşılan varlığın, paylaşım kapsamına göre kayıtlarını getirir. */
+    fun loadGroupAsset(slug: String, assetId: String, silent: Boolean = false) {
+        viewModelScope.launch {
+            if (!silent || _groupAsset.value.data == null) {
+                _groupAsset.value = Loadable(loading = true)
+            }
+            try {
+                _groupAsset.value = Loadable(data = repository.groupAssetDetail(slug, assetId))
+            } catch (error: Throwable) {
+                _groupAsset.value = Loadable(error = messageOf(error))
+            }
+        }
+    }
+
+    fun clearGroupAsset() {
+        _groupAsset.value = Loadable()
+    }
+
+    fun createGroupPost(
+        slug: String,
+        communityId: String,
+        body: String,
+        mediaUris: List<Uri>,
+        assetId: String?,
+        entryId: String?,
+        onResult: (String?) -> Unit,
+    ) {
+        if (body.isBlank() && mediaUris.isEmpty()) {
+            onResult(str(R.string.groups_composer_required))
+            return
+        }
+        if (_groupBusy.value) return
+        viewModelScope.launch {
+            _groupBusy.value = true
+            try {
+                repository.createGroupPost(
+                    communityId = communityId,
+                    body = body,
+                    mediaUris = mediaUris,
+                    assetId = assetId,
+                    entryId = entryId,
+                )
+                _notice.value = str(R.string.notice_group_post_added)
+                loadGroup(slug, silent = true)
+                loadGroups(showSpinner = false)
+                onResult(null)
+            } catch (error: Throwable) {
+                onResult(messageOf(error))
+            } finally {
+                _groupBusy.value = false
+            }
+        }
+    }
+
+    fun deleteGroupPost(slug: String, postId: String) {
+        if (_groupBusy.value) return
+        viewModelScope.launch {
+            _groupBusy.value = true
+            try {
+                repository.deletePost(postId)
+                _notice.value = str(R.string.notice_group_post_deleted)
+                loadGroup(slug, silent = true)
+                loadGroups(showSpinner = false)
+            } catch (error: Throwable) {
+                _notice.value = messageOf(error)
+            } finally {
+                _groupBusy.value = false
+            }
+        }
+    }
+
+    /** Grup paylaşım diyaloğu için sahibi olunan varlıkları getirir. */
+    fun loadGroupPickAssets(force: Boolean = false) {
+        if (_groupPick.value.loading) return
+        if (!force && _groupPick.value.data != null) return
+        viewModelScope.launch {
+            _groupPick.value = _groupPick.value.copy(loading = true, error = null)
+            try {
+                _groupPick.value = Loadable(data = repository.assets().items)
+            } catch (error: Throwable) {
+                _groupPick.value = Loadable(error = messageOf(error))
+            }
+        }
+    }
+
+    fun shareGroupAsset(
+        slug: String,
+        assetId: String,
+        scope: String,
+        onResult: (String?) -> Unit,
+    ) {
+        if (_groupBusy.value) return
+        viewModelScope.launch {
+            _groupBusy.value = true
+            try {
+                repository.shareGroupAsset(slug, assetId, scope)
+                _notice.value = str(R.string.notice_group_asset_added)
+                loadGroup(slug, silent = true)
+                loadGroups(showSpinner = false)
+                onResult(null)
+            } catch (error: Throwable) {
+                onResult(messageOf(error))
+            } finally {
+                _groupBusy.value = false
+            }
+        }
+    }
+
+    fun updateGroupAssetScope(slug: String, assetId: String, scope: String, onDone: () -> Unit) {
+        if (_groupBusy.value) return
+        viewModelScope.launch {
+            _groupBusy.value = true
+            try {
+                repository.updateGroupAssetScope(slug, assetId, scope)
+                _notice.value = str(R.string.notice_group_asset_updated)
+                loadGroup(slug, silent = true)
+                onDone()
+            } catch (error: Throwable) {
+                _notice.value = messageOf(error)
+            } finally {
+                _groupBusy.value = false
+            }
+        }
+    }
+
+    fun removeGroupAsset(slug: String, assetId: String) {
+        if (_groupBusy.value) return
+        viewModelScope.launch {
+            _groupBusy.value = true
+            try {
+                repository.removeGroupAsset(slug, assetId)
+                _notice.value = str(R.string.notice_group_asset_removed)
+                loadGroup(slug, silent = true)
+                loadGroups(showSpinner = false)
+            } catch (error: Throwable) {
+                _notice.value = messageOf(error)
+            } finally {
+                _groupBusy.value = false
             }
         }
     }
@@ -781,6 +1146,9 @@ class VhViewModel(
         latitude: Double? = null,
         longitude: Double? = null,
         viewerIds: List<String> = emptyList(),
+        acquiredAt: String? = null,
+        attributes: Map<String, String> = emptyMap(),
+        customFields: List<CustomField> = emptyList(),
         onCreated: (String) -> Unit,
     ) {
         if (typeId.isBlank() || title.isBlank()) {
@@ -805,6 +1173,9 @@ class VhViewModel(
                     latitude = latitude,
                     longitude = longitude,
                     viewerIds = viewerIds,
+                    acquiredAt = acquiredAt,
+                    attributes = attributes,
+                    customFields = customFields,
                 )
                 loadHome()
                 loadAssets()
@@ -831,6 +1202,9 @@ class VhViewModel(
         longitude: Double? = null,
         clearLocation: Boolean = false,
         viewerIds: List<String> = emptyList(),
+        acquiredAt: String? = null,
+        attributes: Map<String, String>? = null,
+        customFields: List<CustomField>? = null,
         onSaved: (String) -> Unit,
     ) {
         if (typeId.isBlank() || title.isBlank()) {
@@ -857,6 +1231,9 @@ class VhViewModel(
                     longitude = longitude,
                     clearLocation = clearLocation,
                     viewerIds = viewerIds,
+                    acquiredAt = acquiredAt,
+                    attributes = attributes,
+                    customFields = customFields,
                 )
                 loadDetail(assetId)
                 loadHome()
@@ -1035,19 +1412,33 @@ class VhViewModel(
                     val data = current.data ?: return@update current
                     current.copy(
                         data = data.copy(
-                            posts = data.posts.map {
-                                if (it.id == post.id) {
-                                    it.copy(likedByMe = result.liked, likeCount = result.likeCount)
-                                } else {
-                                    it
-                                }
-                            },
+                            posts = data.posts.withLike(post.id, result.liked, result.likeCount),
+                        ),
+                    )
+                }
+                _group.update { current ->
+                    val data = current.data ?: return@update current
+                    current.copy(
+                        data = data.copy(
+                            posts = data.posts.withLike(post.id, result.liked, result.likeCount),
                         ),
                     )
                 }
             } catch (error: Throwable) {
                 _notice.value = messageOf(error)
             }
+        }
+    }
+
+    private fun List<FeedPost>.withLike(
+        postId: String,
+        liked: Boolean,
+        likeCount: Int,
+    ): List<FeedPost> = map {
+        if (it.id == postId) {
+            it.copy(likedByMe = liked, likeCount = likeCount)
+        } else {
+            it
         }
     }
 

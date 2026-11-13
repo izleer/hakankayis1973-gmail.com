@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { useMemo, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { uploadMedia, vh } from '@/lib/client';
 import {
   entryTypeLabels,
@@ -63,7 +63,7 @@ const categories = [
   'Diğer',
 ];
 
-type Tab = 'feed' | 'assets' | 'members' | 'manage';
+export type Tab = 'feed' | 'assets' | 'members' | 'manage';
 
 export function GroupDetail({
   data,
@@ -72,6 +72,7 @@ export function GroupDetail({
   initialRequests,
   myAssets,
   viewer,
+  initialTab = 'feed',
 }: {
   data: GroupDetailData;
   initialPosts: FeedPost[];
@@ -79,6 +80,7 @@ export function GroupDetail({
   initialRequests: GroupRequests | null;
   myAssets: Asset[];
   viewer: User;
+  initialTab?: Tab;
 }) {
   const { t, locale } = useI18n();
   const router = useRouter();
@@ -87,7 +89,7 @@ export function GroupDetail({
   const [assets, setAssets] = useState<GroupAsset[]>(initialAssets);
   const [posts, setPosts] = useState<FeedPost[]>(initialPosts);
   const [requests, setRequests] = useState<GroupRequests | null>(initialRequests);
-  const [tab, setTab] = useState<Tab>('feed');
+  const [tab, setTab] = useState<Tab>(initialTab);
   const [composerOpen, setComposerOpen] = useState(false);
   const [shareOpen, setShareOpen] = useState(false);
   const [inviteOpen, setInviteOpen] = useState(false);
@@ -100,6 +102,12 @@ export function GroupDetail({
   const isMember = group.membershipStatus === 'active';
   const isPending = group.membershipStatus === 'pending';
   const isOwner = group.owner?.id === viewer.id || role === 'owner';
+
+  // Grubu açmak, panel özetindeki okunmamış sayaçlarını sıfırlar.
+  useEffect(() => {
+    if (!isMember) return;
+    vh.post(`communities/${encodeURIComponent(group.slug)}/seen`).catch(() => {});
+  }, [group.slug, isMember]);
   const canManage =
     isOwner || role === 'admin' || role === 'moderator' || viewer.role === 'admin';
   const canChangeRoles = isOwner || role === 'admin' || viewer.role === 'admin';

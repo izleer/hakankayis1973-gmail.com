@@ -64,4 +64,21 @@
     <string name="assets_viewers_loading">Personen werden geladen…</string>
     <string name="assets_viewers_empty">Noch niemand in deiner Freundesliste. Du kannst zuerst Freunde hinzufügen.</string>
     <string name="error_asset_viewers_required">Wähle mindestens eine Person für die Sichtbarkeit „Ausgewählt“.</string>
+    <string name="assets_template_fields">Kategoriefelder</string>
+    <string name="assets_template_fields_hint">Vorbereitete Felder der gewählten Kategorie.</string>
+    <string name="assets_field_with_unit">%1$s (%2$s)</string>
+    <string name="assets_custom_fields">Eigene Felder</string>
+    <string name="assets_custom_fields_hint">Ergänze eigene Angaben über die vorbereiteten Felder hinaus.</string>
+    <string name="assets_custom_field_name">Feldname</string>
+    <string name="assets_custom_field_value">Wert</string>
+    <string name="assets_custom_field_type_label">Typ</string>
+    <string name="assets_custom_field_type_text">Text</string>
+    <string name="assets_custom_field_type_number">Zahl</string>
+    <string name="assets_custom_field_type_date">Datum</string>
+    <string name="assets_custom_field_add">Eigenes Feld hinzufügen</string>
+    <string name="assets_custom_field_remove">Eigenes Feld entfernen</string>
+    <string name="assets_template_actions">Ihre Aktion</string>
+    <string name="assets_template_reminders">Erinnerungsvorschläge</string>
+    <string name="assets_template_every_days">Alle %1$d Tage</string>
+    <string name="assets_template_measurement">Kategoriemessung</string>
 </resources>

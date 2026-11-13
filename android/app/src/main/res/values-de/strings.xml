@@ -39,6 +39,10 @@
     <string name="reminder_channel_description">Erinnerungen zu Objekten werden mit Alarmsignal und Vibration gemeldet.</string>
     <string name="reminder_notification_message">Erinnerung zu „%1$s“: %2$s</string>
     <string name="reminder_notification_fallback">Es ist Zeit für eine Erinnerung zu „%1$s“.</string>
+    <string name="reminder_alert_title">Erinnerungszeit</string>
+    <string name="reminder_alert_fallback">Die Erinnerung ist jetzt fällig.</string>
+    <string name="reminder_alert_open">Zum Objekt</string>
+    <string name="reminder_alert_dismiss">OK</string>
 
     <plurals name="common_entry_count">
         <item quantity="one">%1$d Eintrag</item>

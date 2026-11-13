@@ -64,4 +64,21 @@
     <string name="assets_viewers_loading">Cargando personas…</string>
     <string name="assets_viewers_empty">Aún no hay nadie en tu lista de amigos. Puedes añadir amigos primero.</string>
     <string name="error_asset_viewers_required">Elige al menos una persona para la visibilidad «Seleccionado».</string>
+    <string name="assets_template_fields">Campos de categoría</string>
+    <string name="assets_template_fields_hint">Campos preparados de la categoría elegida.</string>
+    <string name="assets_field_with_unit">%1$s (%2$s)</string>
+    <string name="assets_custom_fields">Campos personalizados</string>
+    <string name="assets_custom_fields_hint">Añade tus propios datos además de los campos preparados.</string>
+    <string name="assets_custom_field_name">Nombre del campo</string>
+    <string name="assets_custom_field_value">Valor</string>
+    <string name="assets_custom_field_type_label">Tipo</string>
+    <string name="assets_custom_field_type_text">Texto</string>
+    <string name="assets_custom_field_type_number">Número</string>
+    <string name="assets_custom_field_type_date">Fecha</string>
+    <string name="assets_custom_field_add">Añadir campo personalizado</string>
+    <string name="assets_custom_field_remove">Quitar campo personalizado</string>
+    <string name="assets_template_actions">Su acción</string>
+    <string name="assets_template_reminders">Recordatorios sugeridos</string>
+    <string name="assets_template_every_days">Cada %1$d días</string>
+    <string name="assets_template_measurement">Medición de categoría</string>
 </resources>

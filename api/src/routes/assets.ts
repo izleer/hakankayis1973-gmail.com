@@ -30,6 +30,7 @@ import { notify } from '../lib/notify.js';
 import type { Locale } from '../lib/locale.js';
 import { optionalViewer, requireViewer, type Viewer } from '../lib/session.js';
 import { mapAsset, mapEntry, mapUserMini, mediaForEntries } from '../lib/serialize.js';
+import { getCatalog, hasConfiguredTemplate, isSelectableType } from '../lib/templates.js';
 
 const listQuery = z.object({
   q: z.string().trim().max(120).optional(),
@@ -52,6 +53,18 @@ const isoDate = z.string().refine((value) => !Number.isNaN(Date.parse(value)), '
 
 const visibilityValues = ['private', 'selected', 'friends', 'public'] as const;
 
+const customField = z.object({
+  key: z
+    .string()
+    .trim()
+    .min(1)
+    .max(40)
+    .regex(/^[a-zA-Z0-9_-]+$/, 'Özel alan anahtarı yalnızca harf, rakam, - ve _ içerebilir.'),
+  label: z.string().trim().min(1).max(80),
+  type: z.enum(['text', 'number', 'date']).default('text'),
+  value: z.string().trim().max(500).nullable().optional(),
+});
+
 const createBody = z.object({
   typeId: z.string().trim().min(1).max(60),
   title: z.string().trim().min(1).max(120),
@@ -59,6 +72,7 @@ const createBody = z.object({
   visibility: z.enum(visibilityValues).default('private'),
   viewerIds: z.array(uuid).max(100).optional(),
   attributes: z.record(z.unknown()).default({}),
+  customFields: z.array(customField).max(30).default([]),
   locationName: z.string().trim().max(160).optional().nullable(),
   latitude: z.number().min(-90).max(90).optional().nullable(),
   longitude: z.number().min(-180).max(180).optional().nullable(),
@@ -86,6 +100,7 @@ const updateBody = z.object({
   viewerIds: z.array(uuid).max(100).optional(),
   status: z.enum(['active', 'archived']).optional(),
   attributes: z.record(z.unknown()).optional(),
+  customFields: z.array(customField).max(30).optional(),
   locationName: z.string().trim().max(160).optional().nullable(),
   latitude: z.number().min(-90).max(90).optional().nullable(),
   longitude: z.number().min(-180).max(180).optional().nullable(),
@@ -112,15 +127,19 @@ async function loadAsset(assetId: string, locale: Locale) {
   return mapAsset(row, locale);
 }
 
-async function assertLeafType(typeId: string): Promise<void> {
-  const row = await queryOne<{ id: string; is_active: boolean; child_count: string }>(
-    `SELECT t.id, t.is_active,
-            (SELECT count(*) FROM asset_types c WHERE c.parent_id = t.id) AS child_count
-     FROM asset_types t WHERE t.id = $1`,
+/**
+ * Kategori şablonu olan ara kategoriler (ör. Bitkiler) doğrudan seçilebilir;
+ * yalnızca gruplama amaçlı, şablonsuz üst kategoriler seçilemez.
+ */
+async function assertSelectableType(typeId: string): Promise<void> {
+  const row = await queryOne<{ id: string; is_active: boolean; attributes_schema: unknown }>(
+    `SELECT id, is_active, attributes_schema FROM asset_types WHERE id = $1`,
     [typeId],
   );
   if (!row || !row.is_active) throw new ApiError(422, 'INVALID_TYPE', 'Varlık türü bulunamadı.');
-  if (Number(row.child_count) > 0) {
+  const catalog = await getCatalog();
+  if (!catalog.has(typeId)) throw new ApiError(422, 'INVALID_TYPE', 'Varlık türü bulunamadı.');
+  if (!isSelectableType(catalog, typeId) && !hasConfiguredTemplate(row.attributes_schema)) {
     throw new ApiError(422, 'INVALID_TYPE', 'Lütfen alt kategori seçin.');
   }
 }
@@ -382,7 +401,7 @@ export async function assetRoutes(app: FastifyInstance): Promise<void> {
   app.post('/', async (req, reply) => {
     const viewer = await requireViewer(req);
     const body = parseBody(createBody, req.body);
-    await assertLeafType(body.typeId);
+    await assertSelectableType(body.typeId);
     if ((body.latitude === undefined) !== (body.longitude === undefined)) {
       throw new ApiError(422, 'INVALID_LOCATION', 'Enlem ve boylam birlikte girilmeli.');
     }
@@ -399,9 +418,9 @@ export async function assetRoutes(app: FastifyInstance): Promise<void> {
     const created = await transaction(async (client) => {
       const inserted = await client.query<{ id: string }>(
         `INSERT INTO assets
-           (owner_id, type_id, title, description, visibility, attributes, location_name,
-            latitude, longitude, acquired_at, cover_media_id)
-         VALUES ($1, $2, $3, $4, $5, $6::jsonb, $7, $8, $9, $10::date, $11)
+           (owner_id, type_id, title, description, visibility, attributes, custom_fields,
+            location_name, latitude, longitude, acquired_at, cover_media_id)
+         VALUES ($1, $2, $3, $4, $5, $6::jsonb, $7::jsonb, $8, $9, $10, $11::date, $12)
          RETURNING id`,
         [
           viewer.id,
@@ -410,6 +429,7 @@ export async function assetRoutes(app: FastifyInstance): Promise<void> {
           body.description?.trim() || null,
           body.visibility,
           JSON.stringify(body.attributes ?? {}),
+          JSON.stringify(body.customFields ?? []),
           body.locationName?.trim() || null,
           body.latitude ?? null,
           body.longitude ?? null,
@@ -710,7 +730,7 @@ export async function assetRoutes(app: FastifyInstance): Promise<void> {
     const { id } = z.object({ id: uuid }).parse(req.params);
     await requireEditableAsset(viewer, id);
     const body = parseBody(updateBody, req.body);
-    if (body.typeId) await assertLeafType(body.typeId);
+    if (body.typeId) await assertSelectableType(body.typeId);
     if (body.coverMediaId) await assertCover(body.coverMediaId, viewer.id);
     if ((body.latitude === undefined) !== (body.longitude === undefined)) {
       throw new ApiError(422, 'INVALID_LOCATION', 'Enlem ve boylam birlikte girilmeli.');
@@ -780,7 +800,8 @@ export async function assetRoutes(app: FastifyInstance): Promise<void> {
          latitude = CASE WHEN $18::boolean THEN NULL WHEN $11::boolean THEN $12 ELSE latitude END,
          longitude = CASE WHEN $18::boolean THEN NULL WHEN $11::boolean THEN $13 ELSE longitude END,
          acquired_at = CASE WHEN $14::boolean THEN $15::date ELSE acquired_at END,
-         cover_media_id = CASE WHEN $16::boolean THEN NULL WHEN $17::uuid IS NOT NULL THEN $17 ELSE cover_media_id END
+         cover_media_id = CASE WHEN $16::boolean THEN NULL WHEN $17::uuid IS NOT NULL THEN $17 ELSE cover_media_id END,
+         custom_fields = COALESCE($19::jsonb, custom_fields)
        WHERE id = $1`,
       [
         id,
@@ -801,6 +822,7 @@ export async function assetRoutes(app: FastifyInstance): Promise<void> {
         Boolean(body.removeCover),
         body.coverMediaId ?? null,
         Boolean(body.clearLocation),
+        body.customFields !== undefined ? JSON.stringify(body.customFields) : null,
       ],
     );
 

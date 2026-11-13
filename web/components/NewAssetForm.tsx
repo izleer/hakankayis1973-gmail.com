@@ -6,25 +6,33 @@ import { useMemo, useRef, useState } from 'react';
 import { uploadMedia, vh } from '@/lib/client';
 import { typeIconName, visibilityHints, visibilityLabels } from '@/lib/format';
 import { useT } from '@/lib/i18n/client';
-import type { Asset, AssetType, AttributeField, Visibility } from '@/lib/types';
+import type { Asset, AssetType, AttributeField, CustomField, Visibility } from '@/lib/types';
 import { Icon } from './Icons';
 import { MediaImage } from './MediaImage';
+import {
+  CustomFieldsEditor,
+  prepareCustomFields,
+  TemplateFields,
+} from './TemplateFieldsEditor';
 import { ViewerPicker } from './ViewerPicker';
 
-type Leaf = AssetType & { parentLabel: string | null };
+type Selectable = AssetType & { path: string[] };
 
-function flattenTypes(types: AssetType[]): Leaf[] {
-  const leaves: Leaf[] = [];
-  for (const root of types) {
-    if (root.children.length === 0) {
-      leaves.push({ ...root, parentLabel: null });
-    } else {
-      for (const child of root.children) {
-        if (child.children.length === 0) leaves.push({ ...child, parentLabel: root.label });
-      }
-    }
+function isSelectable(type: AssetType): boolean {
+  return (
+    type.isSelectable ??
+    (type.children.length === 0 || (type.attributesSchema?.fields?.length ?? 0) > 0)
+  );
+}
+
+/** Alt kategoriler dahil seçilebilir tüm türleri, üst kategori yoluyla birlikte toplar. */
+function collectSelectable(types: AssetType[], path: string[] = []): Selectable[] {
+  const items: Selectable[] = [];
+  for (const type of types) {
+    if (isSelectable(type)) items.push({ ...type, path });
+    items.push(...collectSelectable(type.children, [...path, type.label]));
   }
-  return leaves;
+  return items;
 }
 
 export function NewAssetForm({ types }: { types: AssetType[] }) {
@@ -39,6 +47,7 @@ export function NewAssetForm({ types }: { types: AssetType[] }) {
   const [visibility, setVisibility] = useState<Visibility>('private');
   const [viewerIds, setViewerIds] = useState<string[]>([]);
   const [attributes, setAttributes] = useState<Record<string, string>>({});
+  const [customFields, setCustomFields] = useState<CustomField[]>([]);
   const [cover, setCover] = useState<File | null>(null);
   const [preview, setPreview] = useState<string | null>(null);
   const [entryTitle, setEntryTitle] = useState('');
@@ -47,8 +56,8 @@ export function NewAssetForm({ types }: { types: AssetType[] }) {
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
 
-  const leaves = useMemo(() => flattenTypes(types), [types]);
-  const selected = leaves.find((leaf) => leaf.id === typeId) ?? null;
+  const selectable = useMemo(() => collectSelectable(types), [types]);
+  const selected = selectable.find((leaf) => leaf.id === typeId) ?? null;
   const fields: AttributeField[] = selected?.attributesSchema?.fields ?? [];
 
   function chooseCover(file: File | null) {
@@ -87,6 +96,7 @@ export function NewAssetForm({ types }: { types: AssetType[] }) {
         attributes: Object.fromEntries(
           Object.entries(attributes).filter(([, value]) => value !== ''),
         ),
+        customFields: prepareCustomFields(customFields),
         coverMediaId,
         initialEntry:
           entryTitle || entryBody
@@ -119,7 +129,8 @@ export function NewAssetForm({ types }: { types: AssetType[] }) {
         </div>
         <div className="type-groups">
           {types.map((root) => {
-            const options = root.children.length > 0 ? root.children : [root];
+            const options = collectSelectable([root]);
+            if (options.length === 0) return null;
             return (
               <div key={root.id} className="type-group">
                 <span className="type-group-label">
@@ -138,7 +149,12 @@ export function NewAssetForm({ types }: { types: AssetType[] }) {
                       }}
                     >
                       <Icon name={typeIconName(option.icon)} size={20} />
-                      <span>{option.label}</span>
+                      <span className="type-option-copy">
+                        <span>{option.label}</span>
+                        {option.path.length > 0 ? (
+                          <small>{option.path.slice(1).join(' · ')}</small>
+                        ) : null}
+                      </span>
                       {typeId === option.id ? (
                         <span className="type-check">
                           <Icon name="check" size={13} />
@@ -203,21 +219,36 @@ export function NewAssetForm({ types }: { types: AssetType[] }) {
               maxLength={160}
             />
           </label>
-          {fields.map((field) => (
-            <label className="field" key={field.key}>
-              <span>{field.label}</span>
-              <input
-                className="input"
-                type={field.type === 'date' ? 'date' : field.type === 'number' ? 'number' : 'text'}
-                value={attributes[field.key] ?? ''}
-                onChange={(event) =>
-                  setAttributes((current) => ({ ...current, [field.key]: event.target.value }))
-                }
-                placeholder={field.type === 'date' ? undefined : field.label}
-              />
-            </label>
-          ))}
         </div>
+
+        {selected && fields.length > 0 ? (
+          <div className="form-subsection">
+            <div>
+              <h3>{t('Kategori alanları')}</h3>
+              <p>{t('Seçtiğin kategorinin hazır alanları.')}</p>
+            </div>
+            <TemplateFields
+              fields={fields}
+              values={attributes}
+              onChange={setAttributes}
+              disabled={busy}
+            />
+          </div>
+        ) : null}
+
+        {selected ? (
+          <div className="form-subsection">
+            <div>
+              <h3>{t('Özel alanlar')}</h3>
+              <p>{t('Hazır alanların dışında kendi bilgilerini ekleyebilirsin.')}</p>
+            </div>
+            <CustomFieldsEditor
+              value={customFields}
+              onChange={setCustomFields}
+              disabled={busy}
+            />
+          </div>
+        ) : null}
       </section>
 
       <section className="form-section">

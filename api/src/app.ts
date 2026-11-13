@@ -23,6 +23,7 @@ import { userRoutes } from './routes/users.js';
 import { notificationRoutes } from './routes/notifications.js';
 import { safetyRoutes } from './routes/safety.js';
 import { adminRoutes } from './routes/admin.js';
+import { adminAssetTypeRoutes } from './routes/admin-asset-types.js';
 import { searchRoutes } from './routes/search.js';
 import { statsRoutes } from './routes/stats.js';
 import { socialRoutes } from './routes/social.js';
@@ -241,6 +242,7 @@ export async function buildApp(): Promise<FastifyInstance> {
   await app.register(notificationRoutes, { prefix: '/v1/notifications' });
   await app.register(safetyRoutes, { prefix: '/v1' });
   await app.register(adminRoutes, { prefix: '/v1/admin' });
+  await app.register(adminAssetTypeRoutes, { prefix: '/v1/admin/asset-types' });
   await app.register(searchRoutes, { prefix: '/v1/search' });
   await app.register(statsRoutes, { prefix: '/v1/stats' });
   await app.register(socialRoutes, { prefix: '/v1/social' });

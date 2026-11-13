@@ -67,6 +67,20 @@ const assets = {
   Vazgeç: 'Cancelar',
   'Kaydediliyor…': 'Guardando…',
   'Hafızaya ekle': 'Añadir a la memoria',
+  'Kategori alanları': 'Campos de categoría',
+  'Seçtiğin kategorinin hazır alanları.':
+    'Campos predefinidos para la categoría elegida.',
+  'Özel alanlar': 'Campos personalizados',
+  'Hazır alanların dışında kendi bilgilerini ekleyebilirsin.':
+    'Además de los campos predefinidos, puedes añadir tus propios datos.',
+  'Henüz özel alan yok. İhtiyacına göre kendi alanını ekleyebilirsin.':
+    'Aún no hay campos personalizados. Añade tus propios campos según lo necesites.',
+  'Alan adı': 'Nombre del campo',
+  'Alan türü': 'Tipo de campo',
+  Metin: 'Texto',
+  Sayı: 'Número',
+  'Alanı kaldır': 'Quitar campo',
+  'Özel alan ekle': 'Añadir campo personalizado',
 } as const;
 
 export default assets;

@@ -39,6 +39,10 @@
     <string name="reminder_channel_description">Asset reminders alert you with an alarm sound and vibration.</string>
     <string name="reminder_notification_message">Reminder for “%1$s”: %2$s</string>
     <string name="reminder_notification_fallback">It’s time for a reminder about “%1$s”.</string>
+    <string name="reminder_alert_title">Reminder time</string>
+    <string name="reminder_alert_fallback">The reminder is due now.</string>
+    <string name="reminder_alert_open">Go to asset</string>
+    <string name="reminder_alert_dismiss">OK</string>
 
     <plurals name="common_entry_count">
         <item quantity="one">%1$d entry</item>

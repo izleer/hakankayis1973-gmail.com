@@ -15,7 +15,16 @@
     <string name="home_entry_fallback">Entrée</string>
     <string name="home_quote">« Garder une chose,\nc\'est pour la regarder à nouveau. »</string>
     <string name="home_quote_attribution">izleer · archive quotidienne</string>
+    <string name="home_groups_label">GROUPES</string>
+    <string name="home_groups_unread">Non lus</string>
+    <string name="home_groups_added">Ajoutés</string>
+    <string name="home_groups_removed">Retirés</string>
+    <string name="home_groups_all">Tous les groupes</string>
 
+    <plurals name="home_groups_count">
+        <item quantity="one">%1$d groupe</item>
+        <item quantity="other">%1$d groupes</item>
+    </plurals>
     <plurals name="home_summary_assets">
         <item quantity="one">%1$d bien</item>
         <item quantity="other">%1$d biens</item>

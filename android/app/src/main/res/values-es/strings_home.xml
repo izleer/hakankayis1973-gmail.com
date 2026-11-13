@@ -15,7 +15,16 @@
     <string name="home_entry_fallback">Registro</string>
     <string name="home_quote">«Guardar algo es\npara volver a mirarlo.»</string>
     <string name="home_quote_attribution">izleer · archivo diario</string>
+    <string name="home_groups_label">GRUPOS</string>
+    <string name="home_groups_unread">Sin leer</string>
+    <string name="home_groups_added">Añadidos</string>
+    <string name="home_groups_removed">Retirados</string>
+    <string name="home_groups_all">Todos los grupos</string>
 
+    <plurals name="home_groups_count">
+        <item quantity="one">%1$d grupo</item>
+        <item quantity="other">%1$d grupos</item>
+    </plurals>
     <plurals name="home_summary_assets">
         <item quantity="one">%1$d bien</item>
         <item quantity="other">%1$d bienes</item>

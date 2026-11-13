@@ -39,6 +39,10 @@
     <string name="reminder_channel_description">Les rappels de biens sont signalés par une sonnerie d\'alarme et des vibrations.</string>
     <string name="reminder_notification_message">Rappel pour « %1$s » : %2$s</string>
     <string name="reminder_notification_fallback">Il est temps d\'un rappel pour « %1$s ».</string>
+    <string name="reminder_alert_title">Heure du rappel</string>
+    <string name="reminder_alert_fallback">Le rappel est arrivé à échéance.</string>
+    <string name="reminder_alert_open">Ouvrir l\'objet</string>
+    <string name="reminder_alert_dismiss">OK</string>
 
     <plurals name="common_entry_count">
         <item quantity="one">%1$d entrée</item>

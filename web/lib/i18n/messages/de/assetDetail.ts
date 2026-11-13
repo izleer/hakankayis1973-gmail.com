@@ -208,6 +208,13 @@ const assetDetail = {
   'Ortak yönetim ayarlanamadı.': 'Gemeinsame Verwaltung konnte nicht eingerichtet werden.',
   'Kişi listesini yalnızca varlık sahibi yönetir.':
     'Nur der Eigentümer des Objekts verwaltet die Personenliste.',
+  'İşleminiz': 'Ihre Aktion',
+  '{label} hatırlatması': 'Erinnerung: {label}',
+  'İşlem seç': 'Aktion wählen',
+  '{days} günde bir': 'alle {days} Tage',
+  'Kategori ölçümü': 'Kategoriemessung',
+  'Ölçüm değeri': 'Messwert',
+  'Ölçüm değeri sayı olmalı.': 'Der Messwert muss eine Zahl sein.',
 } as const;
 
 export default assetDetail;

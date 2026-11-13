@@ -49,6 +49,17 @@ const home = {
   'Son eklenenler': 'Añadidos recientemente',
   Arşivden: 'Desde el archivo',
   'Tüm arşiv': 'Todo el archivo',
+
+  // Resumen de grupos
+  Grupların: 'Tus grupos',
+  'Grup özeti': 'Resumen de grupos',
+  'Tüm gruplar': 'Todos los grupos',
+  '{count} üye': { one: '{count} miembro', other: '{count} miembros' },
+  'Okunmamış akış': 'Feed sin leer',
+  'Eklenen varlık': 'Bienes añadidos',
+  'Çıkarılan varlık': 'Bienes retirados',
+  'Sayaçlar grubu son açtığından bu yana birikenleri gösterir.':
+    'Los contadores muestran lo acumulado desde la última vez que abriste el grupo.',
 } as const;
 
 export default home;

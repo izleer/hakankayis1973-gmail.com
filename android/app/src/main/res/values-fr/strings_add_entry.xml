@@ -6,6 +6,10 @@
     <string name="add_entry_intro">Un entretien, un instant, une mesure… Quoi que ce soit, qu\'il reste avec sa date.</string>
 
     <string name="add_entry_section_type">Type d\'entrée</string>
+    <string name="add_entry_select_action">Choisir une action</string>
+    <string name="add_entry_reminder_option">Rappel : %1$s</string>
+    <string name="add_entry_reminder_pick">Choisir une date et une heure</string>
+    <string name="add_entry_reminder_required">Tu dois choisir une date et une heure pour le rappel.</string>
     <string name="add_entry_field_title">Titre (facultatif)</string>
     <string name="add_entry_field_notes">Notes</string>
     <string name="add_entry_notes_placeholder">Qu\'avez-vous fait, qu\'est-ce qui a changé, qu\'avez-vous ressenti ?</string>

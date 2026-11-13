@@ -6,6 +6,7 @@ import { Icon } from './Icons';
 import { LocaleSwitcher } from './LocaleSwitcher';
 import { LogoutButton } from './LogoutButton';
 import { MobileNav, SideNav } from './SideNav';
+import { ReminderAlert } from './ReminderAlert';
 
 export async function AppShell({ user, children }: { user: User; children: React.ReactNode }) {
   const t = await getT();
@@ -65,6 +66,7 @@ export async function AppShell({ user, children }: { user: User; children: React
           {children}
         </div>
         <MobileNav />
+        <ReminderAlert />
       </div>
     </div>
   );

@@ -67,6 +67,20 @@ const assets = {
   Vazgeç: 'Abbrechen',
   'Kaydediliyor…': 'Wird gespeichert…',
   'Hafızaya ekle': 'Zum Gedächtnis hinzufügen',
+  'Kategori alanları': 'Kategoriefelder',
+  'Seçtiğin kategorinin hazır alanları.':
+    'Vordefinierte Felder der gewählten Kategorie.',
+  'Özel alanlar': 'Eigene Felder',
+  'Hazır alanların dışında kendi bilgilerini ekleyebilirsin.':
+    'Neben den vordefinierten Feldern kannst du eigene Angaben hinzufügen.',
+  'Henüz özel alan yok. İhtiyacına göre kendi alanını ekleyebilirsin.':
+    'Noch keine eigenen Felder. Füge bei Bedarf eigene Felder hinzu.',
+  'Alan adı': 'Feldname',
+  'Alan türü': 'Feldtyp',
+  Metin: 'Text',
+  Sayı: 'Zahl',
+  'Alanı kaldır': 'Feld entfernen',
+  'Özel alan ekle': 'Eigenes Feld hinzufügen',
 } as const;
 
 export default assets;

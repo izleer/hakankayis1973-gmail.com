@@ -121,6 +121,7 @@ const sharedAssetSelect = `
          mc.id AS manager_id, mc.slug AS manager_slug, mc.name AS manager_name,
          t.label AS type_label, t.parent_id AS type_parent_id, t.icon AS type_icon,
          cm.storage_key AS cover_storage_key,
+         ab.id AS added_by_id,
          ab.username AS added_by_username, ab.display_name AS added_by_display_name,
          ab.avatar_url AS added_by_avatar_url,
          (SELECT count(*) FROM journal_entries je
@@ -584,6 +585,21 @@ export async function communityRoutes(app: FastifyInstance): Promise<void> {
     return reply.status(201).send({ data: { joined: true, pending: false } });
   });
 
+  // Üye grubu açtığında panel özetindeki okunmamış sayaçlar sıfırlanır.
+  app.post('/:slug/seen', async (req) => {
+    const viewer = await requireViewer(req);
+    const { slug } = z.object({ slug: z.string().min(1).max(60) }).parse(req.params);
+    const community = await loadCommunity(slug);
+    await requireMember(community.id, viewer.id);
+    const row = await queryOne<{ last_seen_at: Date }>(
+      `UPDATE memberships SET last_seen_at = now()
+       WHERE community_id = $1 AND user_id = $2 AND status = 'active'
+       RETURNING last_seen_at`,
+      [community.id, viewer.id],
+    );
+    return { data: { seenAt: iso(row?.last_seen_at) } };
+  });
+
   app.delete('/:slug/join', async (req, reply) => {
     const viewer = await requireViewer(req);
     const { slug } = z.object({ slug: z.string().min(1).max(60) }).parse(req.params);
@@ -923,7 +939,8 @@ export async function communityRoutes(app: FastifyInstance): Promise<void> {
          added_by_user_id = EXCLUDED.added_by_user_id,
          visibility_scope = EXCLUDED.visibility_scope,
          status = 'active',
-         shared_at = now()
+         shared_at = now(),
+         removed_at = NULL
        RETURNING *`,
       [community.id, body.assetId, viewer.id, body.scope],
     );
@@ -965,7 +982,12 @@ export async function communityRoutes(app: FastifyInstance): Promise<void> {
     await query(
       `UPDATE group_assets SET
          visibility_scope = COALESCE($3::group_asset_scope, visibility_scope),
-         status = COALESCE($4::group_asset_status, status)
+         status = COALESCE($4::group_asset_status, status),
+         removed_at = CASE
+           WHEN $4::group_asset_status = 'removed' THEN COALESCE(removed_at, now())
+           WHEN $4::group_asset_status = 'active' THEN NULL
+           ELSE removed_at
+         END
        WHERE id = $1 AND community_id = $2`,
       [share.id, community.id, body.scope ?? null, body.status ?? null],
     );
@@ -987,7 +1009,10 @@ export async function communityRoutes(app: FastifyInstance): Promise<void> {
     if (asset?.owner_id !== viewer.id && !canManageCommunity(role)) {
       forbidden('Bu paylaşımı kaldırma yetkiniz yok.');
     }
-    await query(`UPDATE group_assets SET status = 'removed' WHERE id = $1`, [share.id]);
+    await query(
+      `UPDATE group_assets SET status = 'removed', removed_at = now() WHERE id = $1`,
+      [share.id],
+    );
     return reply.status(204).send();
   });
 

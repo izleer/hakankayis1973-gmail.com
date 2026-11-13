@@ -1142,3 +1142,114 @@
     display: none;
   }
 }
+
+/* --- Panel grup özeti --- */
+
+.group-summary-section {
+  margin-top: 26px;
+}
+
+.group-summary {
+  display: grid;
+  gap: 10px;
+  margin-top: 16px;
+}
+
+.group-summary-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1.5fr) repeat(3, minmax(0, 1fr));
+  gap: 10px;
+  align-items: stretch;
+  padding: 10px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: rgba(251, 248, 241, 0.72);
+  box-shadow: var(--shadow-sm);
+}
+
+.group-summary-name {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 2px;
+  min-width: 0;
+  padding: 6px 8px;
+  color: var(--ink);
+  text-decoration: none;
+}
+
+.group-summary-name strong {
+  overflow: hidden;
+  font-family: var(--serif);
+  font-size: 1.02rem;
+  font-weight: 500;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.group-summary-name small {
+  color: var(--ink-faint);
+  font-size: 0.7rem;
+}
+
+.group-summary-link {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 1px;
+  padding: 7px 10px;
+  border-radius: 10px;
+  background: var(--paper-deep);
+  color: var(--ink-soft);
+  text-decoration: none;
+  transition: background 0.18s ease, color 0.18s ease;
+}
+
+.group-summary-link strong {
+  font-family: var(--serif);
+  font-size: 1.18rem;
+  font-weight: 500;
+  line-height: 1.1;
+}
+
+.group-summary-link small {
+  overflow: hidden;
+  color: var(--ink-faint);
+  font-size: 0.64rem;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.group-summary-link:hover,
+.group-summary-link.is-activity {
+  background: var(--terracotta-pale);
+  color: var(--clay);
+}
+
+.group-summary-link:hover small,
+.group-summary-link.is-activity small {
+  color: var(--clay);
+}
+
+.group-summary-note {
+  margin-top: 10px;
+  color: var(--ink-faint);
+  font-size: 0.72rem;
+}
+
+@media (max-width: 720px) {
+  .group-summary-row {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
+  .group-summary-name {
+    grid-column: 1 / -1;
+    flex-direction: row;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 8px;
+    padding: 4px 6px 6px;
+  }
+}

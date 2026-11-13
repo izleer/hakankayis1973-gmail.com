@@ -27,6 +27,9 @@ interface VhApi {
     @GET("v1/stats")
     suspend fun stats(): Envelope<Stats>
 
+    @GET("v1/stats/groups")
+    suspend fun groupSummary(): Envelope<GroupSummaryPayload>
+
     @GET("v1/asset-types")
     suspend fun assetTypes(): Envelope<AssetTypesPayload>
 
@@ -128,8 +131,15 @@ interface VhApi {
         @Query("scope") scope: String = "explore",
         @Query("limit") limit: Int = 30,
         @Query("author") author: String? = null,
+        @Query("community") community: String? = null,
         @Query("cursor") cursor: String? = null,
     ): Envelope<FeedPage>
+
+    @POST("v1/posts")
+    suspend fun createPost(@Body body: CreatePostRequest): Envelope<PostPayload>
+
+    @DELETE("v1/posts/{id}")
+    suspend fun deletePost(@Path("id") id: String)
 
     @POST("v1/posts/{id}/like")
     suspend fun like(@Path("id") id: String): Envelope<LikeResult>
@@ -214,6 +224,9 @@ interface VhApi {
     @POST("v1/communities/{slug}/join")
     suspend fun joinCommunity(@Path("slug") slug: String): Envelope<GroupJoinResult>
 
+    @POST("v1/communities/{slug}/seen")
+    suspend fun markGroupSeen(@Path("slug") slug: String): Envelope<GroupSeenPayload>
+
     @POST("v1/communities/{slug}/invitations")
     suspend fun inviteToCommunity(
         @Path("slug") slug: String,
@@ -225,6 +238,31 @@ interface VhApi {
 
     @GET("v1/communities/{slug}/assets")
     suspend fun groupAssets(@Path("slug") slug: String): Envelope<GroupAssetsPayload>
+
+    @GET("v1/communities/{slug}/assets/{assetId}")
+    suspend fun groupAssetDetail(
+        @Path("slug") slug: String,
+        @Path("assetId") assetId: String,
+    ): Envelope<GroupAssetDetailPayload>
+
+    @POST("v1/communities/{slug}/assets")
+    suspend fun shareGroupAsset(
+        @Path("slug") slug: String,
+        @Body body: GroupAssetShareRequest,
+    ): Envelope<GroupAssetSharePayload>
+
+    @PATCH("v1/communities/{slug}/assets/{assetId}")
+    suspend fun updateGroupAssetScope(
+        @Path("slug") slug: String,
+        @Path("assetId") assetId: String,
+        @Body body: GroupAssetScopeRequest,
+    ): Envelope<OkResponse>
+
+    @DELETE("v1/communities/{slug}/assets/{assetId}")
+    suspend fun removeGroupAsset(
+        @Path("slug") slug: String,
+        @Path("assetId") assetId: String,
+    )
 }
 
 @kotlinx.serialization.Serializable

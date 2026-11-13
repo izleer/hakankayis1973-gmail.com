@@ -28,6 +28,7 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.AddPhotoAlternate
 import androidx.compose.material.icons.outlined.Alarm
+import androidx.compose.material.icons.outlined.ArrowDropDown
 import androidx.compose.material.icons.outlined.CalendarMonth
 import androidx.compose.material.icons.outlined.Close
 import androidx.compose.material.icons.outlined.Edit
@@ -37,6 +38,8 @@ import androidx.compose.material.icons.outlined.Place
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -66,6 +69,7 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import app.varlikhafizasi.R
 import app.varlikhafizasi.data.MeasurementInput
+import app.varlikhafizasi.data.TemplateMeasurement
 import app.varlikhafizasi.ui.VhViewModel
 import app.varlikhafizasi.ui.components.ErrorBox
 import app.varlikhafizasi.ui.components.GoldRule
@@ -81,6 +85,7 @@ import app.varlikhafizasi.ui.components.visibilityLabel
 import app.varlikhafizasi.ui.theme.Clay
 import app.varlikhafizasi.ui.theme.Danger
 import app.varlikhafizasi.ui.theme.Forest
+import app.varlikhafizasi.ui.theme.Ivory
 import app.varlikhafizasi.ui.theme.Line
 import app.varlikhafizasi.ui.theme.Muted
 import app.varlikhafizasi.ui.theme.Paper
@@ -95,16 +100,15 @@ private val entryTypes = listOf(
     "reminder",
 )
 
-/** Hatırlatma için makul başlangıç: yarın sabah 09:00. */
-private fun defaultReminderAt(): Long {
-    val calendar = Calendar.getInstance()
-    calendar.add(Calendar.DAY_OF_MONTH, 1)
-    calendar.set(Calendar.HOUR_OF_DAY, 9)
-    calendar.set(Calendar.MINUTE, 0)
-    calendar.set(Calendar.SECOND, 0)
-    calendar.set(Calendar.MILLISECOND, 0)
-    return calendar.timeInMillis
-}
+/** "İşleminiz" listesindeki normal işlem ve hatırlatma seçenekleri. */
+private data class ActionChoice(
+    val key: String,
+    val label: String,
+    val hint: String?,
+    val entryType: String,
+    val title: String,
+    val isReminder: Boolean,
+)
 
 private val UriStateSaver = Saver<Uri?, String>(
     save = { it?.toString().orEmpty() },
@@ -134,6 +138,7 @@ fun AddEntryScreen(
     val draft = if (editing) entryState.data else null
 
     var type by rememberSaveable { mutableStateOf("note") }
+    var actionChoiceKey by rememberSaveable { mutableStateOf("") }
     var title by rememberSaveable { mutableStateOf("") }
     var body by rememberSaveable { mutableStateOf("") }
     var visibility by rememberSaveable { mutableStateOf("private") }
@@ -150,7 +155,8 @@ fun AddEntryScreen(
     var mediaUris by rememberSaveable(stateSaver = UriListStateSaver) { mutableStateOf<List<Uri>>(emptyList()) }
     var pendingMediaUri by rememberSaveable(stateSaver = UriStateSaver) { mutableStateOf<Uri?>(null) }
     var occurredAt by rememberSaveable { mutableStateOf(System.currentTimeMillis()) }
-    var dueAt by rememberSaveable { mutableStateOf(defaultReminderAt()) }
+    var dueAt by rememberSaveable { mutableStateOf<Long?>(null) }
+    var localError by rememberSaveable { mutableStateOf<String?>(null) }
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
     val cameraUnavailable = stringResource(R.string.media_camera_unavailable)
@@ -196,6 +202,59 @@ fun AddEntryScreen(
     val asset = state.data?.detail?.asset
     val assetTitle = asset?.title ?: stringResource(R.string.common_asset)
     val assetVisibility = asset?.visibility ?: "private"
+    val templateActions = asset?.template?.actions ?: emptyList()
+    val templateReminders = asset?.template?.reminders ?: emptyList()
+    val templateMeasurements = asset?.template?.measurements ?: emptyList()
+
+    fun applyActionChoice(choice: ActionChoice) {
+        type = choice.entryType
+        actionChoiceKey = choice.key
+        localError = null
+        // Hatırlatma seçildiğinde tarih/saat sahibi tarafından girilmeli.
+        if (choice.isReminder) {
+            dueAt = null
+            openDateTimePicker(System.currentTimeMillis(), System.currentTimeMillis()) {
+                dueAt = it
+            }
+        }
+        if (title.isBlank()) title = choice.title
+    }
+
+    val actionChoices = buildList {
+        templateActions.forEach { action ->
+            add(
+                ActionChoice(
+                    key = "action-${action.key}",
+                    label = action.label,
+                    hint = null,
+                    entryType = action.entryType,
+                    title = action.label,
+                    isReminder = false,
+                ),
+            )
+        }
+        templateReminders.forEach { reminder ->
+            add(
+                ActionChoice(
+                    key = "reminder-${reminder.key}",
+                    label = stringResource(R.string.add_entry_reminder_option, reminder.label),
+                    hint = stringResource(
+                        R.string.assets_template_every_days,
+                        reminder.intervalDays,
+                    ),
+                    entryType = "reminder",
+                    title = reminder.label,
+                    isReminder = true,
+                ),
+            )
+        }
+    }
+
+    fun chooseMetric(item: TemplateMeasurement) {
+        metric = item.key
+        unit = item.unit
+        type = "measurement"
+    }
 
     LaunchedEffect(assetId) {
         if (state.data?.detail?.asset?.id != assetId) vm.loadDetail(assetId)
@@ -239,7 +298,6 @@ fun AddEntryScreen(
             .getOrDefault(System.currentTimeMillis())
         dueAt = entry.dueAt
             ?.let { runCatching { Instant.parse(it).toEpochMilli() }.getOrNull() }
-            ?: defaultReminderAt()
         seeded = true
     }
 
@@ -331,19 +389,29 @@ fun AddEntryScreen(
             )
 
             Spacer(Modifier.height(20.dp))
-            SectionLabel(stringResource(R.string.add_entry_section_type))
-            FlowRow(
-                horizontalArrangement = Arrangement.spacedBy(7.dp),
-                verticalArrangement = Arrangement.spacedBy(7.dp),
-            ) {
-                entryTypes.forEach { typeKey ->
-                    Pill(
-                        text = entryTypeLabel(typeKey),
-                        selected = type == typeKey,
-                        onClick = { type = typeKey },
-                    )
-                }
+            if (actionChoices.isNotEmpty()) {
+                SectionLabel(stringResource(R.string.assets_template_actions))
+                SectionDropdown(
+                    selectedLabel = actionChoices.firstOrNull { it.key == actionChoiceKey }?.label,
+                    placeholder = stringResource(R.string.add_entry_select_action),
+                    enabled = !busy,
+                    options = actionChoices.map { it.label to it.hint },
+                    onSelect = { applyActionChoice(actionChoices[it]) },
+                )
+                Spacer(Modifier.height(14.dp))
             }
+            SectionLabel(stringResource(R.string.add_entry_section_type))
+            SectionDropdown(
+                selectedLabel = entryTypeLabel(type),
+                placeholder = entryTypeLabel("note"),
+                enabled = !busy,
+                options = entryTypes.map { entryTypeLabel(it) to null },
+                onSelect = {
+                    type = entryTypes[it]
+                    actionChoiceKey = ""
+                    dueAt = null
+                },
+            )
 
             Spacer(Modifier.height(18.dp))
             OutlinedTextField(
@@ -418,9 +486,12 @@ fun AddEntryScreen(
                         .fillMaxWidth()
                         .clickable {
                             openDateTimePicker(
-                                dueAt,
+                                dueAt ?: System.currentTimeMillis(),
                                 if (editing) null else System.currentTimeMillis(),
-                            ) { dueAt = it }
+                            ) {
+                                dueAt = it
+                                localError = null
+                            }
                         },
                 ) {
                     Row(
@@ -436,9 +507,10 @@ fun AddEntryScreen(
                         Spacer(Modifier.size(10.dp))
                         Column(Modifier.weight(1f)) {
                             Text(
-                                formatDateTime(dueAt),
+                                dueAt?.let { formatDateTime(it) }
+                                    ?: stringResource(R.string.add_entry_reminder_pick),
                                 style = MaterialTheme.typography.titleSmall,
-                                color = Forest,
+                                color = if (dueAt == null) Clay else Forest,
                             )
                             Text(
                                 stringResource(R.string.add_entry_reminder_change),
@@ -453,6 +525,14 @@ fun AddEntryScreen(
                             modifier = Modifier.size(18.dp),
                         )
                     }
+                }
+                localError?.let { message ->
+                    Text(
+                        message,
+                        style = MaterialTheme.typography.bodySmall,
+                        color = Danger,
+                        modifier = Modifier.padding(top = 5.dp),
+                    )
                 }
                 Text(
                     stringResource(
@@ -581,6 +661,31 @@ fun AddEntryScreen(
 
             if (type == "measurement") {
                 Spacer(Modifier.height(16.dp))
+                if (templateMeasurements.isNotEmpty()) {
+                    Text(
+                        stringResource(R.string.assets_template_measurement),
+                        style = MaterialTheme.typography.labelSmall,
+                        color = Clay,
+                    )
+                    Spacer(Modifier.height(6.dp))
+                    FlowRow(
+                        horizontalArrangement = Arrangement.spacedBy(7.dp),
+                        verticalArrangement = Arrangement.spacedBy(7.dp),
+                    ) {
+                        templateMeasurements.forEach { measurement ->
+                            Pill(
+                                text = if (measurement.unit.isNotBlank()) {
+                                    "${measurement.label} (${measurement.unit})"
+                                } else {
+                                    measurement.label
+                                },
+                                selected = metric == measurement.key,
+                                onClick = { chooseMetric(measurement) },
+                            )
+                        }
+                    }
+                    Spacer(Modifier.height(10.dp))
+                }
                 SectionLabel(stringResource(R.string.add_entry_section_measurement))
                 Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                     OutlinedTextField(
@@ -785,6 +890,11 @@ fun AddEntryScreen(
         ) {
             Button(
                 onClick = {
+                    if (type == "reminder" && dueAt == null) {
+                        localError = context.getString(R.string.add_entry_reminder_required)
+                        return@Button
+                    }
+                    localError = null
                     val measurement = if (type == "measurement") {
                         val parsed = value.replace(',', '.').toDoubleOrNull()
                         if (metric.isNotBlank() && unit.isNotBlank() && parsed != null) {
@@ -797,7 +907,7 @@ fun AddEntryScreen(
                     }
                     val occurredAtIso = Instant.ofEpochMilli(occurredAt).toString()
                     val dueAtIso = if (type == "reminder") {
-                        Instant.ofEpochMilli(dueAt).toString()
+                        dueAt?.let { Instant.ofEpochMilli(it).toString() }
                     } else {
                         null
                     }
@@ -887,6 +997,61 @@ fun AddEntryScreen(
                     }
                 },
             )
+        }
+    }
+}
+
+/** Şablon önerileri ve kayıt türü için tek satırlık seçim alanı. */
+@Composable
+private fun SectionDropdown(
+    selectedLabel: String?,
+    placeholder: String,
+    enabled: Boolean,
+    options: List<Pair<String, String?>>,
+    onSelect: (Int) -> Unit,
+) {
+    var open by remember { mutableStateOf(false) }
+    Box {
+        OutlinedButton(
+            onClick = { open = true },
+            enabled = enabled,
+            shape = RoundedCornerShape(12.dp),
+            border = BorderStroke(1.dp, Line),
+            modifier = Modifier.fillMaxWidth(),
+        ) {
+            Text(
+                text = selectedLabel ?: placeholder,
+                color = if (selectedLabel != null) Forest else Muted,
+                style = MaterialTheme.typography.bodyMedium,
+                modifier = Modifier.weight(1f),
+            )
+            Icon(Icons.Outlined.ArrowDropDown, contentDescription = null, tint = Muted)
+        }
+        DropdownMenu(
+            expanded = open,
+            onDismissRequest = { open = false },
+            modifier = Modifier.background(Ivory),
+        ) {
+            options.forEachIndexed { index, option ->
+                DropdownMenuItem(
+                    text = {
+                        Column {
+                            Text(option.first, color = Forest)
+                            option.second?.let { note ->
+                                Text(
+                                    note,
+                                    style = MaterialTheme.typography.bodySmall,
+                                    color = Muted,
+                                )
+                            }
+                        }
+                    },
+                    onClick = {
+                        open = false
+                        onSelect(index)
+                    },
+                )
+            }
         }
     }
 }

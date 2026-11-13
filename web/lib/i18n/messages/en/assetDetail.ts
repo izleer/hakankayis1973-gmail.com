@@ -207,6 +207,13 @@ const assetDetail = {
   'Ortak yönetim ayarlanamadı.': 'Shared management could not be configured.',
   'Kişi listesini yalnızca varlık sahibi yönetir.':
     'Only the asset owner manages the people list.',
+  'İşleminiz': 'Your action',
+  '{label} hatırlatması': '{label} reminder',
+  'İşlem seç': 'Choose an action',
+  '{days} günde bir': 'every {days} days',
+  'Kategori ölçümü': 'Category measurement',
+  'Ölçüm değeri': 'Measurement value',
+  'Ölçüm değeri sayı olmalı.': 'The measurement value must be a number.',
 } as const;
 
 export default assetDetail;

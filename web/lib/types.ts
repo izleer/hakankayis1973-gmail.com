@@ -46,8 +46,43 @@ export type FriendRequest = { user: UserMini; requestedAt: string };
 export type AttributeField = {
   key: string;
   label: string;
-  type?: 'text' | 'date' | 'number' | string;
+  type?: 'text' | 'date' | 'number' | 'select' | string;
+  unit?: string | null;
   options?: string[];
+};
+
+export type TemplateAction = {
+  key: string;
+  label: string;
+  entryType: EntryType;
+  reminderDays?: number;
+};
+
+export type TemplateMeasurement = {
+  key: string;
+  label: string;
+  unit: string;
+};
+
+export type TemplateReminder = {
+  key: string;
+  label: string;
+  intervalDays: number;
+};
+
+/** Kategori şablonu: generic varlık modelinin üzerine binen konfigürasyon katmanı. */
+export type CategoryTemplate = {
+  fields: AttributeField[];
+  actions: TemplateAction[];
+  measurements: TemplateMeasurement[];
+  reminders: TemplateReminder[];
+};
+
+export type CustomField = {
+  key: string;
+  label: string;
+  type?: 'text' | 'number' | 'date' | string;
+  value?: string | null;
 };
 
 export type AssetType = {
@@ -56,7 +91,8 @@ export type AssetType = {
   label: string;
   icon: string | null;
   sortOrder: number;
-  attributesSchema: { fields?: AttributeField[] };
+  isSelectable?: boolean;
+  attributesSchema: CategoryTemplate;
   children: AssetType[];
 };
 
@@ -72,6 +108,8 @@ export type Asset = {
   longitude: number | null;
   acquiredAt: string | null;
   attributes: Record<string, unknown>;
+  customFields: CustomField[];
+  template: CategoryTemplate;
   owner: UserMini;
   manager: { id: string; slug: string; name: string } | null;
   type: { id: string; label: string; parentId: string | null; icon: string | null };
@@ -115,6 +153,16 @@ export type Entry = {
   createdAt: string;
   updatedAt: string;
   asset?: { id: string; title: string; typeId: string; typeLabel: string };
+};
+
+export type ReminderItem = {
+  id: string;
+  assetId: string;
+  assetTitle: string;
+  title: string | null;
+  body: string | null;
+  dueAt: string | null;
+  doneAt: string | null;
 };
 
 export type Stats = {
@@ -254,6 +302,23 @@ export type Group = {
   membershipStatus: 'active' | 'pending' | null;
   owner: UserMini | null;
   createdAt: string;
+};
+
+export type GroupSummary = {
+  id: string;
+  slug: string;
+  name: string;
+  coverUrl: string | null;
+  memberCount: number;
+  lastSeenAt: string | null;
+  unreadPosts: number;
+  addedAssets: number;
+  removedAssets: number;
+};
+
+export type GroupSummaryResponse = {
+  items: GroupSummary[];
+  total: number;
 };
 
 export type GroupMember = {

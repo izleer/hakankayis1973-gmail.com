@@ -15,7 +15,16 @@
     <string name="home_entry_fallback">Entry</string>
     <string name="home_quote">“Keeping something is\nfor looking at it again.”</string>
     <string name="home_quote_attribution">izleer · daily archive</string>
+    <string name="home_groups_label">GROUPS</string>
+    <string name="home_groups_unread">Unread</string>
+    <string name="home_groups_added">Added</string>
+    <string name="home_groups_removed">Removed</string>
+    <string name="home_groups_all">All groups</string>
 
+    <plurals name="home_groups_count">
+        <item quantity="one">%1$d group</item>
+        <item quantity="other">%1$d groups</item>
+    </plurals>
     <plurals name="home_summary_assets">
         <item quantity="one">%1$d asset</item>
         <item quantity="other">%1$d assets</item>

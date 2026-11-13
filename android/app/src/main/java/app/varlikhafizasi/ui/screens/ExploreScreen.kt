@@ -19,10 +19,6 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Favorite
-import androidx.compose.material.icons.outlined.FavoriteBorder
-import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
@@ -39,20 +35,18 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import app.varlikhafizasi.R
 import app.varlikhafizasi.data.Asset
-import app.varlikhafizasi.data.FeedPost
 import app.varlikhafizasi.data.MediaUrl
 import app.varlikhafizasi.data.User
 import app.varlikhafizasi.ui.VhViewModel
 import app.varlikhafizasi.ui.components.Avatar
 import app.varlikhafizasi.ui.components.EmptyState
 import app.varlikhafizasi.ui.components.ErrorBox
+import app.varlikhafizasi.ui.components.FeedPostCard
 import app.varlikhafizasi.ui.components.GoldRule
 import app.varlikhafizasi.ui.components.LoadingBox
-import app.varlikhafizasi.ui.components.MediaThumb
 import app.varlikhafizasi.ui.components.Pill
 import app.varlikhafizasi.ui.components.SectionLabel
 import app.varlikhafizasi.ui.components.VhTopBar
-import app.varlikhafizasi.ui.components.formatDate
 import app.varlikhafizasi.ui.theme.Clay
 import app.varlikhafizasi.ui.theme.Forest
 import app.varlikhafizasi.ui.theme.Gold
@@ -193,7 +187,7 @@ fun ExploreScreen(
         }
 
         items(data?.posts.orEmpty(), key = { it.id }) { post ->
-            PostCard(
+            FeedPostCard(
                 post = post,
                 onOpenAsset = { onOpenAsset(it) },
                 onLike = { vm.toggleLike(post) },
@@ -324,130 +318,3 @@ private fun PersonCard(user: User, onFollow: () -> Unit) {
     }
 }
 
-@Composable
-private fun PostCard(post: FeedPost, onOpenAsset: (String) -> Unit, onLike: () -> Unit) {
-    Column(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(horizontal = 20.dp, vertical = 6.dp)
-            .background(Ivory, RoundedCornerShape(16.dp))
-            .padding(14.dp),
-    ) {
-        Row(verticalAlignment = Alignment.CenterVertically) {
-            Avatar(post.author.displayName, post.author.avatarUrl, size = 34.dp)
-            Spacer(Modifier.width(9.dp))
-            Column(Modifier.weight(1f)) {
-                Text(
-                    post.author.displayName,
-                    style = MaterialTheme.typography.titleSmall,
-                    color = Forest,
-                )
-                Text(
-                    "@${post.author.username} · ${formatDate(post.createdAt)}",
-                    style = MaterialTheme.typography.bodySmall,
-                    color = Muted,
-                )
-            }
-        }
-
-        if (post.body.isNotBlank()) {
-            Spacer(Modifier.height(10.dp))
-            Text(
-                post.body,
-                style = MaterialTheme.typography.bodyMedium,
-                color = Forest,
-            )
-        }
-
-        post.asset?.let { asset ->
-            Spacer(Modifier.height(10.dp))
-            Surface(
-                color = PaperDeep,
-                shape = RoundedCornerShape(10.dp),
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .clickable { onOpenAsset(asset.id) },
-            ) {
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    val cover = MediaUrl.resolve(asset.coverUrl)
-                    Box(
-                        Modifier
-                            .size(width = 54.dp, height = 54.dp)
-                            .background(SageLight),
-                        contentAlignment = Alignment.Center,
-                    ) {
-                        if (cover != null) {
-                            AsyncImage(
-                                model = cover,
-                                contentDescription = asset.title,
-                                contentScale = ContentScale.Crop,
-                                modifier = Modifier.size(width = 54.dp, height = 54.dp),
-                            )
-                        } else {
-                            Text("V", color = SageInk, style = MaterialTheme.typography.titleMedium)
-                        }
-                    }
-                    Column(Modifier.padding(horizontal = 10.dp, vertical = 6.dp)) {
-                        Text(
-                            asset.typeLabel ?: stringResource(R.string.common_asset),
-                            style = MaterialTheme.typography.labelSmall,
-                            color = Clay,
-                        )
-                        Text(
-                            asset.title,
-                            style = MaterialTheme.typography.titleSmall,
-                            color = Forest,
-                            maxLines = 1,
-                            overflow = TextOverflow.Ellipsis,
-                        )
-                    }
-                }
-            }
-        }
-
-        if (post.media.isNotEmpty()) {
-            Spacer(Modifier.height(10.dp))
-            Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
-                post.media.take(3).forEach { media ->
-                    MediaThumb(
-                        media = media,
-                        height = 130.dp,
-                        modifier = Modifier.weight(1f),
-                    )
-                }
-                repeat(3 - post.media.take(3).size) {
-                    Spacer(Modifier.weight(1f))
-                }
-            }
-        }
-
-        Spacer(Modifier.height(10.dp))
-        Row(verticalAlignment = Alignment.CenterVertically) {
-            Row(
-                verticalAlignment = Alignment.CenterVertically,
-                modifier = Modifier.clickable { onLike() },
-            ) {
-                Icon(
-                    imageVector = if (post.likedByMe) Icons.Filled.Favorite else Icons.Outlined.FavoriteBorder,
-                    contentDescription = stringResource(R.string.explore_like),
-                    tint = if (post.likedByMe) Clay else Muted,
-                    modifier = Modifier.size(19.dp),
-                )
-                Spacer(Modifier.width(5.dp))
-                Text(
-                    "${post.likeCount}",
-                    style = MaterialTheme.typography.bodySmall,
-                    color = Muted,
-                )
-            }
-            if (post.commentCount > 0) {
-                Spacer(Modifier.width(16.dp))
-                Text(
-                    stringResource(R.string.common_comment_count, post.commentCount),
-                    style = MaterialTheme.typography.bodySmall,
-                    color = Muted,
-                )
-            }
-        }
-    }
-}
