@@ -34,6 +34,12 @@ const friends = {
   'Henüz bir istek göndermedin.': 'Du hast noch keine Anfrage gesendet.',
   Tanış: 'Kennenlernen',
   'Arkadaş olabileceklerin': 'Menschen, die du kennenlernen könntest',
+  'Kullanıcı adı veya isim ara…': 'Nach Benutzername oder Name suchen…',
+  'Kullanıcı adı veya isim ara': 'Nach Benutzername oder Name suchen',
+  'Arama sonuçları': 'Suchergebnisse',
+  'Sonuç bulunamadı': 'Keine Ergebnisse gefunden',
+  'Farklı bir kullanıcı adı veya isim deneyin.':
+    'Versuche einen anderen Benutzernamen oder Namen.',
   'Şimdilik yeni bir öneri yok': 'Derzeit keine neuen Vorschläge',
   'Keşfet sayfasında başka hafızalara göz atabilirsin.':
     'Auf der Entdecken-Seite kannst du andere Erinnerungen ansehen.',

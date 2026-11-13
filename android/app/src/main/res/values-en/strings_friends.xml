@@ -43,6 +43,10 @@
     <string name="friends_are">You are friends</string>
     <string name="friends_request_sent">Request sent</string>
     <string name="friends_accept_request">Accept request</string>
+    <string name="friends_people_search">Search by username or name…</string>
+    <string name="friends_people_results">Search results</string>
+    <string name="friends_people_search_empty_title">No results found</string>
+    <string name="friends_people_search_empty_body">Try a different username or name.</string>
 
     <!-- Shared assets -->
     <string name="friends_assets_title">Your friends\' assets</string>

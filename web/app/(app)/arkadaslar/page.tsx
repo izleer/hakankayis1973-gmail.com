@@ -60,12 +60,18 @@ export default async function FriendsPage({ searchParams }: { searchParams: Sear
   const sharedQuery = new URLSearchParams({ limit: '48' });
   if (tab === 'assets' && params.q) sharedQuery.set('q', params.q);
 
+  // Öneriler binlerce kullanıcıya ölçeklenmez: 2+ karakterde sunucu tarafında ara.
+  const peopleQuery = (params.q ?? '').trim();
+  const searching = tab === 'suggestions' && peopleQuery.length >= 2;
+  const suggestionsQuery = new URLSearchParams({ scope: 'friends', limit: '30' });
+  if (searching) suggestionsQuery.set('q', peopleQuery);
+
   const [friends, requests, suggestions, shared] = await Promise.all([
     api<{ items: Friend[] }>('/v1/users/me/friends'),
     api<{ incoming: FriendRequest[]; outgoing: FriendRequest[] }>(
       '/v1/users/me/friend-requests',
     ),
-    api<{ items: Suggestion[] }>('/v1/users/suggestions?scope=friends'),
+    api<{ items: Suggestion[] }>(`/v1/users/suggestions?${suggestionsQuery.toString()}`),
     api<Paged<Asset>>(`/v1/assets/shared?${sharedQuery.toString()}`),
   ]);
 
@@ -263,10 +269,36 @@ export default async function FriendsPage({ searchParams }: { searchParams: Sear
           <div className="section-head">
             <div>
               <span className="eyebrow">{t('Tanış')}</span>
-              <h2>{t('Arkadaş olabileceklerin')}</h2>
+              <h2>{searching ? t('Arama sonuçları') : t('Arkadaş olabileceklerin')}</h2>
             </div>
             <span className="aside-count">{suggestions.items.length}</span>
           </div>
+
+          <form className="search-form" action="/arkadaslar">
+            <input type="hidden" name="tab" value="suggestions" />
+            <Icon name="search" size={18} />
+            <input
+              name="q"
+              defaultValue={params.q ?? ''}
+              minLength={2}
+              placeholder={t('Kullanıcı adı veya isim ara…')}
+              aria-label={t('Kullanıcı adı veya isim ara')}
+            />
+            {params.q ? (
+              <Link
+                href="/arkadaslar?tab=suggestions"
+                className="search-clear"
+                aria-label={t('Aramayı temizle')}
+                title={t('Aramayı temizle')}
+              >
+                <Icon name="close" size={15} />
+              </Link>
+            ) : null}
+            <button type="submit" className="search-submit">
+              {t('Ara')}
+            </button>
+          </form>
+
           {suggestions.items.length > 0 ? (
             <div className="friends-grid">
               {suggestions.items.map((person) => (
@@ -296,6 +328,12 @@ export default async function FriendsPage({ searchParams }: { searchParams: Sear
                 </article>
               ))}
             </div>
+          ) : searching ? (
+            <EmptyState
+              icon="search"
+              title={t('Sonuç bulunamadı')}
+              body={t('Farklı bir kullanıcı adı veya isim deneyin.')}
+            />
           ) : (
             <EmptyState
               icon="compass"

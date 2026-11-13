@@ -168,6 +168,8 @@ interface VhApi {
     @GET("v1/users/suggestions")
     suspend fun suggestions(
         @Query("scope") scope: String? = null,
+        @Query("q") query: String? = null,
+        @Query("limit") limit: Int? = null,
     ): Envelope<UserListPayload>
 
     @GET("v1/users/me/friends")

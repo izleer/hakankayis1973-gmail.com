@@ -79,6 +79,7 @@ import app.varlikhafizasi.ui.theme.Sage
 import app.varlikhafizasi.ui.theme.SageInk
 import app.varlikhafizasi.ui.theme.SageLight
 import coil.compose.AsyncImage
+import kotlinx.coroutines.delay
 
 private const val TAB_FRIENDS = "friends"
 private const val TAB_REQUESTS = "requests"
@@ -94,8 +95,10 @@ fun FriendsScreen(
 ) {
     val state by vm.friends.collectAsStateWithLifecycle()
     val busy by vm.friendsBusy.collectAsStateWithLifecycle()
+    val peopleSearch by vm.peopleSearch.collectAsStateWithLifecycle()
     var tab by rememberSaveable { mutableStateOf(TAB_FRIENDS) }
     var query by rememberSaveable { mutableStateOf("") }
+    var peopleQuery by rememberSaveable { mutableStateOf("") }
     var relation by rememberSaveable { mutableStateOf("") }
     var removeTarget by remember { mutableStateOf<Friend?>(null) }
 
@@ -103,6 +106,17 @@ fun FriendsScreen(
     val pendingCount = (data?.incoming?.size ?: 0) + (data?.outgoing?.size ?: 0)
 
     LaunchedEffect(Unit) { vm.loadFriends() }
+
+    // Kullanıcı araması: yazma durduktan kısa süre sonra sunucuya gider.
+    LaunchedEffect(peopleQuery) {
+        val trimmed = peopleQuery.trim()
+        if (trimmed.length < 2) {
+            vm.searchPeople("")
+        } else {
+            delay(350)
+            vm.searchPeople(trimmed)
+        }
+    }
 
     fun search() {
         vm.loadFriends(query = query, showSpinner = false)
@@ -290,36 +304,143 @@ fun FriendsScreen(
 
                 TAB_SUGGESTIONS -> {
                     item {
+                        Column(Modifier.padding(horizontal = 20.dp)) {
+                            OutlinedTextField(
+                                value = peopleQuery,
+                                onValueChange = { peopleQuery = it.take(80) },
+                                singleLine = true,
+                                placeholder = {
+                                    Text(stringResource(R.string.friends_people_search))
+                                },
+                                leadingIcon = {
+                                    Icon(
+                                        Icons.Outlined.Search,
+                                        contentDescription = null,
+                                        tint = Muted,
+                                        modifier = Modifier.size(19.dp),
+                                    )
+                                },
+                                trailingIcon = {
+                                    if (peopleQuery.isNotEmpty()) {
+                                        IconButton(onClick = {
+                                            peopleQuery = ""
+                                            vm.searchPeople("")
+                                        }) {
+                                            Icon(
+                                                Icons.Outlined.Close,
+                                                contentDescription = stringResource(
+                                                    R.string.assets_search_clear,
+                                                ),
+                                                tint = Muted,
+                                                modifier = Modifier.size(18.dp),
+                                            )
+                                        }
+                                    }
+                                },
+                                keyboardOptions = KeyboardOptions(imeAction = ImeAction.Search),
+                                keyboardActions = KeyboardActions(
+                                    onSearch = { vm.searchPeople(peopleQuery) },
+                                ),
+                                modifier = Modifier.fillMaxWidth(),
+                            )
+                            Spacer(Modifier.height(10.dp))
+                        }
+                    }
+
+                    val searching = peopleQuery.trim().length >= 2
+                    item {
                         SectionLabel(
-                            stringResource(R.string.friends_suggestions_title),
+                            stringResource(
+                                if (searching) {
+                                    R.string.friends_people_results
+                                } else {
+                                    R.string.friends_suggestions_title
+                                },
+                            ),
                             modifier = Modifier.padding(horizontal = 20.dp, vertical = 6.dp),
                         )
                     }
-                    val suggestions = data?.suggestions.orEmpty()
-                    if (data != null && suggestions.isEmpty()) {
-                        item {
-                            Surface(
-                                color = Ivory,
-                                shape = RoundedCornerShape(16.dp),
-                                border = BorderStroke(1.dp, Line),
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .padding(horizontal = 20.dp),
-                            ) {
-                                EmptyState(
-                                    title = stringResource(R.string.friends_suggestions_empty_title),
-                                    body = stringResource(R.string.friends_suggestions_empty_body),
+
+                    if (searching) {
+                        val found = peopleSearch.data.orEmpty()
+                        when {
+                            peopleSearch.loading && peopleSearch.data == null -> item {
+                                LoadingBox()
+                            }
+
+                            peopleSearch.error != null -> item {
+                                Box(Modifier.padding(horizontal = 20.dp)) {
+                                    ErrorBox(
+                                        peopleSearch.error ?: "",
+                                        onRetry = { vm.searchPeople(peopleQuery) },
+                                    )
+                                }
+                            }
+
+                            found.isEmpty() -> item {
+                                Surface(
+                                    color = Ivory,
+                                    shape = RoundedCornerShape(16.dp),
+                                    border = BorderStroke(1.dp, Line),
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .padding(horizontal = 20.dp),
+                                ) {
+                                    EmptyState(
+                                        title = stringResource(
+                                            R.string.friends_people_search_empty_title,
+                                        ),
+                                        body = stringResource(
+                                            R.string.friends_people_search_empty_body,
+                                        ),
+                                    )
+                                }
+                            }
+
+                            else -> items(found, key = { "s-${it.id}" }) { user ->
+                                SuggestionCard(
+                                    user = user,
+                                    busy = busy,
+                                    onRequest = {
+                                        vm.requestFriend(user.username, user.displayName)
+                                    },
+                                    onAccept = {
+                                        vm.acceptFriend(user.username, user.displayName)
+                                    },
                                 )
                             }
                         }
-                    }
-                    items(suggestions, key = { it.id }) { user ->
-                        SuggestionCard(
-                            user = user,
-                            busy = busy,
-                            onRequest = { vm.requestFriend(user.username, user.displayName) },
-                            onAccept = { vm.acceptFriend(user.username, user.displayName) },
-                        )
+                    } else {
+                        val suggestions = data?.suggestions.orEmpty()
+                        if (data != null && suggestions.isEmpty()) {
+                            item {
+                                Surface(
+                                    color = Ivory,
+                                    shape = RoundedCornerShape(16.dp),
+                                    border = BorderStroke(1.dp, Line),
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .padding(horizontal = 20.dp),
+                                ) {
+                                    EmptyState(
+                                        title = stringResource(
+                                            R.string.friends_suggestions_empty_title,
+                                        ),
+                                        body = stringResource(
+                                            R.string.friends_suggestions_empty_body,
+                                        ),
+                                    )
+                                }
+                            }
+                        }
+                        items(suggestions, key = { it.id }) { user ->
+                            SuggestionCard(
+                                user = user,
+                                busy = busy,
+                                onRequest = { vm.requestFriend(user.username, user.displayName) },
+                                onAccept = { vm.acceptFriend(user.username, user.displayName) },
+                            )
+                        }
                     }
                 }
 

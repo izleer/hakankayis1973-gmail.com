@@ -209,6 +209,10 @@ class VhViewModel(
     private val _friendsBusy = MutableStateFlow(false)
     val friendsBusy: StateFlow<Boolean> = _friendsBusy.asStateFlow()
 
+    private val _peopleSearch = MutableStateFlow(Loadable<List<User>>())
+    val peopleSearch: StateFlow<Loadable<List<User>>> = _peopleSearch.asStateFlow()
+    private var peopleSearchQuery: String = ""
+
     private val _groupBusy = MutableStateFlow(false)
     val groupBusy: StateFlow<Boolean> = _groupBusy.asStateFlow()
 
@@ -611,6 +615,29 @@ class VhViewModel(
                     _friends.value = Loadable(error = messageOf(error))
                 } else {
                     _notice.value = messageOf(error)
+                }
+            }
+        }
+    }
+
+    /** Arkadaş arama: 2+ karakterde sunucu tarafında kullanıcı adı/isim arar. */
+    fun searchPeople(rawQuery: String) {
+        val query = rawQuery.trim()
+        peopleSearchQuery = query
+        if (query.length < 2) {
+            _peopleSearch.value = Loadable()
+            return
+        }
+        _peopleSearch.value = _peopleSearch.value.copy(loading = true, error = null)
+        viewModelScope.launch {
+            try {
+                val people = repository.searchPeople(query)
+                if (peopleSearchQuery == query) {
+                    _peopleSearch.value = Loadable(data = people)
+                }
+            } catch (error: Throwable) {
+                if (peopleSearchQuery == query) {
+                    _peopleSearch.value = Loadable(error = messageOf(error))
                 }
             }
         }

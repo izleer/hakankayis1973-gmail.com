@@ -91,16 +91,45 @@ export async function userRoutes(app: FastifyInstance): Promise<void> {
   app.get('/users/suggestions', async (req) => {
     const viewer = await requireViewer(req);
     const params = parseQuery(
-      z.object({ scope: z.enum(['default', 'friends']).default('default') }),
+      z.object({
+        scope: z.enum(['default', 'friends']).default('default'),
+        q: z.string().trim().min(2).max(80).optional(),
+        limit: z.coerce.number().int().min(1).max(30).default(8),
+      }),
       req.query,
     );
-    const exclude = params.scope === 'friends'
-      ? `NOT EXISTS (
-           SELECT 1 FROM friendships f
-           WHERE (f.requester_id = $1 AND f.addressee_id = u.id)
-              OR (f.requester_id = u.id AND f.addressee_id = $1)
-         )`
-      : `NOT EXISTS (SELECT 1 FROM follows f WHERE f.follower_id = $1 AND f.following_id = u.id)`;
+    const clauses: string[] = [
+      'u.deleted_at IS NULL',
+      'u.id <> $1',
+      `NOT EXISTS (
+         SELECT 1 FROM blocks b
+         WHERE (b.blocker_id = $1 AND b.blocked_id = u.id)
+            OR (b.blocker_id = u.id AND b.blocked_id = $1)
+       )`,
+    ];
+    const values: unknown[] = [viewer.id];
+    let order = 'follower_count DESC, u.created_at ASC';
+    if (params.q) {
+      // Arama modunda kapsam filtresi uygulanmaz: kullanıcılar mevcut
+      // arkadaşlarını da bulup durumlarını görebilir.
+      values.push(`%${params.q}%`);
+      clauses.push(`(u.username ILIKE $${values.length} OR u.display_name ILIKE $${values.length})`);
+      values.push(params.q);
+      order = `(u.username ILIKE $${values.length}) DESC,
+               (u.username ILIKE $${values.length} || '%') DESC,
+               follower_count DESC, u.created_at ASC`;
+    } else if (params.scope === 'friends') {
+      clauses.push(`NOT EXISTS (
+        SELECT 1 FROM friendships f
+        WHERE (f.requester_id = $1 AND f.addressee_id = u.id)
+           OR (f.requester_id = u.id AND f.addressee_id = $1)
+      )`);
+    } else {
+      clauses.push(
+        'NOT EXISTS (SELECT 1 FROM follows f WHERE f.follower_id = $1 AND f.following_id = u.id)',
+      );
+    }
+    values.push(params.q ? Math.max(params.limit, 10) : params.limit);
     const rows = await query<Record<string, any>>(
       `SELECT u.id, u.username, u.display_name, u.avatar_url, u.bio,
               (SELECT count(*) FROM follows f WHERE f.following_id = u.id) AS follower_count,
@@ -114,16 +143,10 @@ export async function userRoutes(app: FastifyInstance): Promise<void> {
                   OR (f.requester_id = u.id AND f.addressee_id = $1)
                LIMIT 1) AS friendship_requester
        FROM users u
-       WHERE u.deleted_at IS NULL AND u.id <> $1
-         AND ${exclude}
-         AND NOT EXISTS (
-           SELECT 1 FROM blocks b
-           WHERE (b.blocker_id = $1 AND b.blocked_id = u.id)
-              OR (b.blocker_id = u.id AND b.blocked_id = $1)
-         )
-       ORDER BY follower_count DESC, u.created_at ASC
-       LIMIT 8`,
-      [viewer.id],
+       WHERE ${clauses.join(' AND ')}
+       ORDER BY ${order}
+       LIMIT $${values.length}`,
+      values,
     );
     return {
       data: {

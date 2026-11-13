@@ -175,6 +175,10 @@ class VhRepository(
 
     suspend fun friendSuggestions(): List<User> = call { api.suggestions(scope = "friends") }.items
 
+    /** Arkadaş araması: kullanıcı adı veya görünen ada göre sunucu tarafında arar. */
+    suspend fun searchPeople(query: String): List<User> =
+        call { api.suggestions(query = query.trim(), limit = 20) }.items
+
     suspend fun friends(): List<Friend> = call { api.friends() }.items
 
     suspend fun friendRequests(): FriendRequestsPayload = call { api.friendRequests() }

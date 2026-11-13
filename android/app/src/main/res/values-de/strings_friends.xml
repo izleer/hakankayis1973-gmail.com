@@ -43,6 +43,10 @@
     <string name="friends_are">Ihr seid befreundet</string>
     <string name="friends_request_sent">Anfrage gesendet</string>
     <string name="friends_accept_request">Anfrage annehmen</string>
+    <string name="friends_people_search">Nach Benutzername oder Name suchen…</string>
+    <string name="friends_people_results">Suchergebnisse</string>
+    <string name="friends_people_search_empty_title">Keine Ergebnisse gefunden</string>
+    <string name="friends_people_search_empty_body">Versuche es mit einem anderen Benutzernamen oder Namen.</string>
 
     <!-- Geteilte Objekte -->
     <string name="friends_assets_title">Die Objekte deiner Freunde</string>

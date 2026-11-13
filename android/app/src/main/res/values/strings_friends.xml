@@ -43,6 +43,10 @@
     <string name="friends_are">Arkadaşsınız</string>
     <string name="friends_request_sent">İstek gönderildi</string>
     <string name="friends_accept_request">İsteği kabul et</string>
+    <string name="friends_people_search">Kullanıcı adı veya isim ara…</string>
+    <string name="friends_people_results">Arama sonuçları</string>
+    <string name="friends_people_search_empty_title">Sonuç bulunamadı</string>
+    <string name="friends_people_search_empty_body">Farklı bir kullanıcı adı veya isim deneyin.</string>
 
     <!-- Paylaşılan varlıklar -->
     <string name="friends_assets_title">Arkadaşlarının varlıkları</string>
