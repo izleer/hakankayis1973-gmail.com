@@ -183,6 +183,9 @@ export async function buildApp(): Promise<FastifyInstance> {
       } catch {
         key = '';
       }
+      // Seed görselleri kamuya açık demo içeriğidir ve media satırı yoktur;
+      // giriş ekranı gibi oturumsuz yerlerde imzasız da sunulur.
+      if (key.startsWith('seed/')) return;
       if (!verifyMediaSignature(key, expires, signature)) {
         return reply.status(403).send({
           error: {
@@ -191,7 +194,6 @@ export async function buildApp(): Promise<FastifyInstance> {
           },
         });
       }
-      // Seed görselleri kamuya açık demo içeriğidir ve media satırı yoktur.
       if (!(await mediaKeyVisible(key))) {
         return reply.status(404).send({
           error: { code: 'NOT_FOUND', message: translate(req.locale, 'Medya bulunamadı.') },
@@ -221,7 +223,8 @@ export async function buildApp(): Promise<FastifyInstance> {
         key = '';
       }
       const query = req.query as { exp?: string; sig?: string };
-      if (!verifyMediaSignature(key, query.exp, query.sig)) {
+      // Seed görselleri kamuya açık demo içeriğidir (bkz. yerel sürücü kancası).
+      if (!key.startsWith('seed/') && !verifyMediaSignature(key, query.exp, query.sig)) {
         return reply.status(403).send({
           error: {
             code: 'MEDIA_FORBIDDEN',
