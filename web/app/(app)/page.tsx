@@ -2,6 +2,7 @@ import type { Metadata } from 'next';
 import Link from 'next/link';
 import { AssetGrid } from '@/components/AssetCard';
 import { EmptyState } from '@/components/EmptyState';
+import { HeroReel, type HeroReelItem } from '@/components/HeroReel';
 import { Icon } from '@/components/Icons';
 import { MediaImage } from '@/components/MediaImage';
 import { requireViewer, api } from '@/lib/api';
@@ -27,6 +28,23 @@ export async function generateMetadata(): Promise<Metadata> {
   return { title: t('Hafıza') };
 }
 
+/** Kapak görseli olmayan gruplara isimden türeyen, kararlı bir görsel kimlik ver. */
+function groupMark(name: string, locale: string) {
+  const words = name
+    .split(/\s+/)
+    .filter((word) => word && word.toLocaleLowerCase(locale) !== 've');
+  const label = words
+    .slice(0, 2)
+    .map((word) => word.charAt(0))
+    .join('')
+    .toLocaleUpperCase(locale);
+  let hash = 0;
+  for (let index = 0; index < name.length; index += 1) {
+    hash = (hash * 31 + name.charCodeAt(index)) % 5;
+  }
+  return { label: label || '?', tone: hash };
+}
+
 export default async function DashboardPage() {
   const viewer = await requireViewer();
   const { t, locale, tag } = await getI18n();
@@ -46,6 +64,25 @@ export default async function DashboardPage() {
   });
 
   const firstName = viewer.displayName.split(' ')[0];
+
+  // Hero şeridinde önce son yüklenen görseller, yetmezse varlık kapakları döner.
+  const reelItems: HeroReelItem[] = [];
+  const reelSeen = new Set<string>();
+  for (const item of media.items) {
+    const src = mediaSrc(item.url);
+    const href = `/varliklar/${item.asset.id}`;
+    if (!src || item.status !== 'ready' || reelSeen.has(href)) continue;
+    reelSeen.add(href);
+    reelItems.push({ id: item.id, src, alt: item.asset.title, href });
+  }
+  for (const asset of assets.items) {
+    const src = mediaSrc(asset.coverUrl);
+    const href = `/varliklar/${asset.id}`;
+    if (!src || reelSeen.has(href)) continue;
+    reelSeen.add(href);
+    reelItems.push({ id: asset.id, src, alt: asset.title, href });
+  }
+  reelItems.splice(8);
 
   return (
     <main className="page">
@@ -80,16 +117,21 @@ export default async function DashboardPage() {
               </div>
             </div>
           </div>
-          <div className="hero-numbers">
-            <span>
-              <strong>{formatNumber(stats.assets, locale)}</strong> {t('varlık', { count: stats.assets })}
-            </span>
-            <span>
-              <strong>{formatNumber(stats.entries, locale)}</strong> {t('kayıt', { count: stats.entries })}
-            </span>
-            <span>
-              <strong>{formatNumber(stats.images, locale)}</strong> {t('fotoğraf', { count: stats.images })}
-            </span>
+          <div className="hero-foot">
+            <div className="hero-numbers">
+              <span>
+                <strong>{formatNumber(stats.assets, locale)}</strong> {t('varlık', { count: stats.assets })}
+              </span>
+              <span>
+                <strong>{formatNumber(stats.entries, locale)}</strong> {t('kayıt', { count: stats.entries })}
+              </span>
+              <span>
+                <strong>{formatNumber(stats.images, locale)}</strong> {t('fotoğraf', { count: stats.images })}
+              </span>
+            </div>
+            {reelItems.length > 0 ? (
+              <HeroReel items={reelItems} label={t('Son anılar')} />
+            ) : null}
           </div>
         </div>
       </section>
@@ -160,40 +202,89 @@ export default async function DashboardPage() {
               <Icon name="arrow-right" size={16} />
             </Link>
           </div>
-          <div className="group-summary">
+          <div className="group-summary-grid">
             {groups.items.map((group) => {
               const base = `/gruplar/${encodeURIComponent(group.slug)}`;
+              const activity =
+                group.unreadPosts + group.addedAssets + group.removedAssets;
+              const mark = groupMark(group.name, locale);
               return (
-                <div className="group-summary-row" key={group.id}>
-                  <Link href={base} className="group-summary-name">
-                    <strong>{group.name}</strong>
-                    <small>{t('{count} üye', { count: group.memberCount })}</small>
-                  </Link>
-                  <Link
-                    href={base}
-                    className={`group-summary-link${group.unreadPosts > 0 ? ' is-activity' : ''}`}
-                    title={t('Okunmamış akış')}
-                  >
-                    <strong>{formatNumber(group.unreadPosts, locale)}</strong>
-                    <small>{t('Okunmamış akış')}</small>
-                  </Link>
-                  <Link
-                    href={`${base}?tab=assets`}
-                    className={`group-summary-link${group.addedAssets > 0 ? ' is-activity' : ''}`}
-                    title={t('Eklenen varlık')}
-                  >
-                    <strong>{formatNumber(group.addedAssets, locale)}</strong>
-                    <small>{t('Eklenen varlık')}</small>
-                  </Link>
-                  <Link
-                    href={`${base}?tab=assets`}
-                    className={`group-summary-link${group.removedAssets > 0 ? ' is-activity' : ''}`}
-                    title={t('Çıkarılan varlık')}
-                  >
-                    <strong>{formatNumber(group.removedAssets, locale)}</strong>
-                    <small>{t('Çıkarılan varlık')}</small>
-                  </Link>
-                </div>
+                <article
+                  className={`group-summary-card group-summary-tone-${mark.tone}${activity > 0 ? ' has-activity' : ''}`}
+                  key={group.id}
+                >
+                  <span className="group-summary-cover">
+                    <MediaImage
+                      src={group.coverUrl}
+                      alt=""
+                      fallbackIcon="users"
+                      fallbackLabel={mark.label}
+                    />
+                    {activity > 0 ? (
+                      <span className="group-summary-badge" aria-hidden="true">
+                        {formatNumber(activity, locale)}
+                      </span>
+                    ) : null}
+                  </span>
+                  <div className="group-summary-body">
+                    <div className="group-summary-head">
+                      <Link href={base} className="group-summary-name">
+                        <strong>{group.name}</strong>
+                        <small>
+                          <Icon name="users" size={12} />
+                          {t('{count} üye', { count: group.memberCount })}
+                        </small>
+                      </Link>
+                      <span className="group-summary-arrow" aria-hidden="true">
+                        <Icon name="arrow-right" size={15} />
+                      </span>
+                    </div>
+                    <div className="group-summary-metrics">
+                      {group.unreadPosts > 0 ? (
+                        <Link
+                          href={base}
+                          className="group-summary-metric is-unread"
+                          title={t('Okunmamış akış')}
+                          aria-label={`${t('Okunmamış akış')}: ${group.unreadPosts}`}
+                        >
+                          <Icon name="book" size={12} />
+                          <strong>{formatNumber(group.unreadPosts, locale)}</strong>
+                          <span>{t('okunmamış')}</span>
+                        </Link>
+                      ) : null}
+                      {group.addedAssets > 0 ? (
+                        <Link
+                          href={`${base}?tab=assets`}
+                          className="group-summary-metric is-added"
+                          title={t('Eklenen varlık')}
+                          aria-label={`${t('Eklenen varlık')}: ${group.addedAssets}`}
+                        >
+                          <Icon name="plus" size={12} />
+                          <strong>+{formatNumber(group.addedAssets, locale)}</strong>
+                          <span>{t('eklendi')}</span>
+                        </Link>
+                      ) : null}
+                      {group.removedAssets > 0 ? (
+                        <Link
+                          href={`${base}?tab=assets`}
+                          className="group-summary-metric is-removed"
+                          title={t('Çıkarılan varlık')}
+                          aria-label={`${t('Çıkarılan varlık')}: ${group.removedAssets}`}
+                        >
+                          <Icon name="archive" size={12} />
+                          <strong>−{formatNumber(group.removedAssets, locale)}</strong>
+                          <span>{t('çıkarıldı')}</span>
+                        </Link>
+                      ) : null}
+                      {activity === 0 ? (
+                        <span className="group-summary-idle">
+                          <Icon name="leaf" size={12} />
+                          {t('Hareket yok')}
+                        </span>
+                      ) : null}
+                    </div>
+                  </div>
+                </article>
               );
             })}
           </div>

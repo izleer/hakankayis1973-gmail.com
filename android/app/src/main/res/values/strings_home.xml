@@ -16,6 +16,8 @@
     <string name="home_quote">“Bir şeyi saklamak,\nonu yeniden bakmak içindir.”</string>
     <string name="home_quote_attribution">izleer · günlük arşiv</string>
     <string name="home_groups_label">GRUPLAR</string>
+    <string name="home_groups_title">Grup özeti</string>
+    <string name="home_groups_idle">Hareket yok</string>
     <string name="home_groups_unread">Okunmamış</string>
     <string name="home_groups_added">Eklenen</string>
     <string name="home_groups_removed">Çıkarılan</string>

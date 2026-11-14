@@ -16,6 +16,8 @@
     <string name="home_quote">„Etwas aufzubewahren,\num es wieder anzusehen.“</string>
     <string name="home_quote_attribution">izleer · tägliches Archiv</string>
     <string name="home_groups_label">GRUPPEN</string>
+    <string name="home_groups_title">Gruppenübersicht</string>
+    <string name="home_groups_idle">Keine Aktivität</string>
     <string name="home_groups_unread">Ungelesen</string>
     <string name="home_groups_added">Hinzugefügt</string>
     <string name="home_groups_removed">Entfernt</string>

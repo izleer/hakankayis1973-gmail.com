@@ -49,6 +49,7 @@ const home = {
   'Son eklenenler': 'Ajouts récents',
   Arşivden: 'Depuis les archives',
   'Tüm arşiv': 'Toutes les archives',
+  'Son anılar': 'Souvenirs récents',
 
   // Résumé des groupes
   Grupların: 'Vos groupes',
@@ -58,8 +59,12 @@ const home = {
   'Okunmamış akış': 'Fil non lu',
   'Eklenen varlık': 'Biens ajoutés',
   'Çıkarılan varlık': 'Biens retirés',
+  'okunmamış': 'non lus',
+  eklendi: 'ajoutés',
+  'çıkarıldı': 'retirés',
   'Sayaçlar grubu son açtığından bu yana birikenleri gösterir.':
     'Les compteurs indiquent ce qui s’est accumulé depuis votre dernière ouverture du groupe.',
+  'Hareket yok': 'Aucune activité',
 } as const;
 
 export default home;

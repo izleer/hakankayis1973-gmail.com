@@ -16,6 +16,8 @@
     <string name="home_quote">« Garder une chose,\nc\'est pour la regarder à nouveau. »</string>
     <string name="home_quote_attribution">izleer · archive quotidienne</string>
     <string name="home_groups_label">GROUPES</string>
+    <string name="home_groups_title">Résumé des groupes</string>
+    <string name="home_groups_idle">Aucune activité</string>
     <string name="home_groups_unread">Non lus</string>
     <string name="home_groups_added">Ajoutés</string>
     <string name="home_groups_removed">Retirés</string>

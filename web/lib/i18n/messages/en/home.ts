@@ -49,6 +49,7 @@ const home = {
   'Son eklenenler': 'Recently added',
   Arşivden: 'From the archive',
   'Tüm arşiv': 'Full archive',
+  'Son anılar': 'Recent memories',
 
   // Grup özeti
   Grupların: 'Your groups',
@@ -58,8 +59,12 @@ const home = {
   'Okunmamış akış': 'Unread feed',
   'Eklenen varlık': 'Assets added',
   'Çıkarılan varlık': 'Assets removed',
+  'okunmamış': 'unread',
+  eklendi: 'added',
+  'çıkarıldı': 'removed',
   'Sayaçlar grubu son açtığından bu yana birikenleri gösterir.':
     'Counters show what has accumulated since you last opened the group.',
+  'Hareket yok': 'No activity',
 } as const;
 
 export default home;

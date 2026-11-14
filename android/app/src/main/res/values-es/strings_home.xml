@@ -16,6 +16,8 @@
     <string name="home_quote">«Guardar algo es\npara volver a mirarlo.»</string>
     <string name="home_quote_attribution">izleer · archivo diario</string>
     <string name="home_groups_label">GRUPOS</string>
+    <string name="home_groups_title">Resumen de grupos</string>
+    <string name="home_groups_idle">Sin actividad</string>
     <string name="home_groups_unread">Sin leer</string>
     <string name="home_groups_added">Añadidos</string>
     <string name="home_groups_removed">Retirados</string>

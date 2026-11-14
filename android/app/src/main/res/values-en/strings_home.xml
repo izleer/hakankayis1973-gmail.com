@@ -16,6 +16,8 @@
     <string name="home_quote">“Keeping something is\nfor looking at it again.”</string>
     <string name="home_quote_attribution">izleer · daily archive</string>
     <string name="home_groups_label">GROUPS</string>
+    <string name="home_groups_title">Group summary</string>
+    <string name="home_groups_idle">No activity</string>
     <string name="home_groups_unread">Unread</string>
     <string name="home_groups_added">Added</string>
     <string name="home_groups_removed">Removed</string>
