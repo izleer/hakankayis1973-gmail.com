@@ -1,7 +1,7 @@
 import { query } from '../db.js';
 import { iso } from './http.js';
 import type { Locale } from './locale.js';
-import { mediaRefUrl, mediaUrl } from './storage.js';
+import { mediaKeyRef, mediaRefUrl, mediaUrl } from './storage.js';
 import type { CategoryTemplate } from './templates.js';
 import { templateForType } from './templates.js';
 import { translateTypeLabel } from './taxonomy.js';
@@ -13,6 +13,7 @@ export type MediaDto = {
   kind: 'image' | 'video' | 'document';
   status: 'pending' | 'ready' | 'failed';
   url: string | null;
+  ref: string | null;
   mimeType: string;
   originalName: string | null;
   byteSize: number;
@@ -27,6 +28,9 @@ export async function mapMedia(row: Row): Promise<MediaDto> {
     kind: row.kind,
     status: row.status,
     url: await mediaUrl(row.storage_key),
+    // Kalıcı, göreli başvuru: başka bir kayda (avatar vb.) yazılacaksa
+    // süreli imzalı URL yerine bu kullanılmalı.
+    ref: mediaKeyRef(row.storage_key),
     mimeType: row.mime_type,
     originalName: row.original_name,
     byteSize: Number(row.byte_size),

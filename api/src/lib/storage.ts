@@ -68,7 +68,14 @@ export function isSignableMediaKey(key: string): boolean {
 const DEV_MEDIA_SIGNING_SECRET = 'izleer-local-media-signing-secret';
 
 function mediaSigningSecret(): string {
-  return env.MEDIA_SIGNING_SECRET ?? DEV_MEDIA_SIGNING_SECRET;
+  // Üretimde ayrı bir MEDIA_SIGNING_SECRET tanımlanmadıysa S3 gizli anahtarı
+  // kullanılır: her iki sürücüde de `/files/...` adresleri imzalanabilsin ve
+  // bilinen geliştirme anahtarı canlıya sızmasın.
+  return (
+    env.MEDIA_SIGNING_SECRET ??
+    env.S3_SECRET_ACCESS_KEY ??
+    DEV_MEDIA_SIGNING_SECRET
+  );
 }
 
 function encodeMediaKey(key: string): string {
@@ -126,8 +133,9 @@ export function verifyMediaSignature(
  */
 export function mediaRefUrl(value: string | null | undefined): string | null {
   if (!value) return null;
-  if (env.STORAGE_DRIVER !== 'local') return value;
 
+  // Hem yerel hem S3 sürücüsünde göreli `/files/<anahtar>` başvuruları imzalı
+  // API adresine çevrilir; istemciler kendi API köklerine göre çözer.
   const match = /^\/files\/([^?#]+)(?:\?.*)?$/.exec(value);
   if (!match) return value;
   let key: string;
@@ -137,6 +145,16 @@ export function mediaRefUrl(value: string | null | undefined): string | null {
     return value;
   }
   return isSignableMediaKey(key) ? signMediaKey(key) : value;
+}
+
+/**
+ * Depolama anahtarını istemcilere verilecek kanonik `/files/<anahtar>`
+ * başvurusuna çevirir. Yüklenen medyanın kalıcı kimliğidir; imzalı URL'ler
+ * süreli olduğundan veritabanında bu biçim saklanmalıdır.
+ */
+export function mediaKeyRef(key: string | null | undefined): string | null {
+  if (!key || !isSignableMediaKey(key)) return null;
+  return `/files/${encodeMediaKey(key)}`;
 }
 
 /**

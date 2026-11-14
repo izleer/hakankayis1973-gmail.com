@@ -39,7 +39,8 @@ export function ProfileAvatarEditor({ user }: { user: User }) {
       if (!media.url) {
         throw new Error(t('Fotoğraf yüklenemedi.'));
       }
-      await vh.patch('me', { avatarUrl: media.url });
+      // İmzalı URL sürelidir; kalıcı göreli başvuruyu kaydet.
+      await vh.patch('me', { avatarUrl: media.ref ?? media.url });
       URL.revokeObjectURL(localUrl);
       setPreview(media.url);
       router.refresh();

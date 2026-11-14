@@ -10,7 +10,7 @@ import { ApiError } from './lib/errors.js';
 import { translate } from './lib/i18n/index.js';
 import { negotiateLocale, type Locale } from './lib/locale.js';
 import { ensureTaxonomy } from './lib/taxonomy.js';
-import { storageRoot, verifyMediaSignature } from './lib/storage.js';
+import { storageRoot, mediaUrl, verifyMediaSignature } from './lib/storage.js';
 import { authRoutes } from './routes/auth.js';
 import { assetTypeRoutes } from './routes/asset-types.js';
 import { assetRoutes } from './routes/assets.js';
@@ -32,6 +32,37 @@ declare module 'fastify' {
   interface FastifyRequest {
     locale: Locale;
   }
+}
+
+/**
+ * `/files/<anahtar>` adresinin yayınlanabilir olduğunu doğrular: silinmiş
+ * varlık/kayıt veya gizlenmiş gönderiye bağlı medya ile hazır olmayan
+ * yüklemeler sunulmaz. Seed görselleri kamuya açık demo içeriğidir.
+ */
+async function mediaKeyVisible(key: string): Promise<boolean> {
+  if (key.startsWith('seed/')) return true;
+  const row = await queryOne<{
+    status: string;
+    asset_deleted_at: Date | null;
+    entry_deleted_at: Date | null;
+    post_status: string | null;
+  }>(
+    `SELECT m.status, a.deleted_at AS asset_deleted_at,
+            je.deleted_at AS entry_deleted_at, p.status AS post_status
+     FROM media m
+     LEFT JOIN assets a ON a.id = m.asset_id
+     LEFT JOIN journal_entries je ON je.id = m.entry_id
+     LEFT JOIN posts p ON p.id = m.post_id
+     WHERE m.storage_key = $1`,
+    [key],
+  );
+  return Boolean(
+    row &&
+      row.status === 'ready' &&
+      !row.asset_deleted_at &&
+      !row.entry_deleted_at &&
+      (row.post_status === null || row.post_status === 'visible'),
+  );
 }
 
 export async function buildApp(): Promise<FastifyInstance> {
@@ -161,33 +192,10 @@ export async function buildApp(): Promise<FastifyInstance> {
         });
       }
       // Seed görselleri kamuya açık demo içeriğidir ve media satırı yoktur.
-      if (!key.startsWith('seed/')) {
-        const row = await queryOne<{
-          status: string;
-          asset_deleted_at: Date | null;
-          entry_deleted_at: Date | null;
-          post_status: string | null;
-        }>(
-          `SELECT m.status, a.deleted_at AS asset_deleted_at,
-                  je.deleted_at AS entry_deleted_at, p.status AS post_status
-           FROM media m
-           LEFT JOIN assets a ON a.id = m.asset_id
-           LEFT JOIN journal_entries je ON je.id = m.entry_id
-           LEFT JOIN posts p ON p.id = m.post_id
-           WHERE m.storage_key = $1`,
-          [key],
-        );
-        if (
-          !row ||
-          row.status !== 'ready' ||
-          row.asset_deleted_at ||
-          row.entry_deleted_at ||
-          (row.post_status !== null && row.post_status !== 'visible')
-        ) {
-          return reply.status(404).send({
-            error: { code: 'NOT_FOUND', message: translate(req.locale, 'Medya bulunamadı.') },
-          });
-        }
+      if (!(await mediaKeyVisible(key))) {
+        return reply.status(404).send({
+          error: { code: 'NOT_FOUND', message: translate(req.locale, 'Medya bulunamadı.') },
+        });
       }
     });
     await app.register(fastifyStatic, {
@@ -200,6 +208,40 @@ export async function buildApp(): Promise<FastifyInstance> {
         res.setHeader('Cache-Control', 'private, max-age=3600');
         res.setHeader('X-Content-Type-Options', 'nosniff');
       },
+    });
+  } else {
+    // S3 sürücüsünde dosyalar imzalı adresle sunulur. İmza ve görünürlük
+    // doğrulaması burada yapılır; istemciler yine göreli `/files/...` kullanır.
+    app.get('/files/*', async (req, reply) => {
+      const wildcard = (req.params as Record<string, string>)['*'] ?? '';
+      let key = '';
+      try {
+        key = decodeURIComponent(wildcard);
+      } catch {
+        key = '';
+      }
+      const query = req.query as { exp?: string; sig?: string };
+      if (!verifyMediaSignature(key, query.exp, query.sig)) {
+        return reply.status(403).send({
+          error: {
+            code: 'MEDIA_FORBIDDEN',
+            message: translate(req.locale, 'Medya adresi geçersiz veya süresi dolmuş.'),
+          },
+        });
+      }
+      if (!(await mediaKeyVisible(key))) {
+        return reply.status(404).send({
+          error: { code: 'NOT_FOUND', message: translate(req.locale, 'Medya bulunamadı.') },
+        });
+      }
+      const target = await mediaUrl(key);
+      if (!target) {
+        return reply.status(404).send({
+          error: { code: 'NOT_FOUND', message: translate(req.locale, 'Medya bulunamadı.') },
+        });
+      }
+      reply.header('Cache-Control', 'private, max-age=3600');
+      return reply.redirect(target, 302);
     });
   }
 

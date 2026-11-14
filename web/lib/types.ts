@@ -126,6 +126,7 @@ export type Media = {
   kind: 'image' | 'video' | 'document';
   status: 'pending' | 'ready' | 'failed';
   url: string | null;
+  ref?: string | null;
   mimeType: string;
   originalName: string | null;
   byteSize: number;
