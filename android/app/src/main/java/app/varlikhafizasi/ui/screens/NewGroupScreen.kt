@@ -62,8 +62,11 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import app.varlikhafizasi.R
+import app.varlikhafizasi.data.User
+import app.varlikhafizasi.data.Plans
 import app.varlikhafizasi.ui.VhViewModel
 import app.varlikhafizasi.ui.components.Avatar
+import app.varlikhafizasi.ui.components.BannerAd
 import app.varlikhafizasi.ui.components.GoldRule
 import app.varlikhafizasi.ui.components.Pill
 import app.varlikhafizasi.ui.components.SectionLabel
@@ -109,6 +112,7 @@ private val InviteIdsSaver = Saver<List<String>, String>(
 @Composable
 fun NewGroupScreen(
     vm: VhViewModel,
+    viewer: User,
     onBack: () -> Unit,
     onCreated: (String) -> Unit,
 ) {
@@ -215,6 +219,11 @@ fun NewGroupScreen(
                     style = MaterialTheme.typography.bodyMedium,
                     color = Muted,
                 )
+
+                if (!Plans.isPremium(viewer.plan)) {
+                    Spacer(Modifier.height(14.dp))
+                    BannerAd()
+                }
 
                 Spacer(Modifier.height(20.dp))
                 OutlinedTextField(

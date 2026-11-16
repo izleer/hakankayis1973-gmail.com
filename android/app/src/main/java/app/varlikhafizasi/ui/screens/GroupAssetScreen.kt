@@ -47,8 +47,11 @@ import app.varlikhafizasi.R
 import app.varlikhafizasi.data.Asset
 import app.varlikhafizasi.data.GroupAssetShare
 import app.varlikhafizasi.data.MediaUrl
+import app.varlikhafizasi.data.User
+import app.varlikhafizasi.data.Plans
 import app.varlikhafizasi.ui.VhViewModel
 import app.varlikhafizasi.ui.components.Avatar
+import app.varlikhafizasi.ui.components.BannerAd
 import app.varlikhafizasi.ui.components.EmptyState
 import app.varlikhafizasi.ui.components.ErrorBox
 import app.varlikhafizasi.ui.components.LoadingBox
@@ -78,6 +81,7 @@ fun GroupAssetScreen(
     vm: VhViewModel,
     slug: String,
     assetId: String,
+    viewer: User,
     onBack: () -> Unit,
 ) {
     val state by vm.groupAsset.collectAsStateWithLifecycle()
@@ -134,6 +138,7 @@ fun GroupAssetScreen(
                     )
                 }
                 item { GroupScopeNote(share) }
+                if (!Plans.isPremium(viewer.plan)) item { BannerAd() }
 
                 when {
                     share?.scope == "summary" -> item { LockedStory() }

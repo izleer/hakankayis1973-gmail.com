@@ -1,0 +1,82 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="plan_title">Plans and permissions</string>
+    <string name="plan_eyebrow">PLANS</string>
+    <string name="plan_intro">Start with the free plan; your records stay yours on every plan. Premium removes limits and opens advanced tracking.</string>
+    <string name="plan_current">Current plan</string>
+    <string name="plan_badge_free">FREE</string>
+    <string name="plan_badge_premium">PREMIUM</string>
+    <string name="plan_free_name">Free plan</string>
+    <string name="plan_premium_name">Premium plan</string>
+    <string name="plan_free_desc">Everything you need for daily logging and tracking is open.</string>
+    <string name="plan_premium_desc">Advanced logging and tracking are open.</string>
+    <string name="plan_usage_assets">Your assets</string>
+    <string name="plan_usage_media">Photos / entry</string>
+    <string name="plan_usage_since">Plan start</string>
+    <string name="plan_since_new">New account</string>
+    <string name="plan_usage_value">%1$d / %2$d</string>
+    <string name="plan_unlimited">Unlimited</string>
+    <string name="plan_upgrade_cta">Go Premium</string>
+    <string name="plan_downgrade_cta">Return to free plan</string>
+    <string name="plan_billing_note">Billing is not connected yet; plan changes apply instantly for now.</string>
+    <string name="plan_matrix_title">Plan comparison</string>
+    <string name="plan_matrix_subtitle">Same memory, different depth. Reading and export are open on every plan.</string>
+    <string name="plan_col_feature">Feature</string>
+    <string name="plan_col_free">Free</string>
+    <string name="plan_col_premium">Premium</string>
+
+    <string name="plan_row_mobile">Mobile</string>
+    <string name="plan_row_web">Web</string>
+    <string name="plan_row_assets">Asset</string>
+    <string name="plan_row_history">History</string>
+    <string name="plan_row_photo">Photo</string>
+    <string name="plan_row_storage">Storage</string>
+    <string name="plan_row_analytics">Analytics</string>
+    <string name="plan_row_compare">Comparison</string>
+    <string name="plan_row_reports">Report</string>
+    <string name="plan_row_cloud">Cloud</string>
+    <string name="plan_row_ads">Ads</string>
+
+    <string name="plan_value_mobile_free">Daily logging and tracking</string>
+    <string name="plan_value_mobile_premium">Advanced logging and tracking</string>
+    <string name="plan_value_web_free">Viewing and basic editing</string>
+    <string name="plan_value_web_premium">Analytics and management hub</string>
+    <string name="plan_value_assets_free">%1$d assets</string>
+    <string name="plan_value_history_free">Up to %1$d entries per asset</string>
+    <string name="plan_value_photo_free">1 file per entry</string>
+    <string name="plan_value_photo_premium">10 files per entry</string>
+    <string name="plan_value_storage_free">500 MB</string>
+    <string name="plan_value_basic">Basic</string>
+    <string name="plan_value_advanced">Advanced</string>
+    <string name="plan_value_none">No</string>
+    <string name="plan_value_yes">Yes</string>
+    <string name="plan_value_cloud_limited">Limited</string>
+    <string name="plan_value_cloud_full">Full</string>
+    <string name="plan_value_ads_free">Ad-supported</string>
+    <string name="plan_value_ads_premium">Ad-free</string>
+
+    <string name="plan_note_data">Even if your plan drops, existing assets and entries are not deleted; only new writes are subject to limits.</string>
+    <string name="plan_note_export">Exporting your data is open on every plan.</string>
+    <string name="plan_activated_premium">Premium plan activated.</string>
+    <string name="plan_activated_free">Switched to the free plan.</string>
+
+    <string name="plan_profile_title">Your plan</string>
+    <string name="plan_profile_manage">Manage plan</string>
+    <string name="plan_profile_premium_hint">Advanced logging and tracking</string>
+    <string name="plan_profile_free_hint">%1$d / %2$d assets</string>
+
+    <string name="plan_limit_assets_title">You reached the asset limit</string>
+    <string name="plan_limit_assets_body">The free plan allows up to %1$d assets. Premium opens unlimited assets and advanced tracking.</string>
+    <string name="plan_limit_assets_banner">Free plan: %1$d / %2$d assets</string>
+    <string name="plan_limit_assets_remaining">Free plan: %1$d / %2$d assets</string>
+    <string name="plan_limit_entries_title">You reached the entry limit</string>
+    <string name="plan_limit_entries_body">The free plan allows up to %1$d entries per asset. Premium opens unlimited entries.</string>
+    <string name="plan_limit_entries_banner">Free plan: up to %1$d entries per asset</string>
+    <string name="plan_limit_media_hint">The free plan allows 1 file per entry.</string>
+    <string name="plan_go">View plan</string>
+
+    <string name="plan_warning_assets_near">You are approaching your asset limit: %1$d / %2$d.</string>
+    <string name="plan_warning_assets_blocked">Asset limit reached: %1$d / %2$d. Free up space to add a new asset.</string>
+    <string name="plan_warning_storage_near">Your storage is %3$d%% full: %1$s / %2$s.</string>
+    <string name="plan_warning_storage_blocked">Storage quota is full: %1$s / %2$s. Free up space for a new file.</string>
+</resources>

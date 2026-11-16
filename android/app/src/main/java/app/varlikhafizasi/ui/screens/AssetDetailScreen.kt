@@ -61,9 +61,11 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import app.varlikhafizasi.R
 import app.varlikhafizasi.data.Entry
 import app.varlikhafizasi.data.MediaUrl
+import app.varlikhafizasi.data.Plans
 import app.varlikhafizasi.data.User
 import app.varlikhafizasi.ui.VhViewModel
 import app.varlikhafizasi.ui.components.Avatar
+import app.varlikhafizasi.ui.components.BannerAd
 import app.varlikhafizasi.ui.components.EmptyState
 import app.varlikhafizasi.ui.components.ErrorBox
 import app.varlikhafizasi.ui.components.LoadingBox
@@ -107,11 +109,14 @@ fun AssetDetailScreen(
     onAddEntry: () -> Unit,
     onEditEntry: (String) -> Unit,
     onDeleted: () -> Unit,
+    onOpenPlan: () -> Unit = {},
 ) {
     val state by vm.detail.collectAsStateWithLifecycle()
     val privateGroups by vm.privateGroups.collectAsStateWithLifecycle()
     val formError by vm.formError.collectAsStateWithLifecycle()
     val formBusy by vm.formBusy.collectAsStateWithLifecycle()
+    val planState by vm.plan.collectAsStateWithLifecycle()
+    val session by vm.session.collectAsStateWithLifecycle()
     val context = LocalContext.current
     var selectedTab by rememberSaveable { mutableStateOf(0) }
     var pendingDelete by rememberSaveable { mutableStateOf<String?>(null) }
@@ -122,11 +127,16 @@ fun AssetDetailScreen(
 
     LaunchedEffect(assetId) { vm.loadDetail(assetId) }
     LaunchedEffect(assetId) { vm.clearFormError() }
+    LaunchedEffect(assetId) { vm.loadPlan() }
 
     val data = state.data
     val asset = data?.detail?.asset
     val isOwner = data?.detail?.access?.isOwner == true
     val canEdit = isOwner || data?.detail?.access?.canEdit == true
+    val plan = Plans.normalize(planState.data?.plan ?: session.user?.plan)
+    val premium = Plans.isPremium(plan)
+    val entryCount = data?.detail?.entries?.size ?: 0
+    val entryLimitReached = !premium && Plans.entryLimitReached(plan, entryCount)
 
     // Ortak yönetim grubu yalnızca sahip tarafından atanır; listeyi sekme açılınca getir.
     LaunchedEffect(selectedTab, isOwner) {
@@ -152,11 +162,11 @@ fun AssetDetailScreen(
                                     tint = Forest,
                                 )
                             }
-                            IconButton(onClick = onAddEntry) {
+                            IconButton(onClick = { if (entryLimitReached) onOpenPlan() else onAddEntry() }) {
                                 Icon(
                                     Icons.Outlined.Add,
                                     contentDescription = stringResource(R.string.asset_detail_add_entry),
-                                    tint = Forest,
+                                    tint = if (entryLimitReached) Muted else Forest,
                                 )
                             }
                         }
@@ -169,6 +179,42 @@ fun AssetDetailScreen(
                         }
                     },
                 )
+            }
+
+            if (entryLimitReached && canEdit) {
+                item {
+                    Surface(
+                        color = PaperDeep,
+                        shape = RoundedCornerShape(14.dp),
+                        border = BorderStroke(1.dp, Clay),
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(horizontal = 20.dp, vertical = 8.dp),
+                    ) {
+                        Column(Modifier.padding(12.dp)) {
+                            Text(
+                                stringResource(R.string.plan_limit_entries_title),
+                                style = MaterialTheme.typography.titleSmall,
+                                color = Forest,
+                            )
+                            Spacer(Modifier.height(4.dp))
+                            Text(
+                                stringResource(
+                                    R.string.plan_limit_entries_body,
+                                    Plans.FREE_MAX_ENTRIES,
+                                ),
+                                style = MaterialTheme.typography.bodySmall,
+                                color = Muted,
+                            )
+                            TextButton(onClick = onOpenPlan) {
+                                Text(
+                                    stringResource(R.string.plan_upgrade_cta),
+                                    color = Clay,
+                                )
+                            }
+                        }
+                    }
+                }
             }
 
             if (state.loading && data == null) {
@@ -355,11 +401,11 @@ fun AssetDetailScreen(
                         Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                             if (canEdit) {
                                 Surface(
-                                    color = Forest,
+                                    color = if (entryLimitReached) Forest.copy(alpha = 0.45f) else Forest,
                                     shape = RoundedCornerShape(50),
                                     modifier = Modifier
                                         .weight(1f)
-                                        .clickable { onAddEntry() },
+                                        .clickable(enabled = !entryLimitReached) { onAddEntry() },
                                 ) {
                                     Text(
                                         stringResource(R.string.asset_detail_add_entry),
@@ -409,6 +455,14 @@ fun AssetDetailScreen(
                     Spacer(Modifier.height(6.dp))
                 }
 
+                if (!premium && selectedTab == 0) {
+                    item {
+                        Column(Modifier.padding(horizontal = 20.dp, vertical = 4.dp)) {
+                            BannerAd()
+                        }
+                    }
+                }
+
                 when (selectedTab) {
                     0 -> {
                         if (data.detail.entries.isEmpty()) {
@@ -416,12 +470,12 @@ fun AssetDetailScreen(
                                 EmptyState(
                                     title = stringResource(R.string.asset_detail_story_empty_title),
                                     body = stringResource(R.string.asset_detail_story_empty_body),
-                                    actionLabel = if (canEdit) {
+                                    actionLabel = if (canEdit && !entryLimitReached) {
                                         stringResource(R.string.asset_detail_add_entry)
                                     } else {
                                         null
                                     },
-                                    onAction = if (canEdit) onAddEntry else null,
+                                    onAction = if (canEdit && !entryLimitReached) onAddEntry else null,
                                 )
                             }
                         }

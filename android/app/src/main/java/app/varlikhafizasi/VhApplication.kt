@@ -8,6 +8,7 @@ import app.varlikhafizasi.data.local.LocalExporter
 import app.varlikhafizasi.data.local.LocalStore
 import app.varlikhafizasi.data.local.ModeStore
 import app.varlikhafizasi.reminders.ReminderNotifier
+import com.google.android.gms.ads.MobileAds
 
 object AppGraph {
     lateinit var repository: VhRepository
@@ -37,5 +38,7 @@ class VhApplication : Application() {
         super.onCreate()
         AppGraph.init(this)
         ReminderNotifier.ensureChannel(this)
+        // Ücretsiz plan banner'ları için AdMob'u bir kez başlat.
+        MobileAds.initialize(this)
     }
 }

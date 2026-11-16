@@ -1,5 +1,6 @@
 import type { Metadata } from 'next';
 import Link from 'next/link';
+import { AdSlot } from '@/components/AdSlot';
 import { EmptyState } from '@/components/EmptyState';
 import { FeedCard } from '@/components/FeedCard';
 import { FollowButton } from '@/components/FollowButton';
@@ -7,6 +8,7 @@ import { FriendButton } from '@/components/FriendButton';
 import { Icon } from '@/components/Icons';
 import { MediaImage } from '@/components/MediaImage';
 import { api, requireViewer } from '@/lib/api';
+import { adConfig } from '@/lib/ads';
 import { initials, typeIconName } from '@/lib/format';
 import { getI18n, getT } from '@/lib/i18n/server';
 import type { Asset, CursorPage, FeedPost, FriendStatus, Paged, UserMini } from '@/lib/types';
@@ -25,7 +27,8 @@ type Suggestion = UserMini & {
 
 export default async function ExplorePage() {
   const { t, locale } = await getI18n();
-  await requireViewer();
+  const viewer = await requireViewer();
+  const ads = viewer.plan === 'premium' ? null : adConfig();
   const [feed, discover, suggestions] = await Promise.all([
     api<CursorPage<FeedPost>>('/v1/feed?scope=explore&limit=16'),
     api<Paged<Asset>>('/v1/assets/discover?limit=4&sort=recent'),
@@ -49,6 +52,10 @@ export default async function ExplorePage() {
           {t('Kendi arşivin')}
         </Link>
       </header>
+
+      {viewer.plan === 'premium' ? null : (
+        <AdSlot client={ads?.client ?? ''} slot={ads?.slots.friends ?? ''} />
+      )}
 
       <div className="explore-layout">
         <section className="feed-column">

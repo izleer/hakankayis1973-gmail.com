@@ -3,9 +3,11 @@ import Link from 'next/link';
 import { EmptyState } from '@/components/EmptyState';
 import { Icon } from '@/components/Icons';
 import { MediaImage } from '@/components/MediaImage';
+import { PremiumGate } from '@/components/PremiumGate';
 import { api, requireViewer } from '@/lib/api';
 import { formatDate, formatLocation, formatNumber, typeIconName } from '@/lib/format';
 import { getI18n, getT } from '@/lib/i18n/server';
+import { isPremium } from '@/lib/plan';
 import type { Asset, AssetType, Paged } from '@/lib/types';
 
 export async function generateMetadata(): Promise<Metadata> {
@@ -16,8 +18,18 @@ export async function generateMetadata(): Promise<Metadata> {
 type SearchParams = Promise<{ q?: string; type?: string }>;
 
 export default async function ReportsPage({ searchParams }: { searchParams: SearchParams }) {
-  await requireViewer();
+  const viewer = await requireViewer();
   const { t, locale } = await getI18n();
+  if (!isPremium(viewer)) {
+    return (
+      <PremiumGate
+        title={t('Raporlar Premium’da açılır')}
+        body={t(
+          'Künye, konum, ölçümler ve tüm hikâye tek bir yazdırılabilir raporda. Raporlar Premium planda kullanılabilir.',
+        )}
+      />
+    );
+  }
   const params = await searchParams;
   const query = new URLSearchParams({ limit: '48', sort: 'updated' });
   if (params.q) query.set('q', params.q);

@@ -2,9 +2,11 @@ import type { Metadata } from 'next';
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import { EmptyState } from '@/components/EmptyState';
+import { AdSlot } from '@/components/AdSlot';
 import { Icon, type IconName } from '@/components/Icons';
 import { MediaImage } from '@/components/MediaImage';
 import { ApiError, api, requireViewer } from '@/lib/api';
+import { adConfig } from '@/lib/ads';
 import {
   attributeLabel,
   entryTypeDescriptions,
@@ -105,11 +107,13 @@ export async function generateMetadata({ params }: { params: Params }): Promise<
 }
 
 export default async function SharedAssetPage({ params }: { params: Params }) {
-  await requireViewer();
+  const viewer = await requireViewer();
   const { t, locale } = await getI18n();
   const { slug, assetId } = await params;
   const data = await loadSharedAsset(slug, assetId);
   if (!data) notFound();
+
+  const ads = viewer.plan === 'premium' ? null : adConfig();
 
   const { asset, share, community, entries } = data;
   const attributeLabels = await loadAttributeLabels(asset.type.id);
@@ -213,6 +217,10 @@ export default async function SharedAssetPage({ params }: { params: Params }) {
           ? t('Bu varlık grubun ortak yönetiminde. Tüm üyeler kayıtları düzenleyebilir.')
           : t(scopeNotes[share.scope])}
       </p>
+
+      {viewer.plan === 'premium' ? null : (
+        <AdSlot client={ads?.client ?? ''} slot={ads?.slots.assetDetail ?? ''} />
+      )}
 
       <section className="story">
         {share.scope === 'summary' ? (

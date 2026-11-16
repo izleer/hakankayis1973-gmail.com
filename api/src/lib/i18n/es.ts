@@ -32,7 +32,15 @@ const messages = {
     'El acceso individual solo puede otorgarse con la visibilidad "Personas seleccionadas". Cambia primero la visibilidad del recurso.',
   'Bildirilecek içerik bulunamadı.': 'No se encontró contenido para reportar.',
   'Bildirim bulunamadı.': 'Reporte no encontrado.',
-  'Bir kayda en fazla 8 medya eklenebilir.': 'Una memoria puede incluir como máximo 8 elementos multimedia.',
+  'Bir kayda en fazla 10 medya eklenebilir.': 'Una memoria puede incluir como máximo 10 elementos multimedia.',
+  'Ücretsiz planda en fazla 5 varlık oluşturabilirsiniz. Sınırsız varlık için Premium plana geçin.':
+    'El plan gratuito permite hasta 5 objetos. Cambia a Premium para objetos ilimitados.',
+  'Ücretsiz planda bir varlığa en fazla 10 kayıt ekleyebilirsiniz. Sınırsız kayıt için Premium plana geçin.':
+    'El plan gratuito permite hasta 10 entradas por objeto. Cambia a Premium para entradas ilimitadas.',
+  'Ücretsiz planda bir kayda en fazla 1 fotoğraf veya belge ekleyebilirsiniz. Premium planda kayıt başına 10 dosya eklenebilir.':
+    'El plan gratuito permite una foto o documento por entrada. Premium permite hasta 10 archivos por entrada.',
+  'Bu özellik Premium planda kullanılabilir.': 'Esta función está disponible con el plan Premium.',
+  'Geçersiz plan seçimi.': 'Selección de plan no válida.',
   'Bu alan yalnızca moderatörlere açıktır.': 'Esta sección solo está disponible para moderadores.',
   'Bu davet artık geçerli değil.': 'Esta invitación ya no es válida.',
   'Bu dosya türü desteklenmiyor.': 'Este tipo de archivo no es compatible.',

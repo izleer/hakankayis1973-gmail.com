@@ -51,6 +51,7 @@ function viewer(id: string, role: Viewer['role'] = 'user'): Viewer {
     role,
     onboardedAt: null,
     email: `${id}@test.local`,
+    plan: 'free',
   };
 }
 

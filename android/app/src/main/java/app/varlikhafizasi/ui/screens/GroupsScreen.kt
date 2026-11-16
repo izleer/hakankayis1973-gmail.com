@@ -40,7 +40,10 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import app.varlikhafizasi.R
 import app.varlikhafizasi.data.Group
 import app.varlikhafizasi.data.MediaUrl
+import app.varlikhafizasi.data.User
+import app.varlikhafizasi.data.Plans
 import app.varlikhafizasi.ui.VhViewModel
+import app.varlikhafizasi.ui.components.BannerAd
 import app.varlikhafizasi.ui.components.EmptyState
 import app.varlikhafizasi.ui.components.ErrorBox
 import app.varlikhafizasi.ui.components.LoadingBox
@@ -64,6 +67,7 @@ import coil.compose.AsyncImage
 @Composable
 fun GroupsScreen(
     vm: VhViewModel,
+    viewer: User,
     onOpenGroup: (String) -> Unit,
     onNewGroup: () -> Unit,
 ) {
@@ -138,6 +142,10 @@ fun GroupsScreen(
                     )
                 }
             }
+        }
+
+        if (!Plans.isPremium(viewer.plan)) {
+            item { BannerAd() }
         }
 
         if (state.loading && data == null) item { LoadingBox() }

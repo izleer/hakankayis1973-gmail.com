@@ -4,6 +4,7 @@ import { query, queryOne } from '../db.js';
 import { ApiError, conflict, unauthorized } from '../lib/errors.js';
 import { parseBody } from '../lib/http.js';
 import { hashPassword, passwordIssues, verifyPassword } from '../lib/password.js';
+import { normalizePlan } from '../lib/plans.js';
 import {
   issueSession,
   requireViewer,
@@ -41,6 +42,7 @@ type UserRow = {
   avatar_url: string | null;
   role: 'user' | 'moderator' | 'admin';
   onboarded_at: Date | null;
+  plan: string;
   password_hash: string;
 };
 
@@ -53,6 +55,7 @@ function sessionUser(row: UserRow) {
     avatarUrl: mediaRefUrl(row.avatar_url),
     role: row.role,
     onboardedAt: row.onboarded_at ? row.onboarded_at.toISOString() : null,
+    plan: normalizePlan(row.plan),
   };
 }
 
@@ -83,7 +86,7 @@ export async function authRoutes(app: FastifyInstance): Promise<void> {
       const rows = await query<UserRow>(
         `INSERT INTO users (email, username, password_hash, display_name)
          VALUES ($1, $2, $3, $4)
-         RETURNING id, email, username, password_hash, display_name, avatar_url, role, onboarded_at`,
+         RETURNING id, email, username, password_hash, display_name, avatar_url, role, onboarded_at, plan`,
         [email, username, passwordHash, body.displayName],
       );
       const user = rows[0]!;
@@ -107,7 +110,7 @@ export async function authRoutes(app: FastifyInstance): Promise<void> {
     async (req) => {
       const body = parseBody(loginBody, req.body);
       const row = await queryOne<UserRow>(
-        `SELECT id, email, username, password_hash, display_name, avatar_url, role, onboarded_at
+        `SELECT id, email, username, password_hash, display_name, avatar_url, role, onboarded_at, plan
          FROM users
          WHERE deleted_at IS NULL AND (email = $1 OR username = $2)
          LIMIT 1`,
@@ -138,6 +141,7 @@ export async function authRoutes(app: FastifyInstance): Promise<void> {
           avatarUrl: viewer.avatarUrl,
           role: viewer.role,
           onboardedAt: viewer.onboardedAt,
+          plan: viewer.plan,
         },
       },
     };

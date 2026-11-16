@@ -32,7 +32,15 @@ const messages = {
     'Personenbezogener Zugriff kann nur mit der Sichtbarkeit „Ausgewählte Personen“ erteilt werden. Ändere zuerst die Sichtbarkeit der Ressource.',
   'Bildirilecek içerik bulunamadı.': 'Kein zu meldender Inhalt gefunden.',
   'Bildirim bulunamadı.': 'Meldung nicht gefunden.',
-  'Bir kayda en fazla 8 medya eklenebilir.': 'Einem Gedächtnis können höchstens 8 Medien hinzugefügt werden.',
+  'Bir kayda en fazla 10 medya eklenebilir.': 'Einem Gedächtnis können höchstens 10 Medien hinzugefügt werden.',
+  'Ücretsiz planda en fazla 5 varlık oluşturabilirsiniz. Sınırsız varlık için Premium plana geçin.':
+    'Im kostenlosen Plan sind bis zu 5 Objekte möglich. Für unbegrenzte Objekte auf Premium wechseln.',
+  'Ücretsiz planda bir varlığa en fazla 10 kayıt ekleyebilirsiniz. Sınırsız kayıt için Premium plana geçin.':
+    'Im kostenlosen Plan sind bis zu 10 Einträge pro Objekt möglich. Für unbegrenzte Einträge auf Premium wechseln.',
+  'Ücretsiz planda bir kayda en fazla 1 fotoğraf veya belge ekleyebilirsiniz. Premium planda kayıt başına 10 dosya eklenebilir.':
+    'Im kostenlosen Plan ist ein Foto oder Dokument pro Eintrag möglich. Premium erlaubt bis zu 10 Dateien pro Eintrag.',
+  'Bu özellik Premium planda kullanılabilir.': 'Diese Funktion ist im Premium-Plan verfügbar.',
+  'Geçersiz plan seçimi.': 'Ungültige Planauswahl.',
   'Bu alan yalnızca moderatörlere açıktır.': 'Dieser Bereich ist nur für Moderatoren zugänglich.',
   'Bu davet artık geçerli değil.': 'Diese Einladung ist nicht mehr gültig.',
   'Bu dosya türü desteklenmiyor.': 'Dieser Dateityp wird nicht unterstützt.',

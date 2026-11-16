@@ -32,7 +32,15 @@ const messages = {
     'Personal access can only be granted with the "Selected people" visibility. Change the asset visibility first.',
   'Bildirilecek içerik bulunamadı.': 'No reportable content was found.',
   'Bildirim bulunamadı.': 'Report not found.',
-  'Bir kayda en fazla 8 medya eklenebilir.': 'A memory can contain at most 8 media items.',
+  'Bir kayda en fazla 10 medya eklenebilir.': 'A memory can contain at most 10 media items.',
+  'Ücretsiz planda en fazla 5 varlık oluşturabilirsiniz. Sınırsız varlık için Premium plana geçin.':
+    'The free plan allows up to 5 assets. Switch to Premium for unlimited assets.',
+  'Ücretsiz planda bir varlığa en fazla 10 kayıt ekleyebilirsiniz. Sınırsız kayıt için Premium plana geçin.':
+    'The free plan allows up to 10 entries per asset. Switch to Premium for unlimited entries.',
+  'Ücretsiz planda bir kayda en fazla 1 fotoğraf veya belge ekleyebilirsiniz. Premium planda kayıt başına 10 dosya eklenebilir.':
+    'The free plan allows one photo or document per entry. Premium allows up to 10 files per entry.',
+  'Bu özellik Premium planda kullanılabilir.': 'This feature is available with the Premium plan.',
+  'Geçersiz plan seçimi.': 'Invalid plan selection.',
   'Bu alan yalnızca moderatörlere açıktır.': 'This area is only available to moderators.',
   'Bu davet artık geçerli değil.': 'This invite is no longer valid.',
   'Bu dosya türü desteklenmiyor.': 'This file type is not supported.',

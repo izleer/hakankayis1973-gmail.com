@@ -144,7 +144,7 @@
     <string name="local_footer">izleer Local · data stays on this device only</string>
 
     <string name="local_upgrade_title">Move to Cloud</string>
-    <string name="local_upgrade_body">Local stays free; the free plan includes 5 assets, 10 records per asset and 1 photo per record. Cloud unlocks unlimited assets, sync, web, groups and community.</string>
+    <string name="local_upgrade_body">Local stays free. In the cloud, the free plan includes 5 assets, 10 entries per asset and 1 file per entry; Premium unlocks unlimited assets and entries, 10 files per entry, web analytics, groups and community.</string>
     <string name="local_matrix_feature">Feature</string>
     <string name="local_matrix_local">Local · Free</string>
     <string name="local_matrix_cloud">Cloud · Premium</string>

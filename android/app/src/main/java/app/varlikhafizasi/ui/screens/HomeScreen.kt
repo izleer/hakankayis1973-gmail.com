@@ -52,9 +52,11 @@ import app.varlikhafizasi.R
 import app.varlikhafizasi.data.Entry
 import app.varlikhafizasi.data.GroupSummary
 import app.varlikhafizasi.data.MediaUrl
+import app.varlikhafizasi.data.Plans
 import app.varlikhafizasi.data.User
 import app.varlikhafizasi.ui.VhViewModel
 import app.varlikhafizasi.ui.components.AssetRow
+import app.varlikhafizasi.ui.components.BannerAd
 import app.varlikhafizasi.ui.components.EmptyState
 import app.varlikhafizasi.ui.components.ErrorBox
 import app.varlikhafizasi.ui.components.GoldRule
@@ -246,6 +248,13 @@ fun HomeScreen(
                         textAlign = androidx.compose.ui.text.style.TextAlign.Center,
                     )
                 }
+            }
+        }
+
+        if (!Plans.isPremium(viewer.plan)) {
+            item {
+                Spacer(Modifier.height(4.dp))
+                BannerAd()
             }
         }
 

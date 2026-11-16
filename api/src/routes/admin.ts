@@ -1,13 +1,32 @@
 import type { FastifyInstance } from 'fastify';
 import { z } from 'zod';
-import { query, queryOne } from '../db.js';
+import { query, queryOne, transaction } from '../db.js';
 import { audit } from '../lib/audit.js';
-import { notFound } from '../lib/errors.js';
+import { badRequest, notFound } from '../lib/errors.js';
 import { iso, parseBody, parseQuery } from '../lib/http.js';
-import { requireStaff } from '../lib/session.js';
+import { LIMIT_KEYS, clearUserOverrideCache, refreshPlanLimits } from '../lib/plans.js';
+import { requireAdmin, requireStaff } from '../lib/session.js';
 import { mapUserMini } from '../lib/serialize.js';
 
 const uuid = z.string().uuid();
+
+const OVERRIDE_SCOPES = ['all', 'image', 'video', 'document'] as const;
+
+function mapOverride(row: Record<string, any>) {
+  return {
+    limitKey: row.limit_key,
+    scope: row.scope ?? 'all',
+    maxValue: row.max_value === null ? null : Number(row.max_value),
+    mode: row.mode,
+    warningPct: Number(row.warning_pct),
+    active: row.active,
+    note: row.note ?? null,
+    expiresAt: iso(row.expires_at),
+    updatedAt: iso(row.updated_at),
+    updatedBy: row.updated_by ?? null,
+    updatedByUsername: row.updated_by_username ?? null,
+  };
+}
 
 export async function adminRoutes(app: FastifyInstance): Promise<void> {
   app.get('/stats', async (req) => {
@@ -194,5 +213,308 @@ export async function adminRoutes(app: FastifyInstance): Promise<void> {
         })),
       },
     };
+  });
+
+  // -------------------------------------------------------------------------
+  // Plan limitleri — yalnızca admin. Değişiklikler denetim kaydına yazılır ve
+  // API önbelleği anında tazelenir.
+  // -------------------------------------------------------------------------
+
+  app.get('/plan-limits', async (req) => {
+    await requireAdmin(req);
+    await refreshPlanLimits();
+    const rows = await query<Record<string, any>>(
+      `SELECT r.plan, r.limit_key, r.scope, r.max_value, r.mode, r.warning_pct,
+              r.active, r.updated_at, r.updated_by, u.username AS updated_by_username
+       FROM plan_limit_rules r
+       LEFT JOIN users u ON u.id = r.updated_by
+       ORDER BY r.plan, r.limit_key, r.scope`,
+    );
+    return {
+      data: {
+        rules: rows.map((row) => ({
+          plan: row.plan,
+          limitKey: row.limit_key,
+          scope: row.scope,
+          maxValue: row.max_value === null ? null : Number(row.max_value),
+          mode: row.mode,
+          warningPct: Number(row.warning_pct),
+          active: row.active,
+          updatedAt: iso(row.updated_at),
+          updatedBy: row.updated_by ?? null,
+          updatedByUsername: row.updated_by_username ?? null,
+        })),
+        keys: LIMIT_KEYS,
+      },
+    };
+  });
+
+  app.patch('/plan-limits', async (req) => {
+    const viewer = await requireAdmin(req);
+    const body = parseBody(
+      z.object({
+        updates: z
+          .array(
+            z.object({
+              plan: z.enum(['free', 'premium']),
+              limitKey: z.enum(LIMIT_KEYS),
+              scope: z.string().trim().min(1).max(40).default('all'),
+              maxValue: z.number().int().min(0).max(Number.MAX_SAFE_INTEGER).nullable(),
+              mode: z.enum(['enforce', 'warn', 'shadow']),
+              warningPct: z.number().int().min(1).max(100),
+              active: z.boolean(),
+            }),
+          )
+          .min(1)
+          .max(50),
+      }),
+      req.body,
+    );
+
+    const changes: Record<string, unknown>[] = [];
+    await transaction(async (client) => {
+      for (const update of body.updates) {
+        const before = await client.query(
+          `SELECT max_value, mode, warning_pct, active
+           FROM plan_limit_rules
+           WHERE plan = $1 AND limit_key = $2 AND scope = $3
+           FOR UPDATE`,
+          [update.plan, update.limitKey, update.scope],
+        );
+        await client.query(
+          `INSERT INTO plan_limit_rules
+             (plan, limit_key, scope, max_value, mode, warning_pct, active, updated_at, updated_by)
+           VALUES ($1, $2, $3, $4, $5, $6, $7, now(), $8)
+           ON CONFLICT (plan, limit_key, scope) DO UPDATE SET
+             max_value = EXCLUDED.max_value,
+             mode = EXCLUDED.mode,
+             warning_pct = EXCLUDED.warning_pct,
+             active = EXCLUDED.active,
+             updated_at = now(),
+             updated_by = EXCLUDED.updated_by`,
+          [
+            update.plan,
+            update.limitKey,
+            update.scope,
+            update.maxValue,
+            update.mode,
+            update.warningPct,
+            update.active,
+            viewer.id,
+          ],
+        );
+        changes.push({
+          plan: update.plan,
+          limitKey: update.limitKey,
+          scope: update.scope,
+          before: before.rows[0] ?? null,
+          after: update,
+        });
+      }
+    });
+
+    await audit(viewer.id, 'plan_limits.updated', 'plan_limit_rules', null, { changes }, req.ip);
+    await refreshPlanLimits(true);
+    return { data: { updated: changes.length } };
+  });
+
+  app.get('/plan-limits/history', async (req) => {
+    await requireAdmin(req);
+    const params = parseQuery(
+      z.object({ limit: z.coerce.number().int().min(1).max(100).default(30) }),
+      req.query,
+    );
+    const rows = await query<Record<string, any>>(
+      `SELECT e.id, e.action, e.metadata, e.created_at, e.actor_id,
+              u.username AS actor_username, u.display_name AS actor_display_name
+       FROM audit_events e
+       LEFT JOIN users u ON u.id = e.actor_id
+       WHERE e.entity_type = 'plan_limit_rules'
+       ORDER BY e.created_at DESC, e.id DESC
+       LIMIT $1`,
+      [params.limit],
+    );
+    return {
+      data: {
+        items: rows.map((row) => ({
+          id: Number(row.id),
+          action: row.action,
+          metadata: row.metadata,
+          createdAt: iso(row.created_at),
+          actor: row.actor_id
+            ? {
+                id: row.actor_id,
+                username: row.actor_username,
+                displayName: row.actor_display_name,
+              }
+            : null,
+        })),
+      },
+    };
+  });
+
+  // -------------------------------------------------------------------------
+  // Kullanıcıya özel limit istisnaları — yalnızca admin. Plan kuralından
+  // önce uygulanır; değişiklikler denetlenir ve kullanıcı önbelleği temizlenir.
+  // -------------------------------------------------------------------------
+
+  app.get('/users/:id/limit-overrides', async (req) => {
+    await requireAdmin(req);
+    const { id } = z.object({ id: uuid }).parse(req.params);
+    const user = await queryOne<Record<string, any>>(
+      `SELECT id, username, display_name, avatar_url, plan
+       FROM users WHERE id = $1 AND deleted_at IS NULL`,
+      [id],
+    );
+    if (!user) notFound('Kullanıcı bulunamadı.');
+    const rows = await query<Record<string, any>>(
+      `SELECT o.limit_key, o.scope, o.max_value, o.mode, o.warning_pct, o.active,
+              o.note, o.expires_at, o.updated_at, o.updated_by,
+              u.username AS updated_by_username
+       FROM user_limit_overrides o
+       LEFT JOIN users u ON u.id = o.updated_by
+       WHERE o.user_id = $1
+       ORDER BY o.limit_key, o.scope`,
+      [id],
+    );
+    return {
+      data: {
+        user: { ...mapUserMini(user), plan: user.plan },
+        items: rows.map(mapOverride),
+        scopes: OVERRIDE_SCOPES,
+      },
+    };
+  });
+
+  app.patch('/users/:id/limit-overrides', async (req) => {
+    const viewer = await requireAdmin(req);
+    const { id } = z.object({ id: uuid }).parse(req.params);
+    const body = parseBody(
+      z.object({
+        limitKey: z.enum(LIMIT_KEYS),
+        scope: z.enum(OVERRIDE_SCOPES).default('all'),
+        maxValue: z.number().int().min(0).max(Number.MAX_SAFE_INTEGER).nullable(),
+        mode: z.enum(['enforce', 'warn', 'shadow']).default('enforce'),
+        warningPct: z.number().int().min(1).max(100).default(80),
+        active: z.boolean().default(true),
+        note: z.string().trim().max(500).nullable().optional(),
+        expiresAt: z.string().trim().max(40).nullable().optional(),
+      }),
+      req.body,
+    );
+    if (body.scope !== 'all' && body.limitKey !== 'max_file_bytes') {
+      badRequest('Türe özel kapsam yalnızca tek dosya boyutu sınırı için kullanılabilir.');
+    }
+    const user = await queryOne<{ id: string }>(
+      `SELECT id FROM users WHERE id = $1 AND deleted_at IS NULL`,
+      [id],
+    );
+    if (!user) notFound('Kullanıcı bulunamadı.');
+
+    let expiresAt: Date | null = null;
+    if (body.expiresAt) {
+      expiresAt = new Date(body.expiresAt);
+      if (Number.isNaN(expiresAt.getTime())) badRequest('Geçersiz son kullanma tarihi.');
+    }
+
+    let before: Record<string, unknown> | null = null;
+    await transaction(async (client) => {
+      const previous = await client.query(
+        `SELECT max_value, mode, warning_pct, active, note, expires_at
+         FROM user_limit_overrides
+         WHERE user_id = $1 AND limit_key = $2 AND scope = $3
+         FOR UPDATE`,
+        [id, body.limitKey, body.scope],
+      );
+      before = previous.rows[0] ?? null;
+      await client.query(
+        `INSERT INTO user_limit_overrides
+           (user_id, limit_key, scope, max_value, mode, warning_pct, active, note,
+            expires_at, updated_at, updated_by)
+         VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, now(), $10)
+         ON CONFLICT (user_id, limit_key, scope) DO UPDATE SET
+           max_value = EXCLUDED.max_value,
+           mode = EXCLUDED.mode,
+           warning_pct = EXCLUDED.warning_pct,
+           active = EXCLUDED.active,
+           note = EXCLUDED.note,
+           expires_at = EXCLUDED.expires_at,
+           updated_at = now(),
+           updated_by = EXCLUDED.updated_by`,
+        [
+          id,
+          body.limitKey,
+          body.scope,
+          body.maxValue,
+          body.mode,
+          body.warningPct,
+          body.active,
+          body.note?.trim() || null,
+          expiresAt,
+          viewer.id,
+        ],
+      );
+    });
+
+    await audit(
+      viewer.id,
+      'plan_override.updated',
+      'user_limit_overrides',
+      id,
+      {
+        limitKey: body.limitKey,
+        scope: body.scope,
+        before,
+        after: {
+          maxValue: body.maxValue,
+          mode: body.mode,
+          warningPct: body.warningPct,
+          active: body.active,
+          note: body.note ?? null,
+          expiresAt: expiresAt ? expiresAt.toISOString() : null,
+        },
+      },
+      req.ip,
+    );
+    clearUserOverrideCache(id);
+    const row = await queryOne<Record<string, any>>(
+      `SELECT o.limit_key, o.scope, o.max_value, o.mode, o.warning_pct, o.active,
+              o.note, o.expires_at, o.updated_at, o.updated_by,
+              u.username AS updated_by_username
+       FROM user_limit_overrides o
+       LEFT JOIN users u ON u.id = o.updated_by
+       WHERE o.user_id = $1 AND o.limit_key = $2 AND o.scope = $3`,
+      [id, body.limitKey, body.scope],
+    );
+    return { data: { override: row ? mapOverride(row) : null } };
+  });
+
+  app.delete('/users/:id/limit-overrides', async (req) => {
+    const viewer = await requireAdmin(req);
+    const { id } = z.object({ id: uuid }).parse(req.params);
+    const params = parseQuery(
+      z.object({
+        limitKey: z.enum(LIMIT_KEYS),
+        scope: z.enum(OVERRIDE_SCOPES).default('all'),
+      }),
+      req.query,
+    );
+    const removed = await queryOne<Record<string, any>>(
+      `DELETE FROM user_limit_overrides
+       WHERE user_id = $1 AND limit_key = $2 AND scope = $3
+       RETURNING limit_key, scope, max_value, mode, warning_pct, active`,
+      [id, params.limitKey, params.scope],
+    );
+    if (!removed) notFound('Bu kullanıcı için böyle bir istisna yok.');
+    await audit(
+      viewer.id,
+      'plan_override.deleted',
+      'user_limit_overrides',
+      id,
+      { limitKey: params.limitKey, scope: params.scope, before: removed },
+      req.ip,
+    );
+    clearUserOverrideCache(id);
+    return { data: { deleted: true } };
   });
 }

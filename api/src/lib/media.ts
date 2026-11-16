@@ -10,8 +10,8 @@ export async function attachMedia(
 ): Promise<void> {
   if (!mediaIds || mediaIds.length === 0) return;
   const unique = [...new Set(mediaIds)];
-  if (unique.length > 8) {
-    throw new ApiError(422, 'TOO_MANY_MEDIA', 'Bir kayda en fazla 8 medya eklenebilir.');
+  if (unique.length > 10) {
+    throw new ApiError(422, 'TOO_MANY_MEDIA', 'Bir kayda en fazla 10 medya eklenebilir.');
   }
 
   const rows = await query<{ id: string; owner_id: string; status: string }>(

@@ -84,6 +84,7 @@ import app.varlikhafizasi.ui.screens.LoginScreen
 import app.varlikhafizasi.ui.screens.NewAssetScreen
 import app.varlikhafizasi.ui.screens.NewGroupScreen
 import app.varlikhafizasi.ui.screens.NotificationsScreen
+import app.varlikhafizasi.ui.screens.PlanScreen
 import app.varlikhafizasi.ui.screens.ProfileScreen
 import app.varlikhafizasi.ui.theme.Clay
 import app.varlikhafizasi.ui.theme.Forest
@@ -103,6 +104,7 @@ private object Routes {
     const val PROFILE = "profile"
     const val FRIENDS = "friends"
     const val NOTIFICATIONS = "notifications"
+    const val PLAN = "plan"
     const val NEW_ASSET = "newAsset"
     const val NEW_GROUP = "newGroup"
     const val ASSET_DETAIL = "asset/{id}"
@@ -340,6 +342,7 @@ private fun MainNavigator(
             composable(Routes.ASSETS) {
                 AssetsScreen(
                     vm = vm,
+                    viewer = viewer,
                     onOpenAsset = { nav.navigate(Routes.asset(it)) },
                     onNewAsset = { nav.navigate(Routes.NEW_ASSET) },
                 )
@@ -350,12 +353,14 @@ private fun MainNavigator(
             composable(Routes.EXPLORE) {
                 ExploreScreen(
                     vm = vm,
+                    viewer = viewer,
                     onOpenAsset = { nav.navigate(Routes.asset(it)) },
                 )
             }
             composable(Routes.GROUPS) {
                 GroupsScreen(
                     vm = vm,
+                    viewer = viewer,
                     onOpenGroup = { nav.navigate(Routes.group(it)) },
                     onNewGroup = { nav.navigate(Routes.NEW_GROUP) },
                 )
@@ -363,6 +368,7 @@ private fun MainNavigator(
             composable(Routes.NEW_GROUP) {
                 NewGroupScreen(
                     vm = vm,
+                    viewer = viewer,
                     onBack = { nav.popBackStack() },
                     onCreated = { slug ->
                         nav.navigate(Routes.group(slug)) {
@@ -385,7 +391,7 @@ private fun MainNavigator(
                 GroupDetailScreen(
                     vm = vm,
                     slug = slug,
-                    viewerId = viewer.id,
+                    viewer = viewer,
                     onBack = { nav.popBackStack() },
                     onOpenAsset = { nav.navigate(Routes.asset(it)) },
                     onOpenGroupAsset = { nav.navigate(Routes.groupAsset(slug, it)) },
@@ -405,6 +411,7 @@ private fun MainNavigator(
                     vm = vm,
                     slug = slug,
                     assetId = assetId,
+                    viewer = viewer,
                     onBack = { nav.popBackStack() },
                 )
             }
@@ -415,11 +422,16 @@ private fun MainNavigator(
                     onOpenAsset = { nav.navigate(Routes.asset(it)) },
                     onOpenNotifications = { nav.navigate(Routes.NOTIFICATIONS) },
                     onOpenFriends = { nav.navigate(Routes.FRIENDS) },
+                    onOpenPlan = { nav.navigate(Routes.PLAN) },
                 )
+            }
+            composable(Routes.PLAN) {
+                PlanScreen(vm = vm, onBack = { nav.popBackStack() })
             }
             composable(Routes.FRIENDS) {
                 FriendsScreen(
                     vm = vm,
+                    viewer = viewer,
                     onBack = { nav.popBackStack() },
                     onOpenAsset = { nav.navigate(Routes.asset(it)) },
                 )
@@ -441,6 +453,7 @@ private fun MainNavigator(
                             popUpTo(Routes.NEW_ASSET) { inclusive = true }
                         }
                     },
+                    onOpenPlan = { nav.navigate(Routes.PLAN) },
                 )
             }
             composable(
@@ -457,6 +470,7 @@ private fun MainNavigator(
                     onAddEntry = { nav.navigate(Routes.addEntry(id)) },
                     onEditEntry = { entryId -> nav.navigate(Routes.editEntry(id, entryId)) },
                     onDeleted = { nav.popBackStack() },
+                    onOpenPlan = { nav.navigate(Routes.PLAN) },
                 )
             }
             composable(
@@ -469,6 +483,7 @@ private fun MainNavigator(
                     assetId = id,
                     onBack = { nav.popBackStack() },
                     onCreated = { nav.popBackStack() },
+                    onOpenPlan = { nav.navigate(Routes.PLAN) },
                 )
             }
             composable(
@@ -481,6 +496,7 @@ private fun MainNavigator(
                     assetId = assetId,
                     onBack = { nav.popBackStack() },
                     onSaved = { nav.popBackStack() },
+                    onOpenPlan = { nav.navigate(Routes.PLAN) },
                 )
             }
             composable(
@@ -498,6 +514,7 @@ private fun MainNavigator(
                     entryId = entryId,
                     onBack = { nav.popBackStack() },
                     onSaved = { nav.popBackStack() },
+                    onOpenPlan = { nav.navigate(Routes.PLAN) },
                 )
             }
         }

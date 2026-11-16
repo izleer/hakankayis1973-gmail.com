@@ -1,10 +1,12 @@
 import type { Metadata } from 'next';
 import Link from 'next/link';
+import { AdSlot } from '@/components/AdSlot';
 import { EmptyState } from '@/components/EmptyState';
 import { GroupCard } from '@/components/GroupCard';
 import { GroupInvites } from '@/components/GroupInvites';
 import { Icon } from '@/components/Icons';
 import { api, requireViewer } from '@/lib/api';
+import { adConfig } from '@/lib/ads';
 import { formatNumber } from '@/lib/format';
 import { getI18n, getT } from '@/lib/i18n/server';
 import type { Group, GroupInvitation, Paged } from '@/lib/types';
@@ -30,6 +32,7 @@ type SearchParams = Promise<{ q?: string; category?: string }>;
 export default async function GroupsPage({ searchParams }: { searchParams: SearchParams }) {
   const { t, locale } = await getI18n();
   const viewer = await requireViewer();
+  const ads = viewer.plan === 'premium' ? null : adConfig();
   const params = await searchParams;
   const query = new URLSearchParams({ limit: '48' });
   if (params.q) query.set('q', params.q);
@@ -115,6 +118,10 @@ export default async function GroupsPage({ searchParams }: { searchParams: Searc
           );
         })}
       </div>
+
+      {viewer.plan === 'premium' ? null : (
+        <AdSlot client={ads?.client ?? ''} slot={ads?.slots.groups ?? ''} />
+      )}
 
       <section className="groups-section">
         <div className="section-head">

@@ -199,6 +199,12 @@ interface VhApi {
     @PATCH("v1/me")
     suspend fun updateProfile(@Body body: UpdateProfileRequest): Envelope<UserPayload>
 
+    @GET("v1/me/plan")
+    suspend fun plan(): Envelope<PlanInfo>
+
+    @PATCH("v1/me/plan")
+    suspend fun updatePlan(@Body body: UpdatePlanRequest): Envelope<PlanInfo>
+
     @GET("v1/social/connections")
     suspend fun socialConnections(): Envelope<SocialConnectionsPayload>
 

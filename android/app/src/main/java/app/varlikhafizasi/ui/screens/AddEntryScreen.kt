@@ -69,9 +69,11 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import app.varlikhafizasi.R
 import app.varlikhafizasi.data.MeasurementInput
+import app.varlikhafizasi.data.Plans
 import app.varlikhafizasi.data.TemplateMeasurement
 import app.varlikhafizasi.ui.VhViewModel
 import app.varlikhafizasi.ui.components.ErrorBox
+import app.varlikhafizasi.ui.components.BannerAd
 import app.varlikhafizasi.ui.components.GoldRule
 import app.varlikhafizasi.ui.components.LoadingBox
 import app.varlikhafizasi.ui.components.LocationMapDialog
@@ -128,14 +130,22 @@ fun AddEntryScreen(
     entryId: String? = null,
     onBack: () -> Unit,
     onSaved: () -> Unit,
+    onOpenPlan: () -> Unit = {},
 ) {
     val state by vm.detail.collectAsStateWithLifecycle()
     val entryState by vm.entryDraft.collectAsStateWithLifecycle()
     val busy by vm.formBusy.collectAsStateWithLifecycle()
     val error by vm.formError.collectAsStateWithLifecycle()
+    val planState by vm.plan.collectAsStateWithLifecycle()
+    val session by vm.session.collectAsStateWithLifecycle()
 
     val editing = entryId != null
     val draft = if (editing) entryState.data else null
+    val plan = Plans.normalize(planState.data?.plan ?: session.user?.plan)
+    val premium = Plans.isPremium(plan)
+    val mediaCap = Plans.maxMedia(plan)
+    val entryCount = state.data?.detail?.entries?.size ?: 0
+    val entryLimitReached = !editing && Plans.entryLimitReached(plan, entryCount)
 
     var type by rememberSaveable { mutableStateOf("note") }
     var actionChoiceKey by rememberSaveable { mutableStateOf("") }
@@ -259,6 +269,7 @@ fun AddEntryScreen(
     LaunchedEffect(assetId) {
         if (state.data?.detail?.asset?.id != assetId) vm.loadDetail(assetId)
         vm.clearFormError()
+        if (entryId == null) vm.loadPlan()
     }
 
     LaunchedEffect(entryId) {
@@ -305,7 +316,7 @@ fun AddEntryScreen(
         ActivityResultContracts.GetMultipleContents(),
     ) { uris ->
         if (uris.isNotEmpty()) {
-            mediaUris = (mediaUris + uris).take(6)
+            mediaUris = (mediaUris + uris).take(mediaCap)
         }
     }
 
@@ -313,12 +324,12 @@ fun AddEntryScreen(
         val captured = pendingMediaUri
         pendingMediaUri = null
         if (saved && captured != null) {
-            mediaUris = (mediaUris + captured).take(6)
+            mediaUris = (mediaUris + captured).take(mediaCap)
         }
     }
 
     fun capturePhoto() {
-        if (mediaUris.size >= 6) return
+        if (mediaUris.size >= mediaCap) return
         val target = runCatching { createCaptureUri(context, "entry") }.getOrElse {
             vm.setNotice(cameraUnavailable)
             return
@@ -387,6 +398,53 @@ fun AddEntryScreen(
                 style = MaterialTheme.typography.bodySmall,
                 color = Muted,
             )
+
+            if (!editing && !premium) {
+                Spacer(Modifier.height(14.dp))
+                BannerAd()
+            }
+
+            if (!editing && !premium) {
+                Spacer(Modifier.height(14.dp))
+                Surface(
+                    color = PaperDeep,
+                    shape = RoundedCornerShape(14.dp),
+                    border = BorderStroke(1.dp, if (entryLimitReached) Clay else Line),
+                    modifier = Modifier.fillMaxWidth(),
+                ) {
+                    Column(Modifier.padding(12.dp)) {
+                        Text(
+                            if (entryLimitReached) {
+                                stringResource(R.string.plan_limit_entries_title)
+                            } else {
+                                stringResource(
+                                    R.string.plan_limit_entries_banner,
+                                    Plans.FREE_MAX_ENTRIES,
+                                )
+                            },
+                            style = MaterialTheme.typography.titleSmall,
+                            color = Forest,
+                        )
+                        if (entryLimitReached) {
+                            Spacer(Modifier.height(4.dp))
+                            Text(
+                                stringResource(
+                                    R.string.plan_limit_entries_body,
+                                    Plans.FREE_MAX_ENTRIES,
+                                ),
+                                style = MaterialTheme.typography.bodySmall,
+                                color = Muted,
+                            )
+                            TextButton(onClick = onOpenPlan) {
+                                Text(
+                                    stringResource(R.string.plan_upgrade_cta),
+                                    color = Clay,
+                                )
+                            }
+                        }
+                    }
+                }
+            }
 
             Spacer(Modifier.height(20.dp))
             if (actionChoices.isNotEmpty()) {
@@ -801,7 +859,11 @@ fun AddEntryScreen(
                     Text(
                         stringResource(
                             R.string.add_entry_add_file,
-                            pluralStringResource(R.plurals.add_entry_media_limit_count, 6, 6),
+                            pluralStringResource(
+                                R.plurals.add_entry_media_limit_count,
+                                mediaCap,
+                                mediaCap,
+                            ),
                             10,
                         ),
                         style = MaterialTheme.typography.bodySmall,
@@ -810,10 +872,19 @@ fun AddEntryScreen(
                 }
             }
 
+            if (!premium) {
+                Spacer(Modifier.height(6.dp))
+                Text(
+                    stringResource(R.string.plan_limit_media_hint),
+                    style = MaterialTheme.typography.bodySmall,
+                    color = Clay,
+                )
+            }
+
             Spacer(Modifier.height(8.dp))
             OutlinedButton(
                 onClick = { capturePhoto() },
-                enabled = !busy && mediaUris.size < 6,
+                enabled = !busy && mediaUris.size < mediaCap,
                 shape = RoundedCornerShape(12.dp),
                 border = BorderStroke(1.dp, Line),
                 modifier = Modifier.fillMaxWidth(),
@@ -890,6 +961,7 @@ fun AddEntryScreen(
         ) {
             Button(
                 onClick = {
+                    if (entryLimitReached) return@Button
                     if (type == "reminder" && dueAt == null) {
                         localError = context.getString(R.string.add_entry_reminder_required)
                         return@Button
@@ -947,7 +1019,7 @@ fun AddEntryScreen(
                         )
                     }
                 },
-                enabled = !busy,
+                enabled = !busy && !entryLimitReached,
                 colors = ButtonDefaults.buttonColors(
                     containerColor = Forest,
                     contentColor = Paper,

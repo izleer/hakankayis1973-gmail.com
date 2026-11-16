@@ -37,8 +37,10 @@ import app.varlikhafizasi.R
 import app.varlikhafizasi.data.Asset
 import app.varlikhafizasi.data.MediaUrl
 import app.varlikhafizasi.data.User
+import app.varlikhafizasi.data.Plans
 import app.varlikhafizasi.ui.VhViewModel
 import app.varlikhafizasi.ui.components.Avatar
+import app.varlikhafizasi.ui.components.BannerAd
 import app.varlikhafizasi.ui.components.EmptyState
 import app.varlikhafizasi.ui.components.ErrorBox
 import app.varlikhafizasi.ui.components.FeedPostCard
@@ -62,6 +64,7 @@ import coil.compose.AsyncImage
 @Composable
 fun ExploreScreen(
     vm: VhViewModel,
+    viewer: User,
     onOpenAsset: (String) -> Unit,
 ) {
     val state by vm.explore.collectAsStateWithLifecycle()
@@ -116,6 +119,9 @@ fun ExploreScreen(
         }
 
         val data = state.data
+        if (!Plans.isPremium(viewer.plan)) {
+            item { BannerAd() }
+        }
         if (state.loading && data == null) item { LoadingBox() }
         if (state.error != null) {
             item {

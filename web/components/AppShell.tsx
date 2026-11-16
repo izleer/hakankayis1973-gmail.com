@@ -10,6 +10,7 @@ import { ReminderAlert } from './ReminderAlert';
 
 export async function AppShell({ user, children }: { user: User; children: React.ReactNode }) {
   const t = await getT();
+  const premium = user.plan === 'premium';
 
   return (
     <div className="shell">
@@ -24,10 +25,15 @@ export async function AppShell({ user, children }: { user: User; children: React
           <span className="brand-word brand-word-single">izleer</span>
         </Link>
 
-        <SideNav />
+        <SideNav plan={user.plan ?? 'free'} isAdmin={user.role === 'admin'} />
 
         <div className="sidebar-foot">
           <LocaleSwitcher className="locale-switcher-side" />
+          <Link href="/plan" className={`plan-chip${premium ? ' is-premium' : ''}`}>
+            <Icon name={premium ? 'sparkles' : 'leaf'} size={15} />
+            <span>{premium ? t('Premium plan') : t('Ücretsiz plan')}</span>
+            <small>{premium ? t('Sınırsız') : t('5 varlık')}</small>
+          </Link>
           <Link href="/profil" className="user-card">
             <span className="avatar">
               {user.avatarUrl ? <img src={user.avatarUrl} alt="" /> : initials(user.displayName)}

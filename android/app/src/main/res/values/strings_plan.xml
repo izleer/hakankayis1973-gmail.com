@@ -1,0 +1,83 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Plan ekranı -->
+    <string name="plan_title">Plan ve yetkiler</string>
+    <string name="plan_eyebrow">PLANLAR</string>
+    <string name="plan_intro">Ücretsiz planla başla; kayıtların her planda senin kalır. Premium, sınırları kaldırır ve gelişmiş takibi açar.</string>
+    <string name="plan_current">Mevcut plan</string>
+    <string name="plan_badge_free">ÜCRETSİZ</string>
+    <string name="plan_badge_premium">PREMIUM</string>
+    <string name="plan_free_name">Ücretsiz plan</string>
+    <string name="plan_premium_name">Premium plan</string>
+    <string name="plan_free_desc">Günlük kayıt ve takip için ihtiyacın olan her şey açık.</string>
+    <string name="plan_premium_desc">Gelişmiş kayıt ve takip açık.</string>
+    <string name="plan_usage_assets">Varlıkların</string>
+    <string name="plan_usage_media">Fotoğraf / kayıt</string>
+    <string name="plan_usage_since">Plan başlangıcı</string>
+    <string name="plan_since_new">Yeni hesap</string>
+    <string name="plan_usage_value">%1$d / %2$d</string>
+    <string name="plan_unlimited">Sınırsız</string>
+    <string name="plan_upgrade_cta">Premium’a geç</string>
+    <string name="plan_downgrade_cta">Ücretsiz plana dön</string>
+    <string name="plan_billing_note">Ödeme altyapısı henüz bağlı değil; plan seçimi şimdilik anında geçerli olur.</string>
+    <string name="plan_matrix_title">Plan karşılaştırması</string>
+    <string name="plan_matrix_subtitle">Aynı hafıza, farklı derinlik. Okuma ve dışa aktarma her planda açıktır.</string>
+    <string name="plan_col_feature">Özellik</string>
+    <string name="plan_col_free">Ücretsiz</string>
+    <string name="plan_col_premium">Premium</string>
+
+    <string name="plan_row_mobile">Mobil</string>
+    <string name="plan_row_web">Web</string>
+    <string name="plan_row_assets">Varlık</string>
+    <string name="plan_row_history">Geçmiş kaydı</string>
+    <string name="plan_row_photo">Fotoğraf</string>
+    <string name="plan_row_storage">Depolama</string>
+    <string name="plan_row_analytics">Analiz</string>
+    <string name="plan_row_compare">Karşılaştırma</string>
+    <string name="plan_row_reports">Rapor</string>
+    <string name="plan_row_cloud">Bulut</string>
+    <string name="plan_row_ads">Reklam</string>
+
+    <string name="plan_value_mobile_free">Günlük kayıt ve takip</string>
+    <string name="plan_value_mobile_premium">Gelişmiş kayıt ve takip</string>
+    <string name="plan_value_web_free">Görüntüleme ve temel düzenleme</string>
+    <string name="plan_value_web_premium">Analiz ve yönetim merkezi</string>
+    <string name="plan_value_assets_free">%1$d varlık</string>
+    <string name="plan_value_history_free">Varlık başına %1$d kayıt</string>
+    <string name="plan_value_photo_free">Kayıt başına 1 dosya</string>
+    <string name="plan_value_photo_premium">Kayıt başına 10 dosya</string>
+    <string name="plan_value_storage_free">500 MB</string>
+    <string name="plan_value_basic">Temel</string>
+    <string name="plan_value_advanced">Gelişmiş</string>
+    <string name="plan_value_none">Yok</string>
+    <string name="plan_value_yes">Var</string>
+    <string name="plan_value_cloud_limited">Sınırlı</string>
+    <string name="plan_value_cloud_full">Tam</string>
+    <string name="plan_value_ads_free">Reklamlı</string>
+    <string name="plan_value_ads_premium">Reklamsız</string>
+
+    <string name="plan_note_data">Plan düşse bile mevcut varlık ve kayıtlar silinmez; yalnızca yeni yazmalar sınırlara tabi olur.</string>
+    <string name="plan_note_export">Verilerini dışa aktarma her planda açıktır.</string>
+    <string name="plan_activated_premium">Premium plan etkinleştirildi.</string>
+    <string name="plan_activated_free">Ücretsiz plana geçildi.</string>
+
+    <string name="plan_profile_title">Planın</string>
+    <string name="plan_profile_manage">Planı yönet</string>
+    <string name="plan_profile_premium_hint">Gelişmiş kayıt ve takip</string>
+    <string name="plan_profile_free_hint">%1$d / %2$d varlık</string>
+
+    <string name="plan_limit_assets_title">Varlık sınırına ulaştın</string>
+    <string name="plan_limit_assets_body">Ücretsiz planda en fazla %1$d varlık olabilir. Premium ile sınırsız varlık ve gelişmiş takip açılır.</string>
+    <string name="plan_limit_assets_banner">Ücretsiz plan: %1$d / %2$d varlık</string>
+    <string name="plan_limit_assets_remaining">Ücretsiz plan: %1$d / %2$d varlık</string>
+    <string name="plan_limit_entries_title">Kayıt sınırına ulaştın</string>
+    <string name="plan_limit_entries_body">Ücretsiz planda bir varlığa en fazla %1$d kayıt eklenebilir. Premium ile sınırsız kayıt açılır.</string>
+    <string name="plan_limit_entries_banner">Ücretsiz plan: varlık başına %1$d kayıt</string>
+    <string name="plan_limit_media_hint">Ücretsiz planda kayıt başına 1 dosya eklenebilir.</string>
+    <string name="plan_go">Planı gör</string>
+
+    <string name="plan_warning_assets_near">Varlık sınırınıza yaklaşıyorsunuz: %1$d / %2$d.</string>
+    <string name="plan_warning_assets_blocked">Varlık sınırı doldu: %1$d / %2$d. Yeni varlık için önce yer açın.</string>
+    <string name="plan_warning_storage_near">Depolama alanınız %3$d%% dolu: %1$s / %2$s.</string>
+    <string name="plan_warning_storage_blocked">Depolama kotanız doldu: %1$s / %2$s. Yeni dosya için yer açın.</string>
+</resources>

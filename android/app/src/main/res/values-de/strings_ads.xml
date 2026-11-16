@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="ads_label">WERBUNG</string>
+    <string name="ads_free_note">Werbung erscheint im kostenlosen Plan; mit Premium werbefrei.</string>
+</resources>

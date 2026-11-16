@@ -12,6 +12,13 @@ import {
   parseBody,
   parseQuery,
 } from '../lib/http.js';
+import {
+  assertAssetMediaCapacity,
+  assertEntryUploadCapacity,
+  assertFileCapacity,
+  assertStorageCapacity,
+  mediaKindForMime,
+} from '../lib/plans.js';
 import { requireViewer } from '../lib/session.js';
 import { mapMedia } from '../lib/serialize.js';
 import { translate } from '../lib/i18n/index.js';
@@ -43,12 +50,6 @@ const presignBody = z.object({
   mimeType: z.string().trim().min(3).max(120),
   byteSize: z.coerce.number().int().positive(),
 });
-
-function kindFor(mimeType: string): 'image' | 'video' | 'document' {
-  if (mimeType.startsWith('image/')) return 'image';
-  if (mimeType.startsWith('video/')) return 'video';
-  return 'document';
-}
 
 function assertMime(mimeType: string): void {
   if (!ALLOWED_MIME_TYPES.includes(mimeType)) {
@@ -89,6 +90,19 @@ async function assertTargetPermission(
   }
 }
 
+async function resolveAssetId(
+  assetId: string | null | undefined,
+  entryId: string | null | undefined,
+): Promise<string | null> {
+  if (assetId) return assetId;
+  if (!entryId) return null;
+  const row = await queryOne<{ asset_id: string }>(
+    `SELECT asset_id FROM journal_entries WHERE id = $1`,
+    [entryId],
+  );
+  return row?.asset_id ?? null;
+}
+
 export async function mediaRoutes(app: FastifyInstance): Promise<void> {
   app.post('/upload', async (req, reply) => {
     const viewer = await requireViewer(req);
@@ -98,6 +112,14 @@ export async function mediaRoutes(app: FastifyInstance): Promise<void> {
 
     const buffer = decodeBase64Media(body.dataBase64, env.maxUploadBytes);
     assertMediaContent(buffer, body.mimeType);
+
+    // Plan sınırları kayıt oluşmadan önce uygulanır: tek dosya boyutu,
+    // toplam depolama ve varlık başına dosya sayısı.
+    await assertFileCapacity(viewer, mediaKindForMime(body.mimeType), buffer.length);
+    await assertStorageCapacity(viewer, buffer.length);
+    if (body.entryId) await assertEntryUploadCapacity(viewer, body.entryId);
+    const assetId = await resolveAssetId(body.assetId, body.entryId);
+    if (assetId) await assertAssetMediaCapacity(viewer, assetId, 1);
 
     const key = newStorageKey(body.mimeType);
     await saveBuffer(key, buffer, body.mimeType);
@@ -110,12 +132,12 @@ export async function mediaRoutes(app: FastifyInstance): Promise<void> {
        RETURNING *`,
       [
         viewer.id,
-        kindFor(body.mimeType),
+        mediaKindForMime(body.mimeType),
         key,
         body.filename?.slice(0, 255) ?? `dosya.${MIME_EXTENSIONS[body.mimeType]}`,
         body.mimeType,
         buffer.length,
-        body.assetId ?? null,
+        assetId,
         body.entryId ?? null,
         body.postId ?? null,
       ],
@@ -146,6 +168,11 @@ export async function mediaRoutes(app: FastifyInstance): Promise<void> {
       );
     }
 
+    // Doğrudan yüklemede boyut bilgisi önceden bildirilir; plan sınırları
+    // burada rezerve edilir, tamamlanınca gerçek boyutla yeniden doğrulanır.
+    await assertFileCapacity(viewer, mediaKindForMime(body.mimeType), body.byteSize);
+    await assertStorageCapacity(viewer, body.byteSize);
+
     const key = newStorageKey(body.mimeType);
     const rows = await query<Record<string, any>>(
       `INSERT INTO media
@@ -154,7 +181,7 @@ export async function mediaRoutes(app: FastifyInstance): Promise<void> {
        RETURNING *`,
       [
         viewer.id,
-        kindFor(body.mimeType),
+        mediaKindForMime(body.mimeType),
         key,
         body.filename?.slice(0, 255) ?? `dosya.${MIME_EXTENSIONS[body.mimeType]}`,
         body.mimeType,
@@ -179,25 +206,27 @@ export async function mediaRoutes(app: FastifyInstance): Promise<void> {
       throw new ApiError(422, 'UPLOAD_MISSING', 'Yükleme tamamlanmamış.');
     }
     // Doğrudan (presign) yüklemelerde içerik API'den geçmez; tamamlama
-    // adımında magic-byte doğrulaması burada yapılır.
+    // adımında magic-byte ve gerçek boyut doğrulaması burada yapılır.
     try {
       const buffer = await readStorageObject(row.storage_key);
       if (buffer.length > env.maxUploadBytes) {
         throw new ApiError(413, 'UPLOAD_TOO_LARGE', 'Dosya boyutu sınırı aşıldı.');
       }
       assertMediaContent(buffer, row.mime_type);
+      await assertFileCapacity(viewer, mediaKindForMime(row.mime_type), buffer.length);
+      await assertStorageCapacity(viewer, buffer.length, id);
+      const updated = await query<Record<string, any>>(
+        `UPDATE media SET status = 'ready', byte_size = $2 WHERE id = $1 RETURNING *`,
+        [id, buffer.length],
+      );
+      await audit(viewer.id, 'media.completed', 'media', id, { bytes: buffer.length }, req.ip);
+      return { data: { media: await mapMedia(updated[0]!) } };
     } catch (error) {
       if (error instanceof ApiError) {
         await query(`UPDATE media SET status = 'failed' WHERE id = $1`, [id]);
       }
       throw error;
     }
-    const updated = await query<Record<string, any>>(
-      `UPDATE media SET status = 'ready' WHERE id = $1 RETURNING *`,
-      [id],
-    );
-    await audit(viewer.id, 'media.completed', 'media', id, {}, req.ip);
-    return { data: { media: await mapMedia(updated[0]!) } };
   });
 
   app.get('/', async (req) => {

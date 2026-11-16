@@ -2,6 +2,7 @@ import type { Metadata } from 'next';
 import { notFound } from 'next/navigation';
 import { AssetDetail } from '@/components/AssetDetail';
 import { ApiError, api, requireViewer } from '@/lib/api';
+import { adConfig } from '@/lib/ads';
 import { loadAttributeLabels } from '@/lib/asset-types';
 import { getT } from '@/lib/i18n/server';
 import type {
@@ -52,6 +53,7 @@ export default async function AssetDetailPage({ params }: { params: Params }) {
   const loaded = await loadAsset(id);
   if (!loaded) notFound();
   const attributeLabels = await loadAttributeLabels(loaded.data.asset.type.id);
+  const ads = viewer.plan === 'premium' ? null : adConfig();
   const [socialEnabled, myGroups] = await Promise.all([
     api<SocialConnectionsResponse>('/v1/social/connections')
       .then((response) => Boolean(response.config?.configured))
@@ -73,6 +75,11 @@ export default async function AssetDetailPage({ params }: { params: Params }) {
       attributeLabels={attributeLabels}
       socialEnabled={socialEnabled}
       groups={myGroups}
+      adSlot={
+        viewer.plan === 'premium'
+          ? null
+          : { client: ads?.client ?? '', slot: ads?.slots.assetDetail ?? '' }
+      }
     />
   );
 }

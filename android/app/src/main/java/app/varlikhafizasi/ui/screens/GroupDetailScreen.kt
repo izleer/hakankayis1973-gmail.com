@@ -70,10 +70,13 @@ import app.varlikhafizasi.data.FeedPost
 import app.varlikhafizasi.data.Group
 import app.varlikhafizasi.data.GroupMember
 import app.varlikhafizasi.data.MediaUrl
+import app.varlikhafizasi.data.User
 import app.varlikhafizasi.ui.Loadable
+import app.varlikhafizasi.data.Plans
 import app.varlikhafizasi.ui.VhViewModel
 import app.varlikhafizasi.ui.components.AssetRow
 import app.varlikhafizasi.ui.components.Avatar
+import app.varlikhafizasi.ui.components.BannerAd
 import app.varlikhafizasi.ui.components.EmptyState
 import app.varlikhafizasi.ui.components.ErrorBox
 import app.varlikhafizasi.ui.components.FeedPostCard
@@ -98,7 +101,7 @@ import coil.compose.AsyncImage
 fun GroupDetailScreen(
     vm: VhViewModel,
     slug: String,
-    viewerId: String,
+    viewer: User,
     onBack: () -> Unit,
     onOpenAsset: (String) -> Unit,
     onOpenGroupAsset: (String) -> Unit,
@@ -142,6 +145,10 @@ fun GroupDetailScreen(
                 subtitle = community?.category,
                 onBack = onBack,
             )
+        }
+
+        if (!Plans.isPremium(viewer.plan)) {
+            item { BannerAd() }
         }
 
         if (state.loading && data == null) item { LoadingBox() }
@@ -332,7 +339,7 @@ fun GroupDetailScreen(
                                 post = post,
                                 onOpenAsset = onOpenGroupAsset,
                                 onLike = { vm.toggleLike(post) },
-                                canDelete = post.author.id == viewerId || canManage,
+                                canDelete = post.author.id == viewer.id || canManage,
                                 onDelete = { deleteTarget = post },
                             )
                         }
@@ -409,7 +416,7 @@ fun GroupDetailScreen(
                     }
                 } else {
                     items(data.assets, key = { "asset-${it.shareId ?: it.id}" }) { asset ->
-                        val owned = asset.owner?.id == viewerId
+                        val owned = asset.owner?.id == viewer.id
                         Column(Modifier.padding(horizontal = 20.dp, vertical = 4.dp)) {
                             // Ortak yönetimdeki varlıklar tüm üyelere açıktır; kişisel
                             // detay ekranından kayıt ekleyip düzenleyebilirler.
@@ -500,12 +507,12 @@ fun GroupDetailScreen(
 
     if (shareOpen && data != null) {
         val sharedScopes = data.assets
-            .filter { !it.managed && it.owner?.id == viewerId }
+            .filter { !it.managed && it.owner?.id == viewer.id }
             .mapNotNull { asset -> asset.scope?.let { asset.id to it } }
             .toMap()
         ShareAssetDialog(
             groupId = data.payload.community.id,
-            viewerId = viewerId,
+            viewerId = viewer.id,
             pick = pick,
             sharedScopes = sharedScopes,
             busy = busy,
@@ -559,7 +566,7 @@ fun GroupDetailScreen(
 
     if (composerOpen && data != null) {
         GroupPostComposerDialog(
-            assets = data.assets.filter { it.owner?.id == viewerId },
+            assets = data.assets.filter { it.owner?.id == viewer.id },
             entries = entries,
             busy = busy,
             error = composerError,

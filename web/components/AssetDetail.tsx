@@ -38,6 +38,8 @@ import type {
   Visibility,
 } from '@/lib/types';
 import { useI18n, useT } from '@/lib/i18n/client';
+import { isPremium, mediaLimitFor, reachedEntryLimit } from '@/lib/plan';
+import { AdSlot } from './AdSlot';
 import { EmptyState } from './EmptyState';
 import { Icon, type IconName } from './Icons';
 import { MediaImage } from './MediaImage';
@@ -115,6 +117,7 @@ export function AssetDetail({
   attributeLabels = {},
   socialEnabled = false,
   groups = [],
+  adSlot = null,
 }: {
   data: AssetDetailData;
   measurements: Measurement[];
@@ -122,6 +125,7 @@ export function AssetDetail({
   attributeLabels?: Record<string, string>;
   socialEnabled?: boolean;
   groups?: Group[];
+  adSlot?: { client: string; slot: string } | null;
 }) {
   const router = useRouter();
   const t = useT();
@@ -142,6 +146,8 @@ export function AssetDetail({
   const isOwner = data.access.isOwner || viewer.id === asset.owner.id;
   const isManager = data.access.isManager;
   const canEdit = data.access.canEdit || isOwner;
+  const premium = isPremium(viewer);
+  const entryLimitReached = reachedEntryLimit(viewer, asset.entryCount);
   const media = useMemo(
     () =>
       entries
@@ -326,6 +332,12 @@ export function AssetDetail({
                     setComposerOpen(true);
                     setTab('story');
                   }}
+                  disabled={entryLimitReached}
+                  title={
+                    entryLimitReached
+                      ? t('Ücretsiz planda bir varlığa en fazla 10 kayıt eklenebilir.')
+                      : undefined
+                  }
                 >
                   <Icon name="plus" size={17} />
                   {t('Kayıt ekle')}
@@ -347,8 +359,12 @@ export function AssetDetail({
                 {t('{name} tarafından paylaşıldı', { name: asset.owner.displayName })}
               </span>
             )}
-            <Link href={`/rapor/${asset.id}`} className="btn btn-ghost">
-              <Icon name="download" size={16} />
+            <Link
+              href={premium ? `/rapor/${asset.id}` : '/plan'}
+              className="btn btn-ghost"
+              title={premium ? undefined : t('Raporlar Premium planda açılır.')}
+            >
+              <Icon name={premium ? 'download' : 'lock'} size={16} />
               {t('Rapor')}
             </Link>
             {asset.manager ? (
@@ -411,13 +427,30 @@ export function AssetDetail({
         </div>
       ) : null}
 
+      {tab === 'story' && adSlot ? (
+        <AdSlot client={adSlot.client} slot={adSlot.slot} />
+      ) : null}
+
       {tab === 'story' ? (
         <section className="story">
+          {canEdit && entryLimitReached ? (
+            <div className="limit-note" role="status">
+              <Icon name="lock" size={17} />
+              <p>
+                <strong>{t('Ücretsiz plan sınırına ulaştın.')}</strong>
+                {t('Bu varlıkta 10 kayıt var. Sınırsız kayıt için Premium plana geç.')}
+              </p>
+              <Link href="/plan" className="btn btn-sm btn-primary">
+                {t('Premium’a geç')}
+              </Link>
+            </div>
+          ) : null}
           {canEdit ? (
             <button
               type="button"
               className="composer-prompt"
               onClick={() => setComposerOpen(true)}
+              disabled={entryLimitReached}
             >
               <span className="composer-prompt-icon">
                 <Icon name="plus" size={18} />
@@ -491,6 +524,8 @@ export function AssetDetail({
       {composerOpen ? (
         <EntryComposer
           asset={asset}
+          mediaCap={mediaLimitFor(viewer)}
+          adSlot={adSlot}
           onClose={() => setComposerOpen(false)}
           onCreated={(entry) => {
             setEntries((current) => [entry, ...current]);
@@ -1142,10 +1177,14 @@ function SharePanel({
 
 function EntryComposer({
   asset,
+  mediaCap,
+  adSlot = null,
   onClose,
   onCreated,
 }: {
   asset: Asset;
+  mediaCap: number;
+  adSlot?: { client: string; slot: string } | null;
   onClose: () => void;
   onCreated: (entry: Entry) => void;
 }) {
@@ -1236,8 +1275,12 @@ function EntryComposer({
         return;
       }
     }
-    if (files.length > 8) {
-      setError(t('Bir kayda en fazla 8 dosya eklenebilir.'));
+    if (files.length > mediaCap) {
+      setError(
+        mediaCap === 1
+          ? t('Ücretsiz planda bir kayda en fazla 1 dosya ekleyebilirsin.')
+          : t('Bir kayda en fazla {count} dosya eklenebilir.', { count: mediaCap }),
+      );
       return;
     }
     if (metric && metricValue.trim() && Number.isNaN(Number(metricValue))) {
@@ -1470,7 +1513,9 @@ function EntryComposer({
               multiple
               hidden
               accept="image/jpeg,image/png,image/webp,image/gif,image/avif,application/pdf"
-              onChange={(event) => setFiles(Array.from(event.target.files ?? []).slice(0, 8))}
+              onChange={(event) =>
+                setFiles(Array.from(event.target.files ?? []).slice(0, mediaCap))
+              }
             />
             <button
               type="button"
@@ -1481,8 +1526,18 @@ function EntryComposer({
               {t('Fotoğraf veya belge ekle')}
             </button>
             <span className="upload-hint">
-              {t('En fazla 8 dosya · 10 MB / dosya · JPG, PNG, WEBP, GIF, PDF')}
+              {mediaCap === 1
+                ? t('Ücretsiz plan: kayıt başına 1 dosya · 10 MB / dosya · JPG, PNG, WEBP, GIF, PDF')
+                : t('En fazla {count} dosya · 10 MB / dosya · JPG, PNG, WEBP, GIF, PDF', {
+                    count: mediaCap,
+                  })}
             </span>
+            {mediaCap === 1 ? (
+              <Link href="/plan" className="upload-upgrade">
+                <Icon name="sparkles" size={13} />
+                {t('Premium ile kayıt başına 10 dosya')}
+              </Link>
+            ) : null}
             {files.length > 0 ? (
               <div className="file-list">
                 {files.map((file, index) => (
@@ -1504,6 +1559,8 @@ function EntryComposer({
 
           {error ? <div className="form-error">{error}</div> : null}
           {progress ? <div className="progress-note">{progress}</div> : null}
+
+          {adSlot ? <AdSlot client={adSlot.client} slot={adSlot.slot} /> : null}
 
           <div className="modal-actions">
             <button type="button" className="btn btn-ghost" onClick={onClose} disabled={busy}>

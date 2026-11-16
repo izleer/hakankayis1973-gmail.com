@@ -27,6 +27,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import app.varlikhafizasi.R
+import app.varlikhafizasi.data.Plans
 import app.varlikhafizasi.ui.components.GoldRule
 import app.varlikhafizasi.ui.components.SectionLabel
 import app.varlikhafizasi.ui.components.VhTopBar
@@ -49,26 +50,53 @@ fun LocalUpgradeScreen(
     onSwitchToCloud: () -> Unit,
 ) {
     val included = stringResource(R.string.local_matrix_included)
+    val unlimited = stringResource(R.string.plan_unlimited)
     val none = stringResource(R.string.local_matrix_none)
-    val basic = stringResource(R.string.local_matrix_basic)
-    val advanced = stringResource(R.string.local_matrix_advanced)
-    val export = stringResource(R.string.local_matrix_export)
-    val inApp = stringResource(R.string.local_matrix_inapp)
+    val yes = "✓"
 
     val rows = listOf(
-        Triple(stringResource(R.string.local_feature_assets), stringResource(R.string.local_matrix_max_5), stringResource(R.string.local_matrix_unlimited)),
-        Triple(stringResource(R.string.local_feature_timeline), stringResource(R.string.local_matrix_max_10), stringResource(R.string.local_matrix_unlimited)),
-        Triple(stringResource(R.string.local_feature_photos), stringResource(R.string.local_matrix_per_entry_1), stringResource(R.string.local_matrix_unlimited)),
-        Triple(stringResource(R.string.local_feature_compare), basic, advanced),
-        Triple(stringResource(R.string.local_feature_reminders), included, included),
-        Triple(stringResource(R.string.local_feature_offline), included, included),
-        Triple(stringResource(R.string.local_feature_backup), none, included),
-        Triple(stringResource(R.string.local_feature_sync), none, included),
-        Triple(stringResource(R.string.local_feature_web), none, included),
-        Triple(stringResource(R.string.local_feature_social), export, inApp),
-        Triple(stringResource(R.string.local_feature_community), none, included),
-        Triple(stringResource(R.string.local_feature_groups), none, included),
-        Triple(stringResource(R.string.local_feature_reports), none, included),
+        Triple(
+            stringResource(R.string.plan_row_mobile),
+            stringResource(R.string.plan_value_mobile_free),
+            stringResource(R.string.plan_value_mobile_premium),
+        ),
+        Triple(
+            stringResource(R.string.plan_row_web),
+            stringResource(R.string.plan_value_web_free),
+            stringResource(R.string.plan_value_web_premium),
+        ),
+        Triple(
+            stringResource(R.string.plan_row_assets),
+            stringResource(R.string.plan_value_assets_free, Plans.FREE_MAX_ASSETS),
+            unlimited,
+        ),
+        Triple(
+            stringResource(R.string.plan_row_history),
+            stringResource(R.string.plan_value_history_free, Plans.FREE_MAX_ENTRIES),
+            unlimited,
+        ),
+        Triple(
+            stringResource(R.string.plan_row_photo),
+            stringResource(R.string.plan_value_photo_free),
+            stringResource(R.string.plan_value_photo_premium),
+        ),
+        Triple(
+            stringResource(R.string.plan_row_analytics),
+            stringResource(R.string.plan_value_basic),
+            stringResource(R.string.plan_value_advanced),
+        ),
+        Triple(stringResource(R.string.plan_row_compare), none, yes),
+        Triple(stringResource(R.string.plan_row_reports), none, yes),
+        Triple(
+            stringResource(R.string.plan_row_cloud),
+            stringResource(R.string.plan_value_cloud_limited),
+            stringResource(R.string.plan_value_cloud_full),
+        ),
+        Triple(
+            stringResource(R.string.plan_row_ads),
+            stringResource(R.string.plan_value_ads_free),
+            stringResource(R.string.plan_value_ads_premium),
+        ),
         Triple(stringResource(R.string.local_feature_export), included, included),
     )
 
@@ -118,13 +146,13 @@ fun LocalUpgradeScreen(
                             modifier = Modifier.weight(1.5f),
                         )
                         Text(
-                            stringResource(R.string.local_matrix_local),
+                            stringResource(R.string.plan_col_free),
                             style = MaterialTheme.typography.labelSmall,
                             color = Forest,
                             modifier = Modifier.weight(1f),
                         )
                         Text(
-                            stringResource(R.string.local_matrix_cloud),
+                            stringResource(R.string.plan_col_premium),
                             style = MaterialTheme.typography.labelSmall,
                             color = TerracottaInk,
                             modifier = Modifier.weight(1f),

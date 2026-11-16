@@ -1,9 +1,11 @@
 import type { Metadata } from 'next';
 import Link from 'next/link';
 import { AssetGrid } from '@/components/AssetCard';
+import { AdSlot } from '@/components/AdSlot';
 import { EmptyState } from '@/components/EmptyState';
 import { Icon } from '@/components/Icons';
 import { api, requireViewer } from '@/lib/api';
+import { adConfig } from '@/lib/ads';
 import { formatNumber, typeIconName } from '@/lib/format';
 import { getI18n, getT } from '@/lib/i18n/server';
 import type { Asset, AssetType, Paged } from '@/lib/types';
@@ -16,8 +18,9 @@ export async function generateMetadata(): Promise<Metadata> {
 type SearchParams = Promise<{ q?: string; type?: string; status?: string }>;
 
 export default async function AssetsPage({ searchParams }: { searchParams: SearchParams }) {
-  await requireViewer();
+  const viewer = await requireViewer();
   const { t, locale } = await getI18n();
+  const ads = viewer.plan === 'premium' ? null : adConfig();
   const params = await searchParams;
   const query = new URLSearchParams({ limit: '48', sort: 'updated' });
   if (params.q) query.set('q', params.q);
@@ -137,6 +140,10 @@ export default async function AssetsPage({ searchParams }: { searchParams: Searc
           </Link>
         ))}
       </div>
+
+      {viewer.plan !== 'premium' ? (
+        <AdSlot client={ads?.client ?? ''} slot={ads?.slots.assets ?? ''} />
+      ) : null}
 
       {assets.items.length > 0 ? (
         <AssetGrid assets={assets.items} />

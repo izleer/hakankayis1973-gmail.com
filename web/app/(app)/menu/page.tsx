@@ -11,7 +11,20 @@ export async function generateMetadata(): Promise<Metadata> {
   return { title: t('Menü') };
 }
 
-const links: { href: string; label: string; description: string; icon: IconName }[] = [
+const links: {
+  href: string;
+  label: string;
+  description: string;
+  icon: IconName;
+  premiumOnly?: boolean;
+}[] = [
+  {
+    href: '/analiz',
+    label: 'Analiz',
+    description: 'Tür dağılımını, 12 aylık eğilimi ve varlık karşılaştırmasını gör.',
+    icon: 'ruler',
+    premiumOnly: true,
+  },
   {
     href: '/arkadaslar',
     label: 'Arkadaşlar',
@@ -35,6 +48,13 @@ const links: { href: string; label: string; description: string; icon: IconName 
     label: 'Rapor',
     description: 'Bir varlık seç ve ayrıntılı raporunu yazdır ya da PDF olarak indir.',
     icon: 'file',
+    premiumOnly: true,
+  },
+  {
+    href: '/plan',
+    label: 'Plan ve yetkiler',
+    description: 'Ücretsiz ve Premium plan arasındaki farkı gör, planını değiştir.',
+    icon: 'sparkles',
   },
   {
     href: '/bildirimler',
@@ -59,6 +79,7 @@ const links: { href: string; label: string; description: string; icon: IconName 
 export default async function MenuPage() {
   const viewer = await requireViewer();
   const t = await getT();
+  const premium = viewer.plan === 'premium';
 
   return (
     <main className="page page-narrow">
@@ -81,10 +102,13 @@ export default async function MenuPage() {
               <Icon name={link.icon} size={19} />
             </span>
             <span className="menu-link-text">
-              <strong>{t(link.label)}</strong>
+              <strong>
+                {t(link.label)}
+                {link.premiumOnly && !premium ? <span className="menu-lock">{t('Premium')}</span> : null}
+              </strong>
               <small>{t(link.description)}</small>
             </span>
-            <Icon name="arrow-right" size={17} />
+            <Icon name={link.premiumOnly && !premium ? 'lock' : 'arrow-right'} size={17} />
           </Link>
         ))}
       </nav>

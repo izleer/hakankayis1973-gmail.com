@@ -53,6 +53,7 @@ data class User(
     val email: String? = null,
     val bio: String? = null,
     val role: String = "user",
+    val plan: String = "free",
     val interests: List<String> = emptyList(),
     val createdAt: String? = null,
     val onboardedAt: String? = null,
@@ -564,6 +565,49 @@ data class AuthPayload(
 
 @Serializable
 data class SessionPayload(val user: User)
+
+@Serializable
+data class PlanLimits(
+    val maxAssets: Int? = null,
+    val maxEntriesPerAsset: Int? = null,
+    val maxMediaPerEntry: Int? = null,
+    val maxMediaPerAsset: Int? = null,
+    val maxFileBytes: Long? = null,
+    val maxStorageBytes: Long? = null,
+    val analytics: String = "basic",
+    val comparison: Boolean = false,
+    val reports: Boolean = false,
+    val cloud: String = "limited",
+)
+
+@Serializable
+data class PlanUsage(
+    val assets: Int = 0,
+    val storageBytes: Long = 0,
+)
+
+@Serializable
+data class PlanWarning(
+    val limitKey: String = "",
+    val level: String = "warning",
+    val mode: String = "enforce",
+    val used: Long = 0,
+    val limit: Long = 0,
+    val pct: Int = 0,
+    val message: String = "",
+)
+
+@Serializable
+data class PlanInfo(
+    val plan: String = "free",
+    val startedAt: String? = null,
+    val limits: PlanLimits = PlanLimits(),
+    val usage: PlanUsage = PlanUsage(),
+    val warnings: List<PlanWarning> = emptyList(),
+)
+
+@Serializable
+data class UpdatePlanRequest(val plan: String)
 
 @Serializable
 data class UploadRequest(

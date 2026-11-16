@@ -144,7 +144,7 @@
     <string name="local_footer">izleer Lokal · Daten nur auf diesem Gerät</string>
 
     <string name="local_upgrade_title">Zur Cloud wechseln</string>
-    <string name="local_upgrade_body">Lokal bleibt kostenlos; der kostenlose Plan umfasst 5 Objekte, 10 Einträge pro Objekt und 1 Foto pro Eintrag. Cloud schaltet unbegrenzte Objekte, Sync, Web, Gruppen und Community frei.</string>
+    <string name="local_upgrade_body">Lokal bleibt kostenlos. In der Cloud bietet der kostenlose Plan 5 Objekte, 10 Einträge pro Objekt und 1 Datei pro Eintrag; Premium schaltet unbegrenzte Objekte und Einträge, 10 Dateien pro Eintrag, Web-Analyse, Gruppen und Community frei.</string>
     <string name="local_matrix_feature">Funktion</string>
     <string name="local_matrix_local">Lokal · Kostenlos</string>
     <string name="local_matrix_cloud">Cloud · Premium</string>

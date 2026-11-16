@@ -1,0 +1,68 @@
+.ad-slot {
+  position: relative;
+  margin: 28px 0;
+  padding: 22px 18px 20px;
+  border: 1px dashed var(--line-strong);
+  border-radius: var(--radius);
+  background: var(--paper-soft);
+  overflow: hidden;
+}
+
+.ad-slot .ad-tag {
+  position: absolute;
+  top: 9px;
+  left: 14px;
+  font-family: var(--sans);
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--ink-faint);
+}
+
+.ad-slot ins.adsbygoogle {
+  margin-top: 8px;
+  min-height: 90px;
+}
+
+.ad-slot-placeholder {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 96px;
+  background:
+    linear-gradient(135deg, rgba(223, 229, 215, 0.35), transparent 55%),
+    var(--paper-soft);
+}
+
+.ad-slot-placeholder p {
+  margin: 0;
+  max-width: 46ch;
+  padding-top: 8px;
+  color: var(--ink-soft);
+  font-size: 13.5px;
+  line-height: 1.6;
+  text-align: center;
+}
+
+.ad-slot-placeholder p a {
+  color: var(--terracotta-ink);
+  font-weight: 600;
+  text-decoration: none;
+  white-space: nowrap;
+}
+
+.ad-slot-placeholder p a:hover {
+  text-decoration: underline;
+}
+
+@media (max-width: 720px) {
+  .ad-slot {
+    margin: 20px 0;
+    padding: 20px 14px 16px;
+  }
+
+  .ad-slot-placeholder {
+    min-height: 84px;
+  }
+}

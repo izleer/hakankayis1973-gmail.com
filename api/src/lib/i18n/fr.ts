@@ -32,7 +32,15 @@ const messages = {
     "L'accès individuel ne peut être accordé qu'avec la visibilité « Personnes sélectionnées ». Modifiez d'abord la visibilité de la ressource.",
   'Bildirilecek içerik bulunamadı.': "Aucun contenu à signaler n’a été trouvé.",
   'Bildirim bulunamadı.': 'Signalement introuvable.',
-  'Bir kayda en fazla 8 medya eklenebilir.': 'Une mémoire peut contenir au maximum 8 médias.',
+  'Bir kayda en fazla 10 medya eklenebilir.': 'Une mémoire peut contenir au maximum 10 médias.',
+  'Ücretsiz planda en fazla 5 varlık oluşturabilirsiniz. Sınırsız varlık için Premium plana geçin.':
+    'Le forfait gratuit permet jusqu’à 5 objets. Passez à Premium pour des objets illimités.',
+  'Ücretsiz planda bir varlığa en fazla 10 kayıt ekleyebilirsiniz. Sınırsız kayıt için Premium plana geçin.':
+    'Le forfait gratuit permet jusqu’à 10 entrées par objet. Passez à Premium pour des entrées illimitées.',
+  'Ücretsiz planda bir kayda en fazla 1 fotoğraf veya belge ekleyebilirsiniz. Premium planda kayıt başına 10 dosya eklenebilir.':
+    'Le forfait gratuit permet une photo ou un document par entrée. Premium autorise jusqu’à 10 fichiers par entrée.',
+  'Bu özellik Premium planda kullanılabilir.': 'Cette fonctionnalité est disponible avec le forfait Premium.',
+  'Geçersiz plan seçimi.': 'Sélection de forfait invalide.',
   'Bu alan yalnızca moderatörlere açıktır.': 'Cet espace est réservé aux modérateurs.',
   'Bu davet artık geçerli değil.': "Cette invitation n’est plus valable.",
   'Bu dosya türü desteklenmiyor.': "Ce type de fichier n’est pas pris en charge.",

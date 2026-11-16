@@ -29,6 +29,7 @@ import type {
   UserMini,
 } from '@/lib/types';
 import { EmptyState } from './EmptyState';
+import { AdSlot } from './AdSlot';
 import { GroupPostCard } from './GroupPostCard';
 import { Icon } from './Icons';
 import { MediaImage } from './MediaImage';
@@ -73,6 +74,7 @@ export function GroupDetail({
   myAssets,
   viewer,
   initialTab = 'feed',
+  adSlot = null,
 }: {
   data: GroupDetailData;
   initialPosts: FeedPost[];
@@ -81,6 +83,7 @@ export function GroupDetail({
   myAssets: Asset[];
   viewer: User;
   initialTab?: Tab;
+  adSlot?: { client: string; slot: string } | null;
 }) {
   const { t, locale } = useI18n();
   const router = useRouter();
@@ -472,6 +475,10 @@ export function GroupDetail({
           </button>
         ) : null}
       </nav>
+
+      {tab === 'feed' && adSlot ? (
+        <AdSlot client={adSlot.client} slot={adSlot.slot} />
+      ) : null}
 
       {!isMember ? (
         <section className="group-locked">

@@ -10,6 +10,7 @@ import { ApiError } from './lib/errors.js';
 import { translate } from './lib/i18n/index.js';
 import { negotiateLocale, type Locale } from './lib/locale.js';
 import { ensureTaxonomy } from './lib/taxonomy.js';
+import { refreshPlanLimits } from './lib/plans.js';
 import { storageRoot, mediaUrl, verifyMediaSignature } from './lib/storage.js';
 import { authRoutes } from './routes/auth.js';
 import { assetTypeRoutes } from './routes/asset-types.js';
@@ -24,6 +25,7 @@ import { notificationRoutes } from './routes/notifications.js';
 import { safetyRoutes } from './routes/safety.js';
 import { adminRoutes } from './routes/admin.js';
 import { adminAssetTypeRoutes } from './routes/admin-asset-types.js';
+import { planRoutes } from './routes/plans.js';
 import { searchRoutes } from './routes/search.js';
 import { statsRoutes } from './routes/stats.js';
 import { socialRoutes } from './routes/social.js';
@@ -87,6 +89,8 @@ export async function buildApp(): Promise<FastifyInstance> {
     } catch (error) {
       req.log.warn({ err: error }, 'Varlık türü çevirileri yüklenemedi');
     }
+    // Etkin plan limitleri 60 saniyelik önbellekle tazelenir.
+    await refreshPlanLimits();
   });
 
   await app.register(rateLimit, {
@@ -288,6 +292,7 @@ export async function buildApp(): Promise<FastifyInstance> {
   await app.register(safetyRoutes, { prefix: '/v1' });
   await app.register(adminRoutes, { prefix: '/v1/admin' });
   await app.register(adminAssetTypeRoutes, { prefix: '/v1/admin/asset-types' });
+  await app.register(planRoutes, { prefix: '/v1/plans' });
   await app.register(searchRoutes, { prefix: '/v1/search' });
   await app.register(statsRoutes, { prefix: '/v1/stats' });
   await app.register(socialRoutes, { prefix: '/v1/social' });

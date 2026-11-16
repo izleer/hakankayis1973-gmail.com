@@ -88,6 +88,18 @@ fun formatDateTime(millis: Long): String =
         .withZone(ZoneId.systemDefault())
         .format(Instant.ofEpochMilli(millis))
 
+/** Depolama değerlerini okunur biçime getirir; 0 ve negatif değerler "0 KB". */
+fun formatBytes(bytes: Long): String {
+    if (bytes <= 0L) return "0 KB"
+    val kb = 1024.0
+    val mb = kb * 1024
+    return if (bytes < mb) {
+        "${(bytes / kb).toLong().coerceAtLeast(1)} KB"
+    } else {
+        String.format(appLocale, "%.1f MB", bytes / mb)
+    }
+}
+
 @Composable
 fun entryTypeLabel(type: String): String = stringResource(
     when (type) {

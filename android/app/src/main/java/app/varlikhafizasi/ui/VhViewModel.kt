@@ -27,6 +27,8 @@ import app.varlikhafizasi.data.GroupSummary
 import app.varlikhafizasi.data.Measurement
 import app.varlikhafizasi.data.MeasurementInput
 import app.varlikhafizasi.data.NotificationPage
+import app.varlikhafizasi.data.PlanInfo
+import app.varlikhafizasi.data.Plans
 import app.varlikhafizasi.data.ProfilePayload
 import app.varlikhafizasi.data.ReminderItem
 import app.varlikhafizasi.data.SocialConnectionsPayload
@@ -182,6 +184,19 @@ class VhViewModel(
 
     private val _profile = MutableStateFlow(Loadable<ProfileData>())
     val profile: StateFlow<Loadable<ProfileData>> = _profile.asStateFlow()
+
+    private val _plan = MutableStateFlow(Loadable<PlanInfo>())
+    val plan: StateFlow<Loadable<PlanInfo>> = _plan.asStateFlow()
+
+    private val _planBusy = MutableStateFlow(false)
+    val planBusy: StateFlow<Boolean> = _planBusy.asStateFlow()
+
+    private val _planError = MutableStateFlow<String?>(null)
+    val planError: StateFlow<String?> = _planError.asStateFlow()
+
+    /** Oturumdaki kullanıcının planı; plan ucu yüklenmeden önce de kullanılabilir. */
+    val currentPlan: String
+        get() = Plans.normalize(_session.value.user?.plan)
 
     private val _social = MutableStateFlow(Loadable<SocialConnectionsPayload>())
     val social: StateFlow<Loadable<SocialConnectionsPayload>> = _social.asStateFlow()
@@ -423,6 +438,9 @@ class VhViewModel(
             _notifications.value = Loadable()
             _reminders.value = Loadable()
             _profile.value = Loadable()
+            _plan.value = Loadable()
+            _planBusy.value = false
+            _planError.value = null
             _social.value = Loadable()
             _groups.value = Loadable()
             _group.value = Loadable()
@@ -707,6 +725,62 @@ class VhViewModel(
         loadArchive()
         loadNotifications()
         loadReminders()
+    }
+
+    // -----------------------------------------------------------------------
+    // Plan
+    // -----------------------------------------------------------------------
+
+    fun loadPlan(force: Boolean = false) {
+        val loaded = _plan.value.data
+        if (!force && loaded != null && loaded.plan == currentPlan) return
+        viewModelScope.launch {
+            if (loaded == null) _plan.value = _plan.value.copy(loading = true, error = null)
+            try {
+                _plan.value = Loadable(data = repository.plan())
+                _planError.value = null
+            } catch (error: Throwable) {
+                if (_plan.value.data == null) {
+                    _plan.value = Loadable(error = messageOf(error))
+                }
+            }
+        }
+    }
+
+    /**
+     * Plan değişikliği ödeme altyapısı bağlanana kadar anında geçerlidir.
+     * Sunucu yanıtı oturumdaki kullanıcıya ve plan durumuna yansıtılır.
+     */
+    fun updatePlan(target: String) {
+        if (_planBusy.value) return
+        viewModelScope.launch {
+            _planBusy.value = true
+            _planError.value = null
+            try {
+                val info = repository.updatePlan(Plans.normalize(target))
+                _plan.value = Loadable(data = info)
+                _session.update { current ->
+                    current.copy(user = current.user?.copy(plan = info.plan))
+                }
+                loadProfile()
+                loadHome()
+                setNotice(
+                    if (Plans.isPremium(info.plan)) {
+                        str(R.string.plan_activated_premium)
+                    } else {
+                        str(R.string.plan_activated_free)
+                    },
+                )
+            } catch (error: Throwable) {
+                _planError.value = messageOf(error)
+            } finally {
+                _planBusy.value = false
+            }
+        }
+    }
+
+    fun clearPlanError() {
+        _planError.value = null
     }
 
     fun loadSocial(showSpinner: Boolean = true) {

@@ -1,8 +1,10 @@
 import type { Metadata } from 'next';
 import { notFound } from 'next/navigation';
 import { AssetReport } from '@/components/AssetReport';
+import { PremiumGate } from '@/components/PremiumGate';
 import { api, requireViewer } from '@/lib/api';
 import { getT } from '@/lib/i18n/server';
+import { isPremium } from '@/lib/plan';
 import { loadAssetReport } from '@/lib/report-data';
 import type { AssetDetailData } from '@/lib/types';
 
@@ -25,7 +27,18 @@ export async function generateMetadata({ params }: { params: Params }): Promise<
 }
 
 export default async function AssetReportPage({ params }: { params: Params }) {
-  await requireViewer();
+  const viewer = await requireViewer();
+  if (!isPremium(viewer)) {
+    const t = await getT();
+    return (
+      <PremiumGate
+        title={t('Varlık raporu Premium’da açılır')}
+        body={t(
+          'Bu varlığın künyesi, ölçümleri ve tüm hikâyesi yazdırılabilir raporda. Raporlar Premium planda kullanılabilir.',
+        )}
+      />
+    );
+  }
   const { id } = await params;
   const report = await loadAssetReport(id);
   if (!report) notFound();

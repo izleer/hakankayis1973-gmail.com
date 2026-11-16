@@ -56,8 +56,10 @@ import app.varlikhafizasi.data.Friend
 import app.varlikhafizasi.data.FriendRequest
 import app.varlikhafizasi.data.MediaUrl
 import app.varlikhafizasi.data.User
+import app.varlikhafizasi.data.Plans
 import app.varlikhafizasi.ui.VhViewModel
 import app.varlikhafizasi.ui.components.Avatar
+import app.varlikhafizasi.ui.components.BannerAd
 import app.varlikhafizasi.ui.components.EmptyState
 import app.varlikhafizasi.ui.components.ErrorBox
 import app.varlikhafizasi.ui.components.LoadingBox
@@ -90,6 +92,7 @@ private const val TAB_ASSETS = "assets"
 @Composable
 fun FriendsScreen(
     vm: VhViewModel,
+    viewer: User,
     onBack: () -> Unit,
     onOpenAsset: (String) -> Unit,
 ) {
@@ -213,6 +216,10 @@ fun FriendsScreen(
                         onClick = { switchTab(TAB_ASSETS) },
                     )
                 }
+            }
+
+            if (!Plans.isPremium(viewer.plan)) {
+                item { BannerAd() }
             }
 
             if (state.loading && data == null) {

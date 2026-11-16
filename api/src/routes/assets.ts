@@ -27,6 +27,7 @@ import {
   parseQuery,
 } from '../lib/http.js';
 import { notify } from '../lib/notify.js';
+import { assertAssetCapacity } from '../lib/plans.js';
 import type { Locale } from '../lib/locale.js';
 import { optionalViewer, requireViewer, type Viewer } from '../lib/session.js';
 import { mapAsset, mapEntry, mapUserMini, mediaForEntries } from '../lib/serialize.js';
@@ -400,6 +401,7 @@ export async function assetRoutes(app: FastifyInstance): Promise<void> {
 
   app.post('/', async (req, reply) => {
     const viewer = await requireViewer(req);
+    await assertAssetCapacity(viewer);
     const body = parseBody(createBody, req.body);
     await assertSelectableType(body.typeId);
     if ((body.latitude === undefined) !== (body.longitude === undefined)) {

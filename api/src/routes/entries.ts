@@ -16,6 +16,12 @@ import { audit } from '../lib/audit.js';
 import { ApiError, forbidden, notFound } from '../lib/errors.js';
 import { iso, limitFrom, parseBody, parseQuery } from '../lib/http.js';
 import { attachMedia } from '../lib/media.js';
+import {
+  assertEntryCapacity,
+  assertAssetMediaAttachmentCapacity,
+  assertEntryMediaCapacity,
+  assertNewEntryMediaCapacity,
+} from '../lib/plans.js';
 import { processDueReminders } from '../lib/reminders.js';
 import { optionalViewer, requireViewer } from '../lib/session.js';
 import { mapEntry, mediaForEntries } from '../lib/serialize.js';
@@ -53,7 +59,7 @@ const entryFields = {
   latitude: z.number().min(-90).max(90).optional().nullable(),
   longitude: z.number().min(-180).max(180).optional().nullable(),
   attributes: z.record(z.unknown()).default({}),
-  mediaIds: z.array(uuid).max(8).optional(),
+  mediaIds: z.array(uuid).max(10).optional(),
   measurements: z.array(measurement).max(20).optional(),
 };
 
@@ -165,6 +171,9 @@ export async function entryRoutes(app: FastifyInstance): Promise<void> {
     if ((body.latitude === undefined) !== (body.longitude === undefined)) {
       throw new ApiError(422, 'INVALID_LOCATION', 'Enlem ve boylam birlikte girilmeli.');
     }
+    await assertEntryCapacity(viewer, id);
+    await assertNewEntryMediaCapacity(viewer, body.mediaIds);
+    await assertAssetMediaAttachmentCapacity(viewer, id, body.mediaIds);
     const dueAt = body.dueAt ? new Date(body.dueAt) : null;
     assertReminderSchedule(body.type, dueAt, { requireFuture: true });
     const entryVisibility =
@@ -371,6 +380,8 @@ export async function entryRoutes(app: FastifyInstance): Promise<void> {
     );
 
     if (body.mediaIds) {
+      await assertEntryMediaCapacity(viewer, id, body.mediaIds);
+      await assertAssetMediaAttachmentCapacity(viewer, row.asset_id, body.mediaIds);
       await attachMedia(body.mediaIds, viewer.id, { assetId: row.asset_id, entryId: id });
     }
     if (body.measurements) {

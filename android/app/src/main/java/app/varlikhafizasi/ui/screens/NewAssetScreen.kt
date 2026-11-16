@@ -45,6 +45,7 @@ import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
@@ -72,10 +73,12 @@ import app.varlikhafizasi.data.AssetType
 import app.varlikhafizasi.data.CategoryTemplate
 import app.varlikhafizasi.data.CustomField
 import app.varlikhafizasi.data.MediaUrl
+import app.varlikhafizasi.data.Plans
 import app.varlikhafizasi.data.UserMini
 import app.varlikhafizasi.ui.VhViewModel
 import app.varlikhafizasi.ui.components.Avatar
 import app.varlikhafizasi.ui.components.ErrorBox
+import app.varlikhafizasi.ui.components.BannerAd
 import app.varlikhafizasi.ui.components.GoldRule
 import app.varlikhafizasi.ui.components.LoadingBox
 import app.varlikhafizasi.ui.components.LocationPicker
@@ -188,6 +191,7 @@ fun NewAssetScreen(
     assetId: String? = null,
     onBack: () -> Unit,
     onCreated: (String) -> Unit,
+    onOpenPlan: () -> Unit = {},
 ) {
     val types by vm.assetTypes.collectAsStateWithLifecycle()
     val assetState by vm.assetDraft.collectAsStateWithLifecycle()
@@ -196,8 +200,15 @@ fun NewAssetScreen(
     val pickerFriends by vm.pickerFriends.collectAsStateWithLifecycle()
     val busy by vm.formBusy.collectAsStateWithLifecycle()
     val error by vm.formError.collectAsStateWithLifecycle()
+    val planState by vm.plan.collectAsStateWithLifecycle()
+    val session by vm.session.collectAsStateWithLifecycle()
+    val homeState by vm.home.collectAsStateWithLifecycle()
 
     val editing = assetId != null
+    val plan = Plans.normalize(planState.data?.plan ?: session.user?.plan)
+    val premium = Plans.isPremium(plan)
+    val assetUsage = planState.data?.usage?.assets ?: homeState.data?.stats?.assets ?: 0
+    val assetLimitReached = !editing && Plans.assetLimitReached(plan, assetUsage)
     val draft = if (editing) assetState.data else null
     // Kişi listesi ve görünürlüğe bağlı kişi seçimi yalnızca varlık sahibine aittir.
     val canManageViewers = !editing || draftAccess.isOwner
@@ -259,6 +270,7 @@ fun NewAssetScreen(
         vm.ensureAssetTypes()
         vm.clearFormError()
         if (assetId != null) vm.loadAssetDraft(assetId) else vm.clearAssetDraft()
+        if (assetId == null) vm.loadPlan()
     }
 
     LaunchedEffect(visibility, canManageViewers) {
@@ -395,6 +407,54 @@ fun NewAssetScreen(
                 style = MaterialTheme.typography.bodyMedium,
                 color = Muted,
             )
+
+            if (!editing && !premium) {
+                Spacer(Modifier.height(14.dp))
+                BannerAd()
+            }
+
+            if (!editing && !premium) {
+                Spacer(Modifier.height(14.dp))
+                Surface(
+                    color = PaperDeep,
+                    shape = RoundedCornerShape(14.dp),
+                    border = BorderStroke(1.dp, if (assetLimitReached) Clay else Line),
+                    modifier = Modifier.fillMaxWidth(),
+                ) {
+                    Column(Modifier.padding(12.dp)) {
+                        Text(
+                            if (assetLimitReached) {
+                                stringResource(R.string.plan_limit_assets_title)
+                            } else {
+                                stringResource(
+                                    R.string.plan_limit_assets_banner,
+                                    assetUsage,
+                                    Plans.FREE_MAX_ASSETS,
+                                )
+                            },
+                            style = MaterialTheme.typography.titleSmall,
+                            color = Forest,
+                        )
+                        if (assetLimitReached) {
+                            Spacer(Modifier.height(4.dp))
+                            Text(
+                                stringResource(
+                                    R.string.plan_limit_assets_body,
+                                    Plans.FREE_MAX_ASSETS,
+                                ),
+                                style = MaterialTheme.typography.bodySmall,
+                                color = Muted,
+                            )
+                            TextButton(onClick = onOpenPlan) {
+                                Text(
+                                    stringResource(R.string.plan_upgrade_cta),
+                                    color = Clay,
+                                )
+                            }
+                        }
+                    }
+                }
+            }
 
             Spacer(Modifier.height(22.dp))
             SectionLabel(stringResource(R.string.assets_type_label))
@@ -1012,6 +1072,7 @@ fun NewAssetScreen(
         ) {
             Button(
                 onClick = {
+                    if (assetLimitReached) return@Button
                     attempted = true
                     val typeId = selectedId
                     if (typeId == null || title.isBlank() ||
@@ -1055,7 +1116,7 @@ fun NewAssetScreen(
                         )
                     }
                 },
-                enabled = !busy,
+                enabled = !busy && !assetLimitReached,
                 colors = ButtonDefaults.buttonColors(
                     containerColor = Forest,
                     contentColor = Paper,

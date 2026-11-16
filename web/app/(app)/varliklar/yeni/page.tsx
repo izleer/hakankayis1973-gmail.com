@@ -1,20 +1,75 @@
 import type { Metadata } from 'next';
 import Link from 'next/link';
+import { AdSlot } from '@/components/AdSlot';
 import { Icon } from '@/components/Icons';
 import { NewAssetForm } from '@/components/NewAssetForm';
 import { api, requireViewer } from '@/lib/api';
-import { getT } from '@/lib/i18n/server';
-import type { AssetType } from '@/lib/types';
+import { adConfig } from '@/lib/ads';
+import { formatNumber } from '@/lib/format';
+import { getI18n } from '@/lib/i18n/server';
+import { limitsFor, reachedAssetLimit } from '@/lib/plan';
+import type { AssetType, PlanInfo } from '@/lib/types';
 
 export async function generateMetadata(): Promise<Metadata> {
-  const t = await getT();
+  const { t } = await getI18n();
   return { title: t('Yeni varlık') };
 }
 
 export default async function NewAssetPage() {
-  await requireViewer();
-  const t = await getT();
-  const types = await api<{ items: AssetType[] }>('/v1/asset-types');
+  const viewer = await requireViewer();
+  const { t, locale } = await getI18n();
+  const [types, plan] = await Promise.all([
+    api<{ items: AssetType[] }>('/v1/asset-types'),
+    api<PlanInfo>('/v1/me/plan'),
+  ]);
+  const limits = limitsFor(viewer);
+  const limitReached = reachedAssetLimit(viewer, plan.usage.assets);
+  const ads = viewer.plan === 'premium' ? null : adConfig();
+
+  if (limitReached) {
+    const max = limits.maxAssets ?? 0;
+    return (
+      <main className="page page-narrow">
+        <Link href="/varliklar" className="back-link">
+          <Icon name="arrow-left" size={16} />
+          {t('Varlıklar')}
+        </Link>
+        <section className="limit-page" aria-label={t('Plan sınırı')}>
+          <span className="premium-gate-icon">
+            <Icon name="lock" size={26} />
+          </span>
+          <span className="eyebrow">{t('ÜCRETSİZ PLAN')}</span>
+          <h1>{t('Varlık sınırına ulaştın')}</h1>
+          <p>
+            {t(
+              'Ücretsiz planda {max} varlık oluşturabilirsin. Mevcut varlıkların ve kayıtların olduğu gibi kalır.',
+              { max },
+            )}
+          </p>
+          <div className="limit-usage">
+            <span>
+              {formatNumber(plan.usage.assets, locale)} / {formatNumber(max, locale)}
+            </span>
+            <span className="limit-usage-track">
+              <span
+                className="limit-usage-fill"
+                style={{ width: `${Math.min(100, Math.round((plan.usage.assets / max) * 100))}%` }}
+              />
+            </span>
+          </div>
+          <div className="premium-gate-actions">
+            <Link href="/plan" className="btn btn-primary">
+              <Icon name="sparkles" size={17} />
+              {t('Premium ile sınırsız varlık')}
+            </Link>
+            <Link href="/varliklar" className="btn btn-ghost">
+              {t('Varlıklarına dön')}
+            </Link>
+          </div>
+        </section>
+      </main>
+    );
+  }
 
   return (
     <main className="page page-narrow">
@@ -31,6 +86,19 @@ export default async function NewAssetPage() {
           </p>
         </div>
       </header>
+      {limits.maxAssets !== null ? (
+        <p className="plan-inline">
+          <Icon name="leaf" size={14} />
+          {t('Ücretsiz plan: {used} / {max} varlık', {
+            used: plan.usage.assets,
+            max: limits.maxAssets,
+          })}
+          <Link href="/plan">{t('Premium’a geç')}</Link>
+        </p>
+      ) : null}
+      {viewer.plan === 'premium' ? null : (
+        <AdSlot client={ads?.client ?? ''} slot={ads?.slots.assets ?? ''} />
+      )}
       <NewAssetForm types={types.items} />
     </main>
   );

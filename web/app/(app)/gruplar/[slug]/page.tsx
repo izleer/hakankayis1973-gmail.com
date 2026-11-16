@@ -2,6 +2,7 @@ import type { Metadata } from 'next';
 import { notFound } from 'next/navigation';
 import { GroupDetail, type Tab } from '@/components/GroupDetail';
 import { ApiError, api, requireViewer } from '@/lib/api';
+import { adConfig } from '@/lib/ads';
 import { getT } from '@/lib/i18n/server';
 import type {
   Asset,
@@ -50,6 +51,7 @@ export default async function GroupDetailPage({
   searchParams: SearchParams;
 }) {
   const viewer = await requireViewer();
+  const ads = viewer.plan === 'premium' ? null : adConfig();
   const { slug } = await params;
   const data = await loadGroup(slug);
   if (!data) notFound();
@@ -99,6 +101,7 @@ export default async function GroupDetailPage({
       )}
       viewer={viewer}
       initialTab={initialTab}
+      adSlot={ads ? { client: ads.client, slot: ads.slots.groups } : null}
     />
   );
 }

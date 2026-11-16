@@ -1,8 +1,10 @@
 import type { Metadata } from 'next';
 import Link from 'next/link';
+import { AdSlot } from '@/components/AdSlot';
 import { NewGroupForm } from '@/components/NewGroupForm';
 import { Icon } from '@/components/Icons';
 import { requireViewer } from '@/lib/api';
+import { adConfig } from '@/lib/ads';
 import { getI18n, getT } from '@/lib/i18n/server';
 
 export async function generateMetadata(): Promise<Metadata> {
@@ -11,8 +13,9 @@ export async function generateMetadata(): Promise<Metadata> {
 }
 
 export default async function NewGroupPage() {
-  await requireViewer();
+  const viewer = await requireViewer();
   const { t } = await getI18n();
+  const ads = viewer.plan === 'premium' ? null : adConfig();
   return (
     <main className="page">
       <Link href="/gruplar" className="back-link">
@@ -28,6 +31,9 @@ export default async function NewGroupPage() {
           </p>
         </div>
       </header>
+      {viewer.plan === 'premium' ? null : (
+        <AdSlot client={ads?.client ?? ''} slot={ads?.slots.groups ?? ''} />
+      )}
       <NewGroupForm />
     </main>
   );

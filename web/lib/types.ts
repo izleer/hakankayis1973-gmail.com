@@ -11,6 +11,84 @@ export type EntryType =
   | 'document'
   | 'reminder';
 
+export type Plan = 'free' | 'premium';
+
+export type PlanLimits = {
+  maxAssets: number | null;
+  maxEntriesPerAsset: number | null;
+  maxMediaPerEntry: number | null;
+  maxMediaPerAsset?: number | null;
+  maxFileBytes?: number | null;
+  maxStorageBytes?: number | null;
+  analytics: 'basic' | 'advanced';
+  comparison: boolean;
+  reports: boolean;
+  cloud: 'limited' | 'full';
+};
+
+export type PlanLimitMode = 'enforce' | 'warn' | 'shadow';
+
+export type PlanLimitRule = {
+  plan: Plan;
+  limitKey: string;
+  scope: string;
+  maxValue: number | null;
+  mode: PlanLimitMode;
+  warningPct: number;
+  active: boolean;
+  updatedAt: string | null;
+  updatedBy: string | null;
+  updatedByUsername?: string | null;
+};
+
+export type PlanLimitHistoryItem = {
+  id: number;
+  action: string;
+  metadata: {
+    changes?: {
+      plan: Plan;
+      limitKey: string;
+      scope: string;
+      before: Record<string, unknown> | null;
+      after: Record<string, unknown>;
+    }[];
+  };
+  createdAt: string;
+  actor: { id: string; username: string; displayName: string } | null;
+};
+
+export type PlanWarning = {
+  limitKey: string;
+  level: 'warning' | 'blocked';
+  mode: PlanLimitMode;
+  used: number;
+  limit: number;
+  pct: number;
+  message: string;
+};
+
+export type UserLimitOverride = {
+  limitKey: string;
+  scope: string;
+  maxValue: number | null;
+  mode: PlanLimitMode;
+  warningPct: number;
+  active: boolean;
+  note: string | null;
+  expiresAt: string | null;
+  updatedAt: string | null;
+  updatedBy: string | null;
+  updatedByUsername?: string | null;
+};
+
+export type PlanInfo = {
+  plan: Plan;
+  startedAt: string | null;
+  limits: PlanLimits;
+  usage: { assets: number; storageBytes?: number };
+  warnings?: PlanWarning[];
+};
+
 export type UserMini = {
   id: string;
   username: string;
@@ -21,6 +99,8 @@ export type UserMini = {
 export type User = UserMini & {
   email?: string;
   bio?: string | null;
+  plan?: Plan;
+  planStartedAt?: string | null;
   role: 'user' | 'moderator' | 'admin';
   interests?: string[];
   createdAt?: string;
@@ -180,6 +260,34 @@ export type Stats = {
   following: number;
   friends?: number;
   recentEntries: Entry[];
+};
+
+export type AnalyticsData = {
+  totals: {
+    assets: number;
+    activeAssets: number;
+    archivedAssets: number;
+    entries: number;
+    media: number;
+    sharedGroups: number;
+    averageEntries: number;
+    averageMedia: number;
+  };
+  byType: { label: string; count: number }[];
+  monthly: { month: string; count: number }[];
+  assets: {
+    id: string;
+    title: string;
+    status: AssetStatus;
+    visibility: Visibility;
+    typeLabel: string;
+    entryCount: number;
+    mediaCount: number;
+    createdAt: string | null;
+    firstEntryAt: string | null;
+    lastEntryAt: string | null;
+  }[];
+  generatedAt: string;
 };
 
 export type Paged<T> = {

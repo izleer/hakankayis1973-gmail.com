@@ -144,7 +144,7 @@
     <string name="local_footer">izleer Local · données uniquement sur cet appareil</string>
 
     <string name="local_upgrade_title">Passer au cloud</string>
-    <string name="local_upgrade_body">Local reste gratuit ; le forfait gratuit comprend 5 biens, 10 fiches par bien et 1 photo par fiche. Le cloud ouvre les biens illimités, la synchronisation, le web, les groupes et la communauté.</string>
+    <string name="local_upgrade_body">Local reste gratuit. Dans le cloud, le forfait gratuit comprend 5 biens, 10 entrées par bien et 1 fichier par entrée ; Premium ouvre des biens et entrées illimités, 10 fichiers par entrée, l’analyse web, les groupes et la communauté.</string>
     <string name="local_matrix_feature">Fonction</string>
     <string name="local_matrix_local">Local · Gratuit</string>
     <string name="local_matrix_cloud">Cloud · Premium</string>

@@ -59,6 +59,16 @@ import deFriends from './de/friends';
 import frFriends from './fr/friends';
 import esFriends from './es/friends';
 
+import enPlan from './en/plan';
+import dePlan from './de/plan';
+import frPlan from './fr/plan';
+import esPlan from './es/plan';
+
+import enAds from './en/ads';
+import deAds from './de/ads';
+import frAds from './fr/ads';
+import esAds from './es/ads';
+
 export type PluralForms = {
   one?: string;
   few?: string;
@@ -90,6 +100,8 @@ export const catalogs: Record<Locale, Catalog> = {
     ...enNotifications,
     ...enSocial,
     ...enFriends,
+    ...enPlan,
+    ...enAds,
   },
   de: {
     ...deCommon,
@@ -104,6 +116,8 @@ export const catalogs: Record<Locale, Catalog> = {
     ...deNotifications,
     ...deSocial,
     ...deFriends,
+    ...dePlan,
+    ...deAds,
   },
   fr: {
     ...frCommon,
@@ -118,6 +132,8 @@ export const catalogs: Record<Locale, Catalog> = {
     ...frNotifications,
     ...frSocial,
     ...frFriends,
+    ...frPlan,
+    ...frAds,
   },
   es: {
     ...esCommon,
@@ -132,6 +148,8 @@ export const catalogs: Record<Locale, Catalog> = {
     ...esNotifications,
     ...esSocial,
     ...esFriends,
+    ...esPlan,
+    ...esAds,
   },
 };
 

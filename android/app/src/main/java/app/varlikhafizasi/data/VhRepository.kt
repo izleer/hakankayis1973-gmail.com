@@ -130,6 +130,10 @@ class VhRepository(
 
     suspend fun stats(): Stats = call { api.stats() }
 
+    suspend fun plan(): PlanInfo = call { api.plan() }
+
+    suspend fun updatePlan(plan: String): PlanInfo = call { api.updatePlan(UpdatePlanRequest(plan)) }
+
     suspend fun groupSummary(): GroupSummaryPayload = call { api.groupSummary() }
 
     suspend fun assets(query: String? = null): AssetPage =

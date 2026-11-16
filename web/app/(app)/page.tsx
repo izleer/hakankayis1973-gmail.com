@@ -1,11 +1,13 @@
 import type { Metadata } from 'next';
 import Link from 'next/link';
 import { AssetGrid } from '@/components/AssetCard';
+import { AdSlot } from '@/components/AdSlot';
 import { EmptyState } from '@/components/EmptyState';
 import { HeroReel, type HeroReelItem } from '@/components/HeroReel';
 import { Icon } from '@/components/Icons';
 import { MediaImage } from '@/components/MediaImage';
 import { requireViewer, api } from '@/lib/api';
+import { adConfig } from '@/lib/ads';
 import {
   entryTypeLabels,
   formatDate,
@@ -48,6 +50,7 @@ function groupMark(name: string, locale: string) {
 export default async function DashboardPage() {
   const viewer = await requireViewer();
   const { t, locale, tag } = await getI18n();
+  const ads = viewer.plan === 'premium' ? null : adConfig();
   const [stats, assets, media, groups] = await Promise.all([
     api<Stats>('/v1/stats'),
     api<Paged<Asset>>('/v1/assets?limit=6&sort=updated'),
@@ -189,6 +192,10 @@ export default async function DashboardPage() {
           </small>
         </div>
       </section>
+
+      {viewer.plan !== 'premium' ? (
+        <AdSlot client={ads?.client ?? ''} slot={ads?.slots.home ?? ''} />
+      ) : null}
 
       {groups.items.length > 0 ? (
         <section className="section group-summary-section" aria-label={t('Grup özeti')}>

@@ -144,7 +144,7 @@
     <string name="local_footer">izleer Local · datos solo en este dispositivo</string>
 
     <string name="local_upgrade_title">Pasar a Cloud</string>
-    <string name="local_upgrade_body">Local sigue siendo gratis; el plan gratuito incluye 5 bienes, 10 registros por bien y 1 foto por registro. Cloud abre bienes ilimitados, sincronización, web, grupos y comunidad.</string>
+    <string name="local_upgrade_body">Local sigue siendo gratis. En la nube, el plan gratis incluye 5 bienes, 10 registros por bien y 1 archivo por registro; Premium abre bienes y registros ilimitados, 10 archivos por registro, análisis web, grupos y comunidad.</string>
     <string name="local_matrix_feature">Función</string>
     <string name="local_matrix_local">Local · Gratis</string>
     <string name="local_matrix_cloud">Cloud · Premium</string>

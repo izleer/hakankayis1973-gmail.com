@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="ads_label">PUBLICITÉ</string>
+    <string name="ads_free_note">Les publicités apparaissent avec l’offre gratuite ; passez à Premium pour les retirer.</string>
+</resources>

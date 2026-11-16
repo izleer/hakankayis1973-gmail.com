@@ -3,13 +3,20 @@
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useT } from '@/lib/i18n/client';
+import type { Plan } from '@/lib/types';
 import { Icon, type IconName } from './Icons';
 
-const items: { href: string; label: string; icon: IconName }[] = [
+const items: {
+  href: string;
+  label: string;
+  icon: IconName;
+  premiumOnly?: boolean;
+}[] = [
   { href: '/', label: 'Hafıza', icon: 'leaf' },
   { href: '/varliklar', label: 'Varlıklar', icon: 'grid' },
+  { href: '/analiz', label: 'Analiz', icon: 'ruler', premiumOnly: true },
   { href: '/arkadaslar', label: 'Arkadaşlar', icon: 'users' },
-  { href: '/rapor', label: 'Rapor', icon: 'file' },
+  { href: '/rapor', label: 'Rapor', icon: 'file', premiumOnly: true },
   { href: '/gruplar', label: 'Gruplar', icon: 'users' },
   { href: '/arsiv', label: 'Arşiv', icon: 'archive' },
   { href: '/kesfet', label: 'Keşfet', icon: 'compass' },
@@ -17,9 +24,10 @@ const items: { href: string; label: string; icon: IconName }[] = [
   { href: '/ayarlar/sosyal', label: 'Bağlantılar', icon: 'share' },
 ];
 
-export function SideNav() {
+export function SideNav({ plan = 'free', isAdmin = false }: { plan?: Plan; isAdmin?: boolean }) {
   const pathname = usePathname();
   const t = useT();
+  const premium = plan === 'premium';
   return (
     <nav className="side-nav" aria-label={t('Ana menü')}>
       <Link href="/varliklar/yeni" className="side-add">
@@ -39,9 +47,24 @@ export function SideNav() {
             >
               <Icon name={item.icon} size={19} />
               <span>{t(item.label)}</span>
+              {item.premiumOnly && !premium ? (
+                <span className="side-lock" title={t('Premium')}>
+                  <Icon name="lock" size={12} />
+                </span>
+              ) : null}
             </Link>
           );
         })}
+        {isAdmin ? (
+          <Link
+            href="/yonetim"
+            className={`side-link${pathname.startsWith('/yonetim') ? ' is-active' : ''}`}
+            aria-current={pathname.startsWith('/yonetim') ? 'page' : undefined}
+          >
+            <Icon name="lock" size={19} />
+            <span>{t('Yönetim')}</span>
+          </Link>
+        ) : null}
       </div>
     </nav>
   );
@@ -55,7 +78,18 @@ const mobileItems: { href: string; label: string; icon: IconName }[] = [
   { href: '/menu', label: 'Daha fazla', icon: 'more' },
 ];
 
-const menuPaths = ['/menu', '/kesfet', '/arkadaslar', '/arsiv', '/bildirimler', '/profil', '/ayarlar', '/rapor'];
+const menuPaths = [
+  '/menu',
+  '/kesfet',
+  '/arkadaslar',
+  '/arsiv',
+  '/bildirimler',
+  '/profil',
+  '/ayarlar',
+  '/rapor',
+  '/analiz',
+  '/plan',
+];
 
 function isMobileActive(href: string, pathname: string) {
   if (href === '/') return pathname === '/';

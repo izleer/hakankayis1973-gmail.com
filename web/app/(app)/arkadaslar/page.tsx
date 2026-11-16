@@ -1,11 +1,13 @@
 import type { Metadata } from 'next';
 import Link from 'next/link';
+import { AdSlot } from '@/components/AdSlot';
 import { AssetGrid } from '@/components/AssetCard';
 import { EmptyState } from '@/components/EmptyState';
 import { FollowButton } from '@/components/FollowButton';
 import { FriendButton } from '@/components/FriendButton';
 import { Icon } from '@/components/Icons';
 import { api, requireViewer } from '@/lib/api';
+import { adConfig } from '@/lib/ads';
 import { formatDate, formatNumber, initials } from '@/lib/format';
 import type { Locale } from '@/lib/i18n/config';
 import { getI18n, getT } from '@/lib/i18n/server';
@@ -54,6 +56,7 @@ function Avatar({ user, locale }: { user: UserMini; locale: Locale }) {
 export default async function FriendsPage({ searchParams }: { searchParams: SearchParams }) {
   const { t, locale } = await getI18n();
   const viewer = await requireViewer();
+  const ads = viewer.plan === 'premium' ? null : adConfig();
   const params = await searchParams;
   const tab = tabOf(params.tab);
 
@@ -138,6 +141,10 @@ export default async function FriendsPage({ searchParams }: { searchParams: Sear
             : ''}
         </span>
       </div>
+
+      {viewer.plan === 'premium' ? null : (
+        <AdSlot client={ads?.client ?? ''} slot={ads?.slots.friends ?? ''} />
+      )}
 
       {tab === 'friends' ? (
         <section className="section">

@@ -36,6 +36,7 @@ import androidx.compose.material.icons.outlined.Groups
 import androidx.compose.material.icons.outlined.Language
 import androidx.compose.material.icons.outlined.PhotoCamera
 import androidx.compose.material.icons.outlined.Share
+import androidx.compose.material.icons.outlined.Star
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.CircularProgressIndicator
@@ -73,6 +74,7 @@ import app.varlikhafizasi.R
 import app.varlikhafizasi.data.AppLanguage
 import app.varlikhafizasi.data.Asset
 import app.varlikhafizasi.data.FeedPost
+import app.varlikhafizasi.data.Plans
 import app.varlikhafizasi.data.SocialConnection
 import app.varlikhafizasi.data.SocialConnectionsPayload
 import app.varlikhafizasi.data.User
@@ -106,9 +108,11 @@ fun ProfileScreen(
     onOpenAsset: (String) -> Unit,
     onOpenNotifications: () -> Unit,
     onOpenFriends: () -> Unit,
+    onOpenPlan: () -> Unit,
 ) {
     val state by vm.profile.collectAsStateWithLifecycle()
     val notifications by vm.notifications.collectAsStateWithLifecycle()
+    val planState by vm.plan.collectAsStateWithLifecycle()
     val socialState by vm.social.collectAsStateWithLifecycle()
     val socialBusy by vm.socialBusy.collectAsStateWithLifecycle()
     val socialError by vm.socialError.collectAsStateWithLifecycle()
@@ -151,6 +155,7 @@ fun ProfileScreen(
     LaunchedEffect(viewer.id) {
         vm.loadProfile()
         vm.loadSocial()
+        vm.loadPlan(force = true)
     }
 
     // Tarayıcıdan dönünce bağlantı durumu tazelenir.
@@ -174,6 +179,9 @@ fun ProfileScreen(
     val payload = profileState?.payload
     val user = payload?.user ?: viewer
     val stats = user.stats
+    val plan = Plans.normalize(planState.data?.plan ?: user.plan)
+    val premium = Plans.isPremium(plan)
+    val planUsage = planState.data?.usage?.assets ?: (stats?.assets ?: 0)
 
     Column(
         modifier = Modifier
@@ -305,6 +313,15 @@ fun ProfileScreen(
                         }
                     }
                 }
+            }
+
+            item {
+                Spacer(Modifier.height(14.dp))
+                ProfilePlanCard(
+                    premium = premium,
+                    usage = planUsage,
+                    onClick = onOpenPlan,
+                )
             }
 
             item {
@@ -614,6 +631,77 @@ fun ProfileScreen(
                 }
             },
         )
+    }
+}
+
+@Composable
+private fun ProfilePlanCard(
+    premium: Boolean,
+    usage: Int,
+    onClick: () -> Unit,
+) {
+    Surface(
+        color = Ivory,
+        shape = RoundedCornerShape(14.dp),
+        border = BorderStroke(1.dp, Line),
+        modifier = Modifier
+            .fillMaxWidth()
+            .clickable(onClick = onClick),
+    ) {
+        Row(
+            modifier = Modifier.padding(horizontal = 14.dp, vertical = 12.dp),
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            Icon(
+                Icons.Outlined.Star,
+                contentDescription = null,
+                tint = if (premium) Clay else SageInk,
+                modifier = Modifier.size(22.dp),
+            )
+            Spacer(Modifier.width(10.dp))
+            Column(Modifier.weight(1f)) {
+                Text(
+                    stringResource(R.string.plan_profile_title),
+                    style = MaterialTheme.typography.titleSmall,
+                    color = Forest,
+                )
+                Text(
+                    if (premium) {
+                        stringResource(R.string.plan_profile_premium_hint)
+                    } else {
+                        stringResource(
+                            R.string.plan_profile_free_hint,
+                            usage,
+                            Plans.FREE_MAX_ASSETS,
+                        )
+                    },
+                    style = MaterialTheme.typography.bodySmall,
+                    color = Muted,
+                )
+            }
+            Surface(
+                color = if (premium) Clay else Sage,
+                shape = RoundedCornerShape(50),
+            ) {
+                Text(
+                    stringResource(
+                        if (premium) R.string.plan_badge_premium else R.string.plan_badge_free,
+                    ),
+                    style = MaterialTheme.typography.labelSmall,
+                    color = if (premium) Paper else Forest,
+                    fontWeight = androidx.compose.ui.text.font.FontWeight.SemiBold,
+                    maxLines = 1,
+                    modifier = Modifier.padding(horizontal = 9.dp, vertical = 4.dp),
+                )
+            }
+            Spacer(Modifier.width(4.dp))
+            Icon(
+                Icons.Outlined.ChevronRight,
+                contentDescription = stringResource(R.string.plan_profile_manage),
+                tint = Muted,
+                modifier = Modifier.size(18.dp),
+            )
+        }
     }
 }
 

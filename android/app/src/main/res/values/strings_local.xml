@@ -153,7 +153,7 @@
 
     <!-- Bulut / premium -->
     <string name="local_upgrade_title">Cloud’a geç</string>
-    <string name="local_upgrade_body">Local ücretsiz kalır; ücretsiz planda 5 varlık, varlık başına 10 kayıt ve kayıt başına 1 fotoğraf vardır. Bulut; sınırsız varlık, eşitleme, web, gruplar ve topluluk özelliklerini açar.</string>
+    <string name="local_upgrade_body">Local ücretsiz kalır. Bulutta ücretsiz plan 5 varlık, varlık başına 10 kayıt ve kayıt başına 1 dosya sunar; Premium sınırsız varlık ve kayıt, kayıt başına 10 dosya, web analizi, gruplar ve topluluk özelliklerini açar.</string>
     <string name="local_matrix_feature">Özellik</string>
     <string name="local_matrix_local">Local · Ücretsiz</string>
     <string name="local_matrix_cloud">Cloud · Premium</string>

@@ -7,6 +7,13 @@ import { audit } from '../lib/audit.js';
 import { conflict, forbidden, notFound } from '../lib/errors.js';
 import { iso, parseBody, parseQuery } from '../lib/http.js';
 import { notify } from '../lib/notify.js';
+import {
+  assetUsage,
+  effectiveLimits,
+  normalizePlan,
+  planWarnings,
+  storageUsage,
+} from '../lib/plans.js';
 import { optionalViewer, requireViewer, type Viewer } from '../lib/session.js';
 import { mapAsset, mapUser, mapUserMini } from '../lib/serialize.js';
 import { revokeAllSessions } from '../lib/session.js';
@@ -615,6 +622,55 @@ export async function userRoutes(app: FastifyInstance): Promise<void> {
     await audit(viewer.id, 'user.updated', 'user', viewer.id, { fields: Object.keys(body) }, req.ip);
     const row = await queryOne<Record<string, any>>(`SELECT * FROM users WHERE id = $1`, [viewer.id]);
     return { data: { user: mapUser(row!) } };
+  });
+
+  // Plan seçimi ödeme altyapısı hazır olana kadar kullanıcı tarafından
+  // yapılır; yükseltme de düşürme de anında geçerli olur ve denetlenir.
+  app.get('/me/plan', async (req) => {
+    const viewer = await requireViewer(req);
+    const row = await queryOne<{ plan: string; plan_started_at: Date | null }>(
+      `SELECT plan, plan_started_at FROM users WHERE id = $1`,
+      [viewer.id],
+    );
+    const plan = normalizePlan(row?.plan);
+    const effective = { ...viewer, plan };
+    const usedBytes = await storageUsage(viewer.id);
+    return {
+      data: {
+        plan,
+        startedAt: iso(row?.plan_started_at ?? null),
+        limits: await effectiveLimits(effective),
+        usage: { assets: await assetUsage(viewer.id), storageBytes: usedBytes },
+        warnings: await planWarnings(effective),
+      },
+    };
+  });
+
+  app.patch('/me/plan', async (req) => {
+    const viewer = await requireViewer(req);
+    const body = parseBody(
+      z.object({ plan: z.enum(['free', 'premium'], { message: 'Geçersiz plan seçimi.' }) }),
+      req.body,
+    );
+    const usage = await assetUsage(viewer.id);
+    const usedBytes = await storageUsage(viewer.id);
+    // Premium'dan ücretsiz plana dönüşte mevcut veriler silinmez; yalnızca
+    // yeni yazmalar sınırlara tabi olur.
+    await query(
+      `UPDATE users SET plan = $2, plan_started_at = now() WHERE id = $1`,
+      [viewer.id, body.plan],
+    );
+    await audit(viewer.id, 'user.plan_changed', 'user', viewer.id, { plan: body.plan }, req.ip);
+    const effective = { ...viewer, plan: body.plan };
+    return {
+      data: {
+        plan: body.plan,
+        startedAt: new Date().toISOString(),
+        limits: await effectiveLimits(effective),
+        usage: { assets: usage, storageBytes: usedBytes },
+        warnings: await planWarnings(effective),
+      },
+    };
   });
 
   app.post('/me/onboarding', async (req) => {

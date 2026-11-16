@@ -42,8 +42,11 @@ import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import app.varlikhafizasi.R
+import app.varlikhafizasi.data.Plans
+import app.varlikhafizasi.data.User
 import app.varlikhafizasi.ui.VhViewModel
 import app.varlikhafizasi.ui.components.AssetRow
+import app.varlikhafizasi.ui.components.BannerAd
 import app.varlikhafizasi.ui.components.EmptyState
 import app.varlikhafizasi.ui.components.ErrorBox
 import app.varlikhafizasi.ui.components.LoadingBox
@@ -58,6 +61,7 @@ import app.varlikhafizasi.ui.theme.PaperDeep
 @Composable
 fun AssetsScreen(
     vm: VhViewModel,
+    viewer: User,
     onOpenAsset: (String) -> Unit,
     onNewAsset: () -> Unit,
 ) {
@@ -138,6 +142,9 @@ fun AssetsScreen(
             }
             if (state.error != null) {
                 item { ErrorBox(state.error ?: "", onRetry = { vm.loadAssets(query) }) }
+            }
+            if (!Plans.isPremium(viewer.plan)) {
+                item { BannerAd() }
             }
             if (state.data != null && state.data!!.isEmpty()) {
                 item {

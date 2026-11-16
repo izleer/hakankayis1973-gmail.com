@@ -1,6 +1,7 @@
 import { query } from '../db.js';
 import { iso } from './http.js';
 import type { Locale } from './locale.js';
+import { type Plan, normalizePlan } from './plans.js';
 import { mediaKeyRef, mediaRefUrl, mediaUrl } from './storage.js';
 import type { CategoryTemplate } from './templates.js';
 import { templateForType } from './templates.js';
@@ -99,6 +100,7 @@ export function mapUser(row: Row): {
   bio: string | null;
   avatarUrl: string | null;
   role: 'user' | 'moderator' | 'admin';
+  plan: Plan;
   interests: string[];
   createdAt: string;
   onboardedAt: string | null;
@@ -110,6 +112,7 @@ export function mapUser(row: Row): {
     bio: row.bio,
     avatarUrl: mediaRefUrl(row.avatar_url),
     role: row.role,
+    plan: normalizePlan(row.plan),
     interests: row.interests ?? [],
     createdAt: iso(row.created_at)!,
     onboardedAt: iso(row.onboarded_at),

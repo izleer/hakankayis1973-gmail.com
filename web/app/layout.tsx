@@ -3,6 +3,8 @@ import './globals.css';
 import './groups.css';
 import './social.css';
 import './report.css';
+import './plan.css';
+import './ads.css';
 import { I18nProvider } from '@/lib/i18n/client';
 import { getLocale } from '@/lib/i18n/server';
 import { localeTags } from '@/lib/i18n/config';

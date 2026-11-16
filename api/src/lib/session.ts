@@ -2,8 +2,9 @@ import { createHash, randomBytes } from 'node:crypto';
 import type { FastifyRequest } from 'fastify';
 import { env } from '../env.js';
 import { query, queryOne } from '../db.js';
-import { forbidden, unauthorized } from './errors.js';
+import { ApiError, forbidden, unauthorized } from './errors.js';
 import { iso } from './http.js';
+import { type Plan, isPremium, normalizePlan } from './plans.js';
 import { mediaRefUrl } from './storage.js';
 
 export type Viewer = {
@@ -14,6 +15,7 @@ export type Viewer = {
   role: 'user' | 'moderator' | 'admin';
   onboardedAt: string | null;
   email: string;
+  plan: Plan;
 };
 
 type SessionRow = {
@@ -26,6 +28,7 @@ type SessionRow = {
   role: Viewer['role'];
   onboarded_at: Date | null;
   email: string;
+  plan: string;
 };
 
 export type IssuedSession = { token: string; expiresAt: string; sessionId: string };
@@ -88,7 +91,7 @@ export async function resolveViewer(req: FastifyRequest): Promise<Viewer | null>
 
   const row = await queryOne<SessionRow>(
     `SELECT s.id, s.expires_at, u.id AS user_id, u.email, u.username, u.display_name,
-            u.avatar_url, u.role, u.onboarded_at
+            u.avatar_url, u.role, u.onboarded_at, u.plan
      FROM sessions s
      JOIN users u ON u.id = s.user_id
      WHERE s.token_hash = $1
@@ -109,6 +112,7 @@ export async function resolveViewer(req: FastifyRequest): Promise<Viewer | null>
     role: row.role,
     onboardedAt: iso(row.onboarded_at),
     email: row.email,
+    plan: normalizePlan(row.plan),
   };
 }
 
@@ -131,6 +135,22 @@ export async function requireStaff(req: FastifyRequest): Promise<Viewer> {
   const viewer = await requireViewer(req);
   if (viewer.role !== 'moderator' && viewer.role !== 'admin') {
     forbidden('Bu alan yalnızca moderatörlere açıktır.');
+  }
+  return viewer;
+}
+
+/** Yalnızca admin; moderatörler plan/limit yönetimine erişemez. */
+export async function requireAdmin(req: FastifyRequest): Promise<Viewer> {
+  const viewer = await requireViewer(req);
+  if (viewer.role !== 'admin') forbidden('Bu alan yalnızca yöneticilere açıktır.');
+  return viewer;
+}
+
+/** Premium'a özel uçlar için; free planda 403 PLAN_REQUIRED döner. */
+export async function requirePremium(req: FastifyRequest): Promise<Viewer> {
+  const viewer = await requireViewer(req);
+  if (!isPremium(viewer)) {
+    throw new ApiError(403, 'PLAN_REQUIRED', 'Bu özellik Premium planda kullanılabilir.');
   }
   return viewer;
 }

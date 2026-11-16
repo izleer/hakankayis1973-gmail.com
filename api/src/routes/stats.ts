@@ -1,7 +1,7 @@
 import type { FastifyInstance } from 'fastify';
 import { query, queryOne } from '../db.js';
 import { iso } from '../lib/http.js';
-import { requireViewer } from '../lib/session.js';
+import { requirePremium, requireViewer } from '../lib/session.js';
 import { mapEntry, mediaForEntries } from '../lib/serialize.js';
 import { mediaRefUrl } from '../lib/storage.js';
 import { translateTypeLabel } from '../lib/taxonomy.js';
@@ -56,6 +56,124 @@ export async function statsRoutes(app: FastifyInstance): Promise<void> {
           addedAssets: Number(row.added_assets ?? 0),
           removedAssets: Number(row.removed_assets ?? 0),
         })),
+      },
+    };
+  });
+
+  // Premium analiz merkezi: varlık karşılaştırması ve 12 aylık kayıt eğilimi.
+  // Temel sayımlar her planda açıktır; bu uç yalnızca Premium'da çalışır.
+  app.get('/analytics', async (req) => {
+    const viewer = await requirePremium(req);
+
+    const totals = await queryOne<Record<string, string>>(
+      `SELECT
+         (SELECT count(*) FROM assets
+          WHERE owner_id = $1 AND deleted_at IS NULL) AS assets,
+         (SELECT count(*) FROM assets
+          WHERE owner_id = $1 AND deleted_at IS NULL AND status = 'active') AS active_assets,
+         (SELECT count(*) FROM assets
+          WHERE owner_id = $1 AND deleted_at IS NULL AND status = 'archived') AS archived_assets,
+         (SELECT count(*) FROM journal_entries je
+          JOIN assets a ON a.id = je.asset_id AND a.deleted_at IS NULL
+          WHERE a.owner_id = $1 AND je.deleted_at IS NULL) AS entries,
+         (SELECT count(*) FROM media m
+          JOIN assets a ON a.id = m.asset_id AND a.deleted_at IS NULL
+          WHERE a.owner_id = $1 AND m.status = 'ready') AS media,
+         (SELECT count(DISTINCT ga.community_id) FROM group_assets ga
+          JOIN assets a ON a.id = ga.asset_id AND a.deleted_at IS NULL
+          WHERE a.owner_id = $1 AND ga.status = 'active') AS shared_groups`,
+      [viewer.id],
+    );
+
+    const typeRows = await query<{ label: string; count: string }>(
+      `SELECT t.label, count(*) AS count
+       FROM assets a
+       JOIN asset_types t ON t.id = a.type_id
+       WHERE a.owner_id = $1 AND a.deleted_at IS NULL
+       GROUP BY t.label
+       ORDER BY count DESC, t.label ASC`,
+      [viewer.id],
+    );
+
+    const assetRows = await query<Record<string, any>>(
+      `SELECT a.id, a.title, a.status, a.visibility, a.created_at,
+              t.label AS type_label,
+              (SELECT count(*) FROM journal_entries je
+               WHERE je.asset_id = a.id AND je.deleted_at IS NULL) AS entry_count,
+              (SELECT count(*) FROM media m
+               WHERE m.asset_id = a.id AND m.status = 'ready') AS media_count,
+              (SELECT max(je.occurred_at) FROM journal_entries je
+               WHERE je.asset_id = a.id AND je.deleted_at IS NULL) AS last_entry_at,
+              (SELECT min(je.occurred_at) FROM journal_entries je
+               WHERE je.asset_id = a.id AND je.deleted_at IS NULL) AS first_entry_at
+       FROM assets a
+       JOIN asset_types t ON t.id = a.type_id
+       WHERE a.owner_id = $1 AND a.deleted_at IS NULL
+       ORDER BY entry_count DESC, a.updated_at DESC`,
+      [viewer.id],
+    );
+
+    const monthRows = await query<{ month: string; count: string }>(
+      `SELECT to_char(date_trunc('month', je.occurred_at), 'YYYY-MM') AS month,
+              count(*) AS count
+       FROM journal_entries je
+       JOIN assets a ON a.id = je.asset_id AND a.deleted_at IS NULL
+       WHERE a.owner_id = $1 AND je.deleted_at IS NULL
+         AND je.occurred_at >= date_trunc('month', now()) - interval '11 months'
+       GROUP BY 1
+       ORDER BY 1`,
+      [viewer.id],
+    );
+
+    // Eksik aylar sıfırla doldurulur; grafik her zaman 12 nokta alır.
+    const counts = new Map(monthRows.map((row) => [row.month, Number(row.count)]));
+    const monthly: Array<{ month: string; count: number }> = [];
+    const cursor = new Date();
+    cursor.setUTCDate(1);
+    cursor.setUTCHours(0, 0, 0, 0);
+    cursor.setUTCMonth(cursor.getUTCMonth() - 11);
+    for (let index = 0; index < 12; index += 1) {
+      const month = `${cursor.getUTCFullYear()}-${String(cursor.getUTCMonth() + 1).padStart(2, '0')}`;
+      monthly.push({ month, count: counts.get(month) ?? 0 });
+      cursor.setUTCMonth(cursor.getUTCMonth() + 1);
+    }
+
+    const assets = assetRows.map((row) => ({
+      id: row.id,
+      title: row.title,
+      status: row.status,
+      visibility: row.visibility,
+      typeLabel: translateTypeLabel(req.locale, row.type_label),
+      entryCount: Number(row.entry_count ?? 0),
+      mediaCount: Number(row.media_count ?? 0),
+      createdAt: iso(row.created_at),
+      firstEntryAt: iso(row.first_entry_at),
+      lastEntryAt: iso(row.last_entry_at),
+    }));
+
+    const entries = Number(totals?.entries ?? 0);
+    const media = Number(totals?.media ?? 0);
+    const activeAssets = Number(totals?.active_assets ?? 0);
+
+    return {
+      data: {
+        totals: {
+          assets: Number(totals?.assets ?? 0),
+          activeAssets,
+          archivedAssets: Number(totals?.archived_assets ?? 0),
+          entries,
+          media,
+          sharedGroups: Number(totals?.shared_groups ?? 0),
+          averageEntries: activeAssets > 0 ? Math.round((entries / activeAssets) * 10) / 10 : 0,
+          averageMedia: entries > 0 ? Math.round((media / entries) * 10) / 10 : 0,
+        },
+        byType: typeRows.map((row) => ({
+          label: translateTypeLabel(req.locale, row.label),
+          count: Number(row.count),
+        })),
+        monthly,
+        assets,
+        generatedAt: new Date().toISOString(),
       },
     };
   });

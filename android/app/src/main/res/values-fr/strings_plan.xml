@@ -1,0 +1,82 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="plan_title">Forfaits et droits</string>
+    <string name="plan_eyebrow">FORFAITS</string>
+    <string name="plan_intro">Commence avec le forfait gratuit ; tes enregistrements restent à toi quel que soit le forfait. Premium supprime les limites et ouvre le suivi avancé.</string>
+    <string name="plan_current">Forfait actuel</string>
+    <string name="plan_badge_free">GRATUIT</string>
+    <string name="plan_badge_premium">PREMIUM</string>
+    <string name="plan_free_name">Forfait gratuit</string>
+    <string name="plan_premium_name">Forfait Premium</string>
+    <string name="plan_free_desc">Tout ce dont tu as besoin pour enregistrer et suivre au quotidien est ouvert.</string>
+    <string name="plan_premium_desc">L’enregistrement et le suivi avancés sont ouverts.</string>
+    <string name="plan_usage_assets">Tes biens</string>
+    <string name="plan_usage_media">Photos / entrée</string>
+    <string name="plan_usage_since">Début du forfait</string>
+    <string name="plan_since_new">Nouveau compte</string>
+    <string name="plan_usage_value">%1$d / %2$d</string>
+    <string name="plan_unlimited">Illimité</string>
+    <string name="plan_upgrade_cta">Passer à Premium</string>
+    <string name="plan_downgrade_cta">Revenir au forfait gratuit</string>
+    <string name="plan_billing_note">La facturation n’est pas encore connectée ; les changements de forfait sont immédiats pour l’instant.</string>
+    <string name="plan_matrix_title">Comparaison des forfaits</string>
+    <string name="plan_matrix_subtitle">La même mémoire, une profondeur différente. La lecture et l’export sont ouverts dans tous les forfaits.</string>
+    <string name="plan_col_feature">Fonctionnalité</string>
+    <string name="plan_col_free">Gratuit</string>
+    <string name="plan_col_premium">Premium</string>
+
+    <string name="plan_row_mobile">Mobile</string>
+    <string name="plan_row_web">Web</string>
+    <string name="plan_row_assets">Bien</string>
+    <string name="plan_row_history">Historique</string>
+    <string name="plan_row_photo">Photo</string>
+    <string name="plan_row_storage">Stockage</string>
+    <string name="plan_row_analytics">Analyse</string>
+    <string name="plan_row_compare">Comparaison</string>
+    <string name="plan_row_reports">Rapport</string>
+    <string name="plan_row_cloud">Cloud</string>
+    <string name="plan_row_ads">Publicité</string>
+
+    <string name="plan_value_mobile_free">Enregistrement et suivi quotidiens</string>
+    <string name="plan_value_mobile_premium">Enregistrement et suivi avancés</string>
+    <string name="plan_value_web_free">Consultation et édition de base</string>
+    <string name="plan_value_web_premium">Centre d’analyse et de gestion</string>
+    <string name="plan_value_assets_free">%1$d biens</string>
+    <string name="plan_value_history_free">Jusqu’à %1$d entrées par bien</string>
+    <string name="plan_value_photo_free">1 fichier par entrée</string>
+    <string name="plan_value_photo_premium">10 fichiers par entrée</string>
+    <string name="plan_value_storage_free">500 MB</string>
+    <string name="plan_value_basic">De base</string>
+    <string name="plan_value_advanced">Avancée</string>
+    <string name="plan_value_none">Non</string>
+    <string name="plan_value_yes">Oui</string>
+    <string name="plan_value_cloud_limited">Limité</string>
+    <string name="plan_value_cloud_full">Complet</string>
+    <string name="plan_value_ads_free">Avec publicité</string>
+    <string name="plan_value_ads_premium">Sans publicité</string>
+
+    <string name="plan_note_data">Même si ton forfait baisse, les biens et entrées existants ne sont pas supprimés ; seules les nouvelles écritures sont soumises aux limites.</string>
+    <string name="plan_note_export">L’export de tes données est ouvert dans tous les forfaits.</string>
+    <string name="plan_activated_premium">Forfait Premium activé.</string>
+    <string name="plan_activated_free">Passage au forfait gratuit.</string>
+
+    <string name="plan_profile_title">Ton forfait</string>
+    <string name="plan_profile_manage">Gérer le forfait</string>
+    <string name="plan_profile_premium_hint">Enregistrement et suivi avancés</string>
+    <string name="plan_profile_free_hint">%1$d / %2$d biens</string>
+
+    <string name="plan_limit_assets_title">Limite de biens atteinte</string>
+    <string name="plan_limit_assets_body">Le forfait gratuit permet jusqu’à %1$d biens. Premium ouvre des biens illimités et le suivi avancé.</string>
+    <string name="plan_limit_assets_banner">Forfait gratuit : %1$d / %2$d biens</string>
+    <string name="plan_limit_assets_remaining">Forfait gratuit : %1$d / %2$d biens</string>
+    <string name="plan_limit_entries_title">Limite d’entrées atteinte</string>
+    <string name="plan_limit_entries_body">Le forfait gratuit permet jusqu’à %1$d entrées par bien. Premium ouvre des entrées illimitées.</string>
+    <string name="plan_limit_entries_banner">Forfait gratuit : jusqu’à %1$d entrées par bien</string>
+    <string name="plan_limit_media_hint">Le forfait gratuit permet 1 fichier par entrée.</string>
+    <string name="plan_go">Voir le forfait</string>
+
+    <string name="plan_warning_assets_near">Vous approchez de la limite d\'objets : %1$d / %2$d.</string>
+    <string name="plan_warning_assets_blocked">Limite d\'objets atteinte : %1$d / %2$d. Libérez de la place pour un nouvel objet.</string>
+    <string name="plan_warning_storage_near">Votre stockage est rempli à %3$d%% : %1$s / %2$s.</string>
+    <string name="plan_warning_storage_blocked">Quota de stockage plein : %1$s / %2$s. Libérez de la place pour un nouveau fichier.</string>
+</resources>

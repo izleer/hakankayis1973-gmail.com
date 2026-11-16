@@ -12,6 +12,14 @@ plugins {
 //   gradle assembleDebug -PAPI_BASE_URL=http://192.168.1.20:4000/ (aynı ağ)
 val apiBaseUrl = (findProperty("API_BASE_URL") as String?) ?: "http://10.0.2.2:4000/"
 
+// AdMob kimlikleri. Varsayılanlar Google'ın resmî test kimlikleridir; gerçek
+// yayın için derleme sırasında geçersiz kılın:
+//   gradle assembleRelease -PadmobAppId=ca-app-pub-...~... -PadmobBannerUnit=ca-app-pub-.../...
+val admobAppId = (findProperty("admobAppId") as String?)
+    ?: "ca-app-pub-3940256099942544~3347511713"
+val admobBannerUnit = (findProperty("admobBannerUnit") as String?)
+    ?: "ca-app-pub-3940256099942544/6300978111"
+
 // Release imzalama bilgileri gitignore'da tutulan keystore.properties'ten okunur.
 // Dosya yoksa release derlemesi imzasız üretilir.
 val keystoreProperties = Properties().apply {
@@ -43,6 +51,8 @@ android {
         versionName = "1.0.0"
 
         buildConfigField("String", "API_BASE_URL", "\"$apiBaseUrl\"")
+        buildConfigField("String", "ADMOB_BANNER_UNIT", "\"$admobBannerUnit\"")
+        manifestPlaceholders["admobAppId"] = admobAppId
     }
 
     buildTypes {
@@ -106,4 +116,6 @@ dependencies {
     implementation("com.jakewharton.retrofit:retrofit2-kotlinx-serialization-converter:1.0.0")
 
     implementation("io.coil-kt:coil-compose:2.7.0")
+
+    implementation("com.google.android.gms:play-services-ads:23.6.0")
 }
