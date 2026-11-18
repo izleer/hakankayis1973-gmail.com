@@ -170,4 +170,10 @@
     <string name="groups_asset_metric_photos">Photo</string>
     <string name="groups_asset_shared_on">partagé le %1$s</string>
     <string name="groups_asset_owner">%1$s · @%2$s</string>
+    <!-- Filtres de découverte -->
+    <string name="groups_search_placeholder">Rechercher une communauté</string>
+    <string name="groups_search_clear">Effacer</string>
+    <string name="groups_filter_all">Toutes</string>
+    <string name="groups_discover_no_match_title">Aucune communauté correspondante</string>
+    <string name="groups_discover_no_match_body">Essaie un autre mot-clé ou un autre filtre de catégorie.</string>
 </resources>

@@ -28,6 +28,7 @@ import androidx.compose.material.icons.outlined.ChevronRight
 import androidx.compose.material.icons.outlined.Eco
 import androidx.compose.material.icons.outlined.Groups
 import androidx.compose.material.icons.outlined.Inventory2
+import androidx.compose.material.icons.outlined.NotificationsNone
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
@@ -53,6 +54,7 @@ import app.varlikhafizasi.data.Entry
 import app.varlikhafizasi.data.GroupSummary
 import app.varlikhafizasi.data.MediaUrl
 import app.varlikhafizasi.data.Plans
+import app.varlikhafizasi.data.ReminderItem
 import app.varlikhafizasi.data.User
 import app.varlikhafizasi.ui.VhViewModel
 import app.varlikhafizasi.ui.components.AssetRow
@@ -65,6 +67,7 @@ import app.varlikhafizasi.ui.components.NotificationBell
 import app.varlikhafizasi.ui.components.SectionLabel
 import app.varlikhafizasi.ui.components.entryTypeLabel
 import app.varlikhafizasi.ui.components.formatDate
+import app.varlikhafizasi.ui.components.relativeDay
 import app.varlikhafizasi.ui.theme.Clay
 import app.varlikhafizasi.ui.theme.Forest
 import app.varlikhafizasi.ui.theme.GoldInk
@@ -97,11 +100,14 @@ fun HomeScreen(
 ) {
     val home by vm.home.collectAsStateWithLifecycle()
     val notifications by vm.notifications.collectAsStateWithLifecycle()
+    val reminders by vm.reminders.collectAsStateWithLifecycle()
     val unreadCount = notifications.data?.unreadCount ?: 0
     val groups = home.data?.groups.orEmpty()
+    val nextReminder = reminders.data?.firstOrNull()
 
     LaunchedEffect(Unit) {
         if (home.data == null && !home.loading) vm.loadHome()
+        if (reminders.data == null) vm.loadReminders()
     }
 
     LazyColumn(
@@ -146,10 +152,10 @@ fun HomeScreen(
         item {
             Surface(
                 color = Forest,
-                shape = RoundedCornerShape(24.dp),
+                shape = RoundedCornerShape(20.dp),
                 modifier = Modifier.fillMaxWidth(),
             ) {
-                Column(Modifier.padding(20.dp)) {
+                Column(Modifier.padding(16.dp)) {
                     Row(verticalAlignment = Alignment.CenterVertically) {
                         Text(
                             stringResource(R.string.home_summary_label),
@@ -157,7 +163,7 @@ fun HomeScreen(
                             color = TerracottaSoft,
                         )
                     }
-                    Spacer(Modifier.height(12.dp))
+                    Spacer(Modifier.height(8.dp))
                     val stats = home.data?.stats
                     Text(
                         text = if (stats != null) {
@@ -177,26 +183,21 @@ fun HomeScreen(
                         } else {
                             stringResource(R.string.home_summary_empty)
                         },
-                        style = MaterialTheme.typography.headlineLarge,
+                        style = MaterialTheme.typography.headlineSmall,
                         color = Paper,
                     )
-                    Spacer(Modifier.height(16.dp))
+                    Spacer(Modifier.height(10.dp))
                     GoldRule(Modifier.background(TerracottaSoft))
-                    Spacer(Modifier.height(16.dp))
+                    Spacer(Modifier.height(10.dp))
                     Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                        DarkStat(
-                            value = stats?.assets?.toString() ?: "—",
-                            label = stringResource(R.string.profile_stat_assets),
-                            modifier = Modifier.weight(1f),
-                        )
-                        DarkStat(
-                            value = stats?.entries?.toString() ?: "—",
-                            label = stringResource(R.string.profile_stat_entries),
-                            modifier = Modifier.weight(1f),
-                        )
                         DarkStat(
                             value = stats?.media?.toString() ?: "—",
                             label = stringResource(R.string.home_stat_media),
+                            modifier = Modifier.weight(1f),
+                        )
+                        DarkStat(
+                            value = stats?.friends?.toString() ?: "—",
+                            label = stringResource(R.string.friends_stat_friends),
                             modifier = Modifier.weight(1f),
                         )
                     }
@@ -251,10 +252,12 @@ fun HomeScreen(
             }
         }
 
-        if (!Plans.isPremium(viewer.plan)) {
+        if (nextReminder != null) {
             item {
-                Spacer(Modifier.height(4.dp))
-                BannerAd()
+                UpcomingReminderCard(
+                    reminder = nextReminder,
+                    onClick = { onOpenAsset(nextReminder.assetId) },
+                )
             }
         }
 
@@ -413,6 +416,13 @@ fun HomeScreen(
             }
         }
 
+        if (!Plans.isPremium(viewer.plan)) {
+            item {
+                Spacer(Modifier.height(8.dp))
+                BannerAd()
+            }
+        }
+
         item {
             Spacer(Modifier.height(10.dp))
             Surface(
@@ -439,11 +449,80 @@ fun HomeScreen(
 }
 
 @Composable
+private fun UpcomingReminderCard(reminder: ReminderItem, onClick: () -> Unit) {
+    val due = formatDate(reminder.dueAt, withTime = true)
+    val meta = listOfNotNull(
+        reminder.assetTitle.takeIf { it.isNotBlank() },
+        due.takeIf { it.isNotBlank() },
+    ).joinToString(" · ")
+
+    Surface(
+        color = Ivory,
+        shape = RoundedCornerShape(16.dp),
+        border = BorderStroke(1.dp, TerracottaSoft),
+        modifier = Modifier
+            .fillMaxWidth()
+            .clickable { onClick() },
+    ) {
+        Row(
+            modifier = Modifier.padding(horizontal = 14.dp, vertical = 12.dp),
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            Box(
+                modifier = Modifier
+                    .size(38.dp)
+                    .background(TerracottaPale, CircleShape),
+                contentAlignment = Alignment.Center,
+            ) {
+                Icon(
+                    Icons.Outlined.NotificationsNone,
+                    contentDescription = null,
+                    tint = TerracottaInk,
+                    modifier = Modifier.size(19.dp),
+                )
+            }
+            Spacer(Modifier.width(11.dp))
+            Column(Modifier.weight(1f)) {
+                Text(
+                    text = stringResource(R.string.home_upcoming_label)
+                        .uppercase(Locale.getDefault()),
+                    style = MaterialTheme.typography.labelSmall,
+                    color = Clay,
+                )
+                Text(
+                    text = reminder.title ?: reminder.body
+                        ?: stringResource(R.string.home_upcoming_fallback),
+                    style = MaterialTheme.typography.titleMedium,
+                    color = Forest,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis,
+                )
+                if (meta.isNotEmpty()) {
+                    Text(
+                        text = meta,
+                        style = MaterialTheme.typography.bodySmall,
+                        color = Muted,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis,
+                    )
+                }
+            }
+            Icon(
+                Icons.Outlined.ChevronRight,
+                contentDescription = null,
+                tint = Muted,
+                modifier = Modifier.size(18.dp),
+            )
+        }
+    }
+}
+
+@Composable
 private fun DarkStat(value: String, label: String, modifier: Modifier = Modifier) {
     Column(
         modifier = modifier
             .background(Paper.copy(alpha = 0.07f), RoundedCornerShape(10.dp))
-            .padding(horizontal = 10.dp, vertical = 9.dp),
+            .padding(horizontal = 10.dp, vertical = 7.dp),
     ) {
         Text(
             value,
@@ -618,9 +697,14 @@ private fun GroupSummaryCard(
                         )
                     }
                     if (activity == 0) {
+                        val lastMovement = relativeDay(group.lastActivityAt)
                         SummaryChip(
                             icon = Icons.Outlined.Eco,
-                            text = stringResource(R.string.home_groups_idle),
+                            text = if (lastMovement != null) {
+                                stringResource(R.string.asset_last_movement, lastMovement)
+                            } else {
+                                stringResource(R.string.home_groups_idle)
+                            },
                             background = Color.Transparent,
                             content = Muted,
                         )

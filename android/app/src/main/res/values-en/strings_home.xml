@@ -22,6 +22,8 @@
     <string name="home_groups_added">Added</string>
     <string name="home_groups_removed">Removed</string>
     <string name="home_groups_all">All groups</string>
+    <string name="home_upcoming_label">Upcoming reminder</string>
+    <string name="home_upcoming_fallback">Reminder</string>
 
     <plurals name="home_groups_count">
         <item quantity="one">%1$d group</item>

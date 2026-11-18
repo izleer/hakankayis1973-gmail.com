@@ -109,7 +109,14 @@ const communitySelect = `
             SELECT ma.id FROM assets ma
             WHERE ma.manager_community_id = c.id AND ma.deleted_at IS NULL
               AND c.visibility = 'private'
-          ) x) AS asset_count
+          ) x) AS asset_count,
+         (SELECT max(x.at) FROM (
+            SELECT max(p.created_at) AS at FROM posts p
+            WHERE p.community_id = c.id AND p.status = 'visible'
+            UNION ALL
+            SELECT max(ga.shared_at) AS at FROM group_assets ga
+            WHERE ga.community_id = c.id AND ga.status = 'active'
+          ) x) AS last_activity_at
   FROM communities c
   JOIN users u ON u.id = c.owner_id AND u.deleted_at IS NULL
 `;

@@ -194,6 +194,7 @@ export type Asset = {
   manager: { id: string; slug: string; name: string } | null;
   type: { id: string; label: string; parentId: string | null; icon: string | null };
   entryCount: number;
+  lastEntryAt?: string | null;
   createdAt: string;
   updatedAt: string;
   relation?: 'friends' | 'public' | 'granted';
@@ -407,6 +408,7 @@ export type Group = {
   memberCount: number;
   postCount: number;
   assetCount: number;
+  lastActivityAt?: string | null;
   role: CommunityRole | null;
   membershipStatus: 'active' | 'pending' | null;
   owner: UserMini | null;
@@ -420,6 +422,7 @@ export type GroupSummary = {
   coverUrl: string | null;
   memberCount: number;
   lastSeenAt: string | null;
+  lastActivityAt?: string | null;
   unreadPosts: number;
   addedAssets: number;
   removedAssets: number;

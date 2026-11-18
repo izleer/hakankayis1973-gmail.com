@@ -144,6 +144,7 @@ export type AssetDto = {
   type: { id: string; label: string; parentId: string | null; icon: string | null };
   template: CategoryTemplate;
   entryCount: number;
+  lastEntryAt: string | null;
   createdAt: string;
   updatedAt: string;
 };
@@ -186,6 +187,7 @@ export async function mapAsset(row: Row, locale: Locale = 'tr'): Promise<AssetDt
     // işlem, ölçüm ve hatırlatma önerilerini buradan okur.
     template: await templateForType(row.type_id, locale),
     entryCount: Number(row.entry_count ?? 0),
+    lastEntryAt: iso(row.last_entry_at),
     createdAt: iso(row.created_at)!,
     updatedAt: iso(row.updated_at)!,
   };
@@ -275,6 +277,7 @@ export function mapCommunity(row: Row): Record<string, unknown> {
     memberCount: Number(row.member_count ?? 0),
     postCount: Number(row.post_count ?? 0),
     assetCount: Number(row.asset_count ?? 0),
+    lastActivityAt: iso(row.last_activity_at),
     role: row.role ?? null,
     membershipStatus: row.role ? 'active' : row.membership_pending ? 'pending' : null,
     owner: row.owner_username ? mapUserMini(row, 'owner_') : null,

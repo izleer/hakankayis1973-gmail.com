@@ -143,9 +143,6 @@ fun AssetsScreen(
             if (state.error != null) {
                 item { ErrorBox(state.error ?: "", onRetry = { vm.loadAssets(query) }) }
             }
-            if (!Plans.isPremium(viewer.plan)) {
-                item { BannerAd() }
-            }
             if (state.data != null && state.data!!.isEmpty()) {
                 item {
                     Box(
@@ -179,8 +176,18 @@ fun AssetsScreen(
             if (state.data.orEmpty().isNotEmpty()) {
                 item { SectionLabel(stringResource(R.string.profile_assets_title)) }
             }
-            items(state.data.orEmpty(), key = { it.id }) { asset ->
+            val assets = state.data.orEmpty()
+            items(assets.take(3), key = { it.id }) { asset ->
                 AssetRow(asset = asset, onClick = { onOpenAsset(asset.id) })
+            }
+            if (assets.size > 3 && !Plans.isPremium(viewer.plan)) {
+                item { BannerAd() }
+            }
+            items(assets.drop(3), key = { it.id }) { asset ->
+                AssetRow(asset = asset, onClick = { onOpenAsset(asset.id) })
+            }
+            if (assets.isNotEmpty() && assets.size <= 3 && !Plans.isPremium(viewer.plan)) {
+                item { BannerAd() }
             }
             item {
                 Text(

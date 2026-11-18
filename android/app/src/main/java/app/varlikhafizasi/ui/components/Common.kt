@@ -66,6 +66,7 @@ import java.time.Instant
 import java.time.LocalDate
 import java.time.ZoneId
 import java.time.format.DateTimeFormatter
+import java.time.temporal.ChronoUnit
 import java.util.Locale
 
 private val appLocale: Locale
@@ -87,6 +88,42 @@ fun formatDateTime(millis: Long): String =
     DateTimeFormatter.ofPattern("d MMMM yyyy · HH:mm", appLocale)
         .withZone(ZoneId.systemDefault())
         .format(Instant.ofEpochMilli(millis))
+
+/**
+ * ISO tarihini "Bugün", "Dün", "3 gün önce" gibi kısa bir ifadeye çevirir.
+ * Tarih okunamazsa null döner; çağıran taraf etiketi gizler.
+ */
+@Composable
+fun relativeDay(value: String?): String? {
+    if (value.isNullOrBlank()) return null
+    val day = runCatching {
+        Instant.parse(value).atZone(ZoneId.systemDefault()).toLocalDate()
+    }.getOrElse {
+        runCatching { LocalDate.parse(value.take(10)) }.getOrNull()
+    } ?: return null
+    val days = ChronoUnit.DAYS.between(day, LocalDate.now()).coerceAtLeast(0)
+    return when {
+        days == 0L -> stringResource(R.string.time_today)
+        days == 1L -> stringResource(R.string.time_yesterday)
+        days < 7L -> pluralStringResource(
+            R.plurals.time_days_ago,
+            days.toInt(),
+            days.toInt(),
+        )
+        days < 30L -> {
+            val weeks = (days / 7L).toInt()
+            pluralStringResource(R.plurals.time_weeks_ago, weeks, weeks)
+        }
+        days < 365L -> {
+            val months = (days / 30L).toInt()
+            pluralStringResource(R.plurals.time_months_ago, months, months)
+        }
+        else -> {
+            val years = (days / 365L).toInt()
+            pluralStringResource(R.plurals.time_years_ago, years, years)
+        }
+    }
+}
 
 /** Depolama değerlerini okunur biçime getirir; 0 ve negatif değerler "0 KB". */
 fun formatBytes(bytes: Long): String {
@@ -310,11 +347,13 @@ fun AssetRow(
         shape = RoundedCornerShape(14.dp),
         border = BorderStroke(1.dp, Line),
     ) {
-        Row(verticalAlignment = Alignment.CenterVertically) {
+        Column {
             Box(
                 modifier = Modifier
-                    .size(width = 92.dp, height = 92.dp)
+                    .fillMaxWidth()
+                    .height(120.dp)
                     .background(TerracottaPale),
+                contentAlignment = Alignment.Center,
             ) {
                 val cover = MediaUrl.resolve(asset.coverUrl)
                 if (cover != null) {
@@ -322,47 +361,33 @@ fun AssetRow(
                         model = cover,
                         contentDescription = asset.title,
                         contentScale = ContentScale.Crop,
-                        modifier = Modifier.size(width = 92.dp, height = 92.dp),
+                        modifier = Modifier.matchParentSize(),
                     )
                 } else {
                     Text(
                         text = asset.type?.label?.take(1)?.uppercase(appLocale) ?: "V",
-                        style = MaterialTheme.typography.headlineMedium,
+                        style = MaterialTheme.typography.displaySmall,
                         color = SageInk,
-                        modifier = Modifier.align(Alignment.Center),
                     )
                 }
             }
             Column(
-                modifier = Modifier
-                    .weight(1f)
-                    .padding(horizontal = 14.dp, vertical = 10.dp),
+                modifier = Modifier.padding(
+                    start = 14.dp,
+                    end = 12.dp,
+                    top = 11.dp,
+                    bottom = 12.dp,
+                ),
             ) {
-                Text(
-                    text = asset.type?.label ?: stringResource(R.string.common_asset),
-                    style = MaterialTheme.typography.labelSmall,
-                    color = Clay,
-                )
-                Spacer(Modifier.height(3.dp))
-                Text(
-                    text = asset.title,
-                    style = MaterialTheme.typography.titleLarge,
-                    color = Forest,
-                    maxLines = 2,
-                    overflow = TextOverflow.Ellipsis,
-                )
-                Spacer(Modifier.height(6.dp))
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     Text(
-                        text = pluralStringResource(
-                            R.plurals.common_entry_count,
-                            asset.entryCount,
-                            asset.entryCount,
-                        ),
-                        style = MaterialTheme.typography.bodySmall,
-                        color = Muted,
+                        text = asset.type?.label ?: stringResource(R.string.common_asset),
+                        style = MaterialTheme.typography.labelSmall,
+                        color = Clay,
+                        modifier = Modifier.weight(1f),
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis,
                     )
-                    Spacer(Modifier.width(8.dp))
                     VisibilityTag(asset.visibility)
                     if (asset.manager != null) {
                         Spacer(Modifier.width(6.dp))
@@ -386,19 +411,58 @@ fun AssetRow(
                             }
                         }
                     }
+                    if (action != null) {
+                        action()
+                    } else {
+                        Spacer(Modifier.width(6.dp))
+                        Icon(
+                            Icons.Outlined.ChevronRight,
+                            contentDescription = null,
+                            tint = Muted,
+                            modifier = Modifier.size(18.dp),
+                        )
+                    }
+                }
+                Spacer(Modifier.height(5.dp))
+                Text(
+                    text = asset.title,
+                    style = MaterialTheme.typography.titleLarge,
+                    color = Forest,
+                    maxLines = 2,
+                    overflow = TextOverflow.Ellipsis,
+                )
+                Spacer(Modifier.height(6.dp))
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Text(
+                        text = pluralStringResource(
+                            R.plurals.common_entry_count,
+                            asset.entryCount,
+                            asset.entryCount,
+                        ),
+                        style = MaterialTheme.typography.bodySmall,
+                        color = Muted,
+                        maxLines = 1,
+                    )
+                    val lastMovement = relativeDay(asset.lastEntryAt)
+                    if (lastMovement != null) {
+                        Spacer(Modifier.width(6.dp))
+                        Text(
+                            text = "·",
+                            style = MaterialTheme.typography.bodySmall,
+                            color = Muted,
+                        )
+                        Spacer(Modifier.width(6.dp))
+                        Text(
+                            text = stringResource(R.string.asset_last_movement, lastMovement),
+                            style = MaterialTheme.typography.bodySmall,
+                            color = Muted,
+                            maxLines = 1,
+                            overflow = TextOverflow.Ellipsis,
+                            modifier = Modifier.weight(1f),
+                        )
+                    }
                 }
             }
-            if (action != null) {
-                action()
-            }
-            Icon(
-                Icons.Outlined.ChevronRight,
-                contentDescription = null,
-                tint = Muted,
-                modifier = Modifier
-                    .padding(end = 12.dp)
-                    .size(18.dp),
-            )
         }
     }
 }

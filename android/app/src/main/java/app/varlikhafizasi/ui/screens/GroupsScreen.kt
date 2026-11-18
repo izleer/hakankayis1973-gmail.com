@@ -3,8 +3,11 @@ package app.varlikhafizasi.ui.screens
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.ExperimentalLayoutApi
+import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -18,22 +21,35 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.KeyboardActions
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.outlined.ArrowForward
+import androidx.compose.material.icons.outlined.Close
 import androidx.compose.material.icons.outlined.Groups
+import androidx.compose.material.icons.outlined.Search
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -47,8 +63,10 @@ import app.varlikhafizasi.ui.components.BannerAd
 import app.varlikhafizasi.ui.components.EmptyState
 import app.varlikhafizasi.ui.components.ErrorBox
 import app.varlikhafizasi.ui.components.LoadingBox
+import app.varlikhafizasi.ui.components.Pill
 import app.varlikhafizasi.ui.components.SectionLabel
 import app.varlikhafizasi.ui.components.VhTopBar
+import app.varlikhafizasi.ui.components.relativeDay
 import app.varlikhafizasi.ui.components.visibilityLabel
 import app.varlikhafizasi.ui.theme.Clay
 import app.varlikhafizasi.ui.theme.Forest
@@ -63,7 +81,9 @@ import app.varlikhafizasi.ui.theme.TerracottaInk
 import app.varlikhafizasi.ui.theme.TerracottaPale
 import app.varlikhafizasi.ui.theme.TerracottaSoft
 import coil.compose.AsyncImage
+import java.util.Locale
 
+@OptIn(ExperimentalLayoutApi::class)
 @Composable
 fun GroupsScreen(
     vm: VhViewModel,
@@ -72,12 +92,31 @@ fun GroupsScreen(
     onNewGroup: () -> Unit,
 ) {
     val state by vm.groups.collectAsStateWithLifecycle()
+    var query by rememberSaveable { mutableStateOf("") }
+    var selectedCategory by rememberSaveable { mutableStateOf<String?>(null) }
 
     LaunchedEffect(Unit) {
         if (state.data == null && !state.loading) vm.loadGroups()
     }
 
     val data = state.data
+    val discoverAll = data?.discover.orEmpty()
+    val categories = remember(discoverAll) {
+        discoverAll.mapNotNull { it.category?.trim()?.takeIf(String::isNotEmpty) }
+            .distinct()
+            .sorted()
+    }
+    val filteredDiscover = remember(discoverAll, query, selectedCategory) {
+        val needle = query.trim().lowercase(Locale.getDefault())
+        discoverAll
+            .filter { selectedCategory == null || it.category == selectedCategory }
+            .filter { group ->
+                needle.isEmpty() || listOfNotNull(group.name, group.description, group.category)
+                    .any { it.lowercase(Locale.getDefault()).contains(needle) }
+            }
+            .sortedByDescending { it.lastActivityAt ?: "" }
+    }
+    val filtering = query.isNotBlank() || selectedCategory != null
 
     LazyColumn(
         modifier = Modifier
@@ -195,7 +234,73 @@ fun GroupsScreen(
             )
         }
 
-        if (data != null && data.discover.isEmpty()) {
+        if (discoverAll.isNotEmpty()) {
+            item {
+                OutlinedTextField(
+                    value = query,
+                    onValueChange = { query = it },
+                    placeholder = {
+                        Text(
+                            stringResource(R.string.groups_search_placeholder),
+                            color = Muted,
+                        )
+                    },
+                    leadingIcon = {
+                        Icon(Icons.Outlined.Search, contentDescription = null, tint = Muted)
+                    },
+                    trailingIcon = {
+                        if (query.isNotEmpty()) {
+                            IconButton(onClick = { query = "" }) {
+                                Icon(
+                                    Icons.Outlined.Close,
+                                    contentDescription = stringResource(R.string.groups_search_clear),
+                                    tint = Muted,
+                                )
+                            }
+                        }
+                    },
+                    singleLine = true,
+                    shape = RoundedCornerShape(50),
+                    colors = OutlinedTextFieldDefaults.colors(
+                        focusedContainerColor = Color.Transparent,
+                        unfocusedContainerColor = Color.Transparent,
+                        focusedBorderColor = Forest,
+                        unfocusedBorderColor = Line,
+                    ),
+                    keyboardOptions = KeyboardOptions(imeAction = ImeAction.Search),
+                    keyboardActions = KeyboardActions(onSearch = {}),
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 20.dp, vertical = 2.dp),
+                )
+            }
+            if (categories.isNotEmpty()) {
+                item {
+                    FlowRow(
+                        horizontalArrangement = Arrangement.spacedBy(6.dp),
+                        verticalArrangement = Arrangement.spacedBy(6.dp),
+                        modifier = Modifier.padding(horizontal = 20.dp, vertical = 6.dp),
+                    ) {
+                        Pill(
+                            text = stringResource(R.string.groups_filter_all),
+                            selected = selectedCategory == null,
+                            onClick = { selectedCategory = null },
+                        )
+                        categories.forEach { category ->
+                            Pill(
+                                text = category,
+                                selected = selectedCategory == category,
+                                onClick = {
+                                    selectedCategory = if (selectedCategory == category) null else category
+                                },
+                            )
+                        }
+                    }
+                }
+            }
+        }
+
+        if (data != null && discoverAll.isEmpty()) {
             item {
                 Box(
                     Modifier
@@ -209,8 +314,35 @@ fun GroupsScreen(
                     )
                 }
             }
+        } else if (filteredDiscover.isEmpty()) {
+            item {
+                Box(
+                    Modifier
+                        .padding(horizontal = 20.dp)
+                        .fillMaxWidth()
+                        .background(PaperDeep, RoundedCornerShape(18.dp)),
+                ) {
+                    EmptyState(
+                        title = stringResource(R.string.groups_discover_no_match_title),
+                        body = stringResource(R.string.groups_discover_no_match_body),
+                        actionLabel = if (filtering) {
+                            stringResource(R.string.groups_filter_all)
+                        } else {
+                            null
+                        },
+                        onAction = if (filtering) {
+                            {
+                                query = ""
+                                selectedCategory = null
+                            }
+                        } else {
+                            null
+                        },
+                    )
+                }
+            }
         } else {
-            items(data?.discover.orEmpty(), key = { "discover-${it.id}" }) { group ->
+            items(filteredDiscover, key = { "discover-${it.id}" }) { group ->
                 GroupCard(
                     group = group,
                     modifier = Modifier.padding(horizontal = 20.dp, vertical = 4.dp),
@@ -317,6 +449,17 @@ private fun GroupCard(
                         Spacer(Modifier.width(8.dp))
                         RoleTag(role)
                     }
+                }
+                val lastMovement = relativeDay(group.lastActivityAt)
+                if (lastMovement != null) {
+                    Spacer(Modifier.height(3.dp))
+                    Text(
+                        text = stringResource(R.string.asset_last_movement, lastMovement),
+                        style = MaterialTheme.typography.labelSmall,
+                        color = Muted,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis,
+                    )
                 }
             }
         }

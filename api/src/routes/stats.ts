@@ -31,12 +31,20 @@ export async function statsRoutes(app: FastifyInstance): Promise<void> {
                    AND ga.shared_at > m.last_seen_at) AS added_assets,
                 (SELECT count(*) FROM group_assets ga
                  WHERE ga.community_id = c.id AND ga.status = 'removed'
-                   AND ga.removed_at > m.last_seen_at) AS removed_assets
+                   AND ga.removed_at > m.last_seen_at) AS removed_assets,
+                (SELECT max(x.at) FROM (
+                   SELECT max(p.created_at) AS at FROM posts p
+                   WHERE p.community_id = c.id AND p.status = 'visible'
+                   UNION ALL
+                   SELECT max(ga.shared_at) AS at FROM group_assets ga
+                   WHERE ga.community_id = c.id AND ga.status = 'active'
+                 ) x) AS last_activity_at
          FROM memberships m
          JOIN communities c ON c.id = m.community_id AND c.deleted_at IS NULL
          WHERE m.user_id = $1 AND m.status = 'active'
        ) s
        ORDER BY (s.unread_posts + s.added_assets + s.removed_assets) DESC,
+                s.last_activity_at DESC NULLS LAST,
                 s.name ASC
        LIMIT 50`,
       [viewer.id],
@@ -52,6 +60,7 @@ export async function statsRoutes(app: FastifyInstance): Promise<void> {
           coverUrl: mediaRefUrl(row.cover_url),
           memberCount: Number(row.member_count ?? 0),
           lastSeenAt: iso(row.last_seen_at),
+          lastActivityAt: iso(row.last_activity_at),
           unreadPosts: Number(row.unread_posts ?? 0),
           addedAssets: Number(row.added_assets ?? 0),
           removedAssets: Number(row.removed_assets ?? 0),

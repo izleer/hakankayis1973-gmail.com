@@ -10,7 +10,9 @@ export function buildAssetSelect(extraColumns = ''): string {
          mc.id AS manager_id, mc.slug AS manager_slug, mc.name AS manager_name,
          cm.storage_key AS cover_storage_key,
          (SELECT count(*) FROM journal_entries je
-          WHERE je.asset_id = a.id AND je.deleted_at IS NULL) AS entry_count
+          WHERE je.asset_id = a.id AND je.deleted_at IS NULL) AS entry_count,
+         (SELECT max(je.occurred_at) FROM journal_entries je
+          WHERE je.asset_id = a.id AND je.deleted_at IS NULL) AS last_entry_at
   FROM assets a
   JOIN users u ON u.id = a.owner_id AND u.deleted_at IS NULL
   JOIN asset_types t ON t.id = a.type_id

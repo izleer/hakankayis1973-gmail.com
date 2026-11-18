@@ -155,4 +155,25 @@
     <string name="notice_avatar_removed">Dein Profilfoto wurde entfernt.</string>
     <string name="notice_social_disconnected">Die soziale Verbindung wurde entfernt.</string>
     <string name="notice_social_shared">Auf %1$s geteilt.</string>
+    <!-- Relative Zeit und gemeinsame Asset-Labels -->
+    <string name="time_today">Heute</string>
+    <string name="time_yesterday">Gestern</string>
+    <string name="asset_last_movement">Letzte Bewegung: %1$s</string>
+
+    <plurals name="time_days_ago">
+        <item quantity="one">%1$d Tag her</item>
+        <item quantity="other">%1$d Tage her</item>
+    </plurals>
+    <plurals name="time_weeks_ago">
+        <item quantity="one">%1$d Woche her</item>
+        <item quantity="other">%1$d Wochen her</item>
+    </plurals>
+    <plurals name="time_months_ago">
+        <item quantity="one">%1$d Monat her</item>
+        <item quantity="other">%1$d Monate her</item>
+    </plurals>
+    <plurals name="time_years_ago">
+        <item quantity="one">%1$d Jahr her</item>
+        <item quantity="other">%1$d Jahre her</item>
+    </plurals>
 </resources>

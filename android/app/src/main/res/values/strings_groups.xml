@@ -170,4 +170,10 @@
     <string name="groups_asset_metric_photos">Fotoğraf</string>
     <string name="groups_asset_shared_on">%1$s tarihinde paylaştı</string>
     <string name="groups_asset_owner">%1$s · @%2$s</string>
+    <!-- Keşif filtresi -->
+    <string name="groups_search_placeholder">Topluluk ara</string>
+    <string name="groups_search_clear">Temizle</string>
+    <string name="groups_filter_all">Tümü</string>
+    <string name="groups_discover_no_match_title">Eşleşen topluluk yok</string>
+    <string name="groups_discover_no_match_body">Arama kelimesini ya da kategori filtresini değiştirmeyi dene.</string>
 </resources>

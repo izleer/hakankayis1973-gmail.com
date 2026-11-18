@@ -42,3 +42,6 @@ android/*.png
 android/build-screens/
 api/storage-test/
 .device-shots/
+
+# Gecici test ciktilari (kok dizin)
+.tmp-*

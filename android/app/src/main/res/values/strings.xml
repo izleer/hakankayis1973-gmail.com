@@ -155,4 +155,25 @@
     <string name="notice_avatar_removed">Profil fotoğrafın kaldırıldı.</string>
     <string name="notice_social_disconnected">Sosyal bağlantı kaldırıldı.</string>
     <string name="notice_social_shared">%1$s üzerinde paylaşıldı.</string>
+    <!-- Göreli zaman ve ortak varlık etiketleri -->
+    <string name="time_today">Bugün</string>
+    <string name="time_yesterday">Dün</string>
+    <string name="asset_last_movement">Son hareket: %1$s</string>
+
+    <plurals name="time_days_ago">
+        <item quantity="one">%1$d gün önce</item>
+        <item quantity="other">%1$d gün önce</item>
+    </plurals>
+    <plurals name="time_weeks_ago">
+        <item quantity="one">%1$d hafta önce</item>
+        <item quantity="other">%1$d hafta önce</item>
+    </plurals>
+    <plurals name="time_months_ago">
+        <item quantity="one">%1$d ay önce</item>
+        <item quantity="other">%1$d ay önce</item>
+    </plurals>
+    <plurals name="time_years_ago">
+        <item quantity="one">%1$d yıl önce</item>
+        <item quantity="other">%1$d yıl önce</item>
+    </plurals>
 </resources>
