@@ -20,6 +20,20 @@ export class ApiError extends Error {
 
 type ApiEnvelope<T> = { data: T };
 
+/**
+ * Route handler gövdesini metin olarak okuyup JSON'a çevirir.
+ * Bazı üretim çalışma zamanlarında `request.json()` gövdeyi boş döndürüyor;
+ * `request.text()` aynı ortamda güvenilir çalışıyor.
+ */
+export async function readJson<T>(request: Request): Promise<T | null> {
+  try {
+    const text = await request.text();
+    return text ? (JSON.parse(text) as T) : null;
+  } catch {
+    return null;
+  }
+}
+
 async function tokenFromCookies(): Promise<string | null> {
   const store = await cookies();
   return store.get(SESSION_COOKIE)?.value ?? null;
