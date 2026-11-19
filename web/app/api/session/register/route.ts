@@ -9,6 +9,7 @@ export async function POST(request: Request) {
     username?: string;
     displayName?: string;
   }>(request)) ?? {};
+  const forwardedFor = request.headers.get('x-forwarded-for');
   const result = await apiDirect<{ token: string; user: User }>('/v1/auth/register', {
     method: 'POST',
     body: JSON.stringify({
@@ -17,6 +18,7 @@ export async function POST(request: Request) {
       username: body.username,
       displayName: body.displayName,
     }),
+    ...(forwardedFor ? { headers: { 'X-Forwarded-For': forwardedFor } } : {}),
   });
 
   if (!result.ok || !result.data) {
