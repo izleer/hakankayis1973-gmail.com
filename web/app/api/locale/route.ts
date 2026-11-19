@@ -13,7 +13,7 @@ export async function POST(request: Request) {
   const body = await readJson<{ locale?: unknown }>(request);
   const locale = body?.locale;
   if (!isLocale(locale)) {
-    return NextResponse.json({ error: 'invalid_locale' }, { status: 400 });
+    return NextResponse.json({ error: 'invalid_locale', v: 2, body }, { status: 400 });
   }
 
   const store = await cookies();
