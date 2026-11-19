@@ -25,13 +25,24 @@ type ApiEnvelope<T> = { data: T };
  * Bazı üretim çalışma zamanlarında `request.json()` gövdeyi boş döndürüyor;
  * `request.text()` aynı ortamda güvenilir çalışıyor.
  */
-export async function readJson<T>(request: Request): Promise<T | null> {
+export async function readJsonDebug(
+  request: Request,
+): Promise<{ text?: string; parsed?: unknown; error?: string }> {
   try {
     const text = await request.text();
-    return text ? (JSON.parse(text) as T) : null;
-  } catch {
-    return null;
+    try {
+      return { text, parsed: text ? JSON.parse(text) : null };
+    } catch (error) {
+      return { text, error: `parse: ${error instanceof Error ? error.message : String(error)}` };
+    }
+  } catch (error) {
+    return { error: `read: ${error instanceof Error ? error.message : String(error)}` };
   }
+}
+
+export async function readJson<T>(request: Request): Promise<T | null> {
+  const result = await readJsonDebug(request);
+  return (result.parsed as T) ?? null;
 }
 
 async function tokenFromCookies(): Promise<string | null> {
