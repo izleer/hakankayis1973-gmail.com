@@ -2,6 +2,8 @@ import { NextResponse } from 'next/server';
 import { apiDirect, readJson, SESSION_COOKIE } from '@/lib/api';
 import type { User } from '@/lib/types';
 
+export const dynamic = 'force-dynamic';
+
 export async function POST(request: Request) {
   const body = (await readJson<{ identifier?: string; password?: string }>(request)) ?? {};
   const forwardedFor = request.headers.get('x-forwarded-for');

@@ -7,6 +7,8 @@ import {
   LOCALE_COOKIE_MAX_AGE,
 } from '@/lib/i18n/config';
 
+export const dynamic = 'force-dynamic';
+
 export async function POST(request: Request) {
   const body = await readJson<{ locale?: unknown }>(request);
   const locale = body?.locale;
