@@ -163,6 +163,7 @@ export function AssetDetail({
   const [editingEntry, setEditingEntry] = useState<Entry | null>(null);
   const [lightbox, setLightbox] = useState<{ url: string; alt: string } | null>(null);
   const [notice, setNotice] = useState<string | null>(null);
+  const [deletingAsset, setDeletingAsset] = useState(false);
 
   const isOwner = data.access.isOwner || viewer.id === asset.owner.id;
   const isManager = data.access.isManager;
@@ -246,6 +247,45 @@ export function AssetDetail({
       flash(done ? t('Hatırlatma tamamlandı.') : t('Hatırlatma yeniden açıldı.'));
     } catch (caught) {
       flash(caught instanceof Error ? caught.message : t('Hatırlatma güncellenemedi.'));
+    }
+  }
+
+  async function removeEntry(entry: Entry) {
+    if (!window.confirm(t('Bu kayıt kalıcı olarak silinsin mi? Bu işlem geri alınamaz.'))) {
+      return;
+    }
+    try {
+      await vh.delete(`entries/${entry.id}`);
+      setEntries((current) => current.filter((item) => item.id !== entry.id));
+      setAsset((current) => ({
+        ...current,
+        entryCount: Math.max(0, current.entryCount - 1),
+      }));
+      flash(t('Kayıt silindi.'));
+      router.refresh();
+    } catch (caught) {
+      flash(caught instanceof Error ? caught.message : t('Kayıt silinemedi.'));
+    }
+  }
+
+  async function removeAsset() {
+    if (
+      !window.confirm(
+        t('"{title}" ve tüm kayıtları kalıcı olarak silinsin mi? Bu işlem geri alınamaz.', {
+          title: asset.title,
+        }),
+      )
+    ) {
+      return;
+    }
+    setDeletingAsset(true);
+    try {
+      await vh.delete(`assets/${asset.id}`);
+      router.push('/varliklar');
+      router.refresh();
+    } catch (caught) {
+      flash(caught instanceof Error ? caught.message : t('Varlık silinemedi.'));
+      setDeletingAsset(false);
     }
   }
 
@@ -367,6 +407,17 @@ export function AssetDetail({
                   <Icon name="edit" size={16} />
                   {t('Düzenle')}
                 </button>
+                {isOwner ? (
+                  <button
+                    type="button"
+                    className="btn btn-danger"
+                    onClick={removeAsset}
+                    disabled={deletingAsset}
+                  >
+                    <Icon name="trash" size={16} />
+                    {deletingAsset ? t('Siliniyor…') : t('Varlığı sil')}
+                  </button>
+                ) : null}
                 {isOwner && socialEnabled ? (
                   <button type="button" className="btn btn-ghost" onClick={() => setSocialOpen(true)}>
                     <Icon name="share" size={16} />
@@ -490,6 +541,7 @@ export function AssetDetail({
                 entries={entries}
                 canEditEntry={(entry) => canEdit || entry.author.id === viewer.id}
                 onEditEntry={setEditingEntry}
+                onDeleteEntry={removeEntry}
                 onToggleReminder={toggleReminder}
                 onOpenImage={(item, alt) => setLightbox({ url: item, alt })}
               />
@@ -635,12 +687,14 @@ function Timeline({
   entries,
   canEditEntry,
   onEditEntry,
+  onDeleteEntry,
   onToggleReminder,
   onOpenImage,
 }: {
   entries: Entry[];
   canEditEntry: (entry: Entry) => boolean;
   onEditEntry: (entry: Entry) => void;
+  onDeleteEntry: (entry: Entry) => void;
   onToggleReminder: (entry: Entry, done: boolean) => void;
   onOpenImage: (url: string, alt: string) => void;
 }) {
@@ -685,6 +739,17 @@ function Timeline({
                       title={t('Kaydı düzenle')}
                     >
                       <Icon name="edit" size={14} />
+                    </button>
+                  ) : null}
+                  {canEditEntry(entry) ? (
+                    <button
+                      type="button"
+                      className="icon-btn entry-delete-btn"
+                      onClick={() => onDeleteEntry(entry)}
+                      aria-label={t('Kaydı sil')}
+                      title={t('Kaydı sil')}
+                    >
+                      <Icon name="trash" size={14} />
                     </button>
                   ) : null}
                 </header>

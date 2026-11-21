@@ -29,9 +29,12 @@ import androidx.compose.material.icons.outlined.Check
 import androidx.compose.material.icons.outlined.Delete
 import androidx.compose.material.icons.outlined.Edit
 import androidx.compose.material.icons.outlined.Groups
+import androidx.compose.material.icons.outlined.MoreVert
 import androidx.compose.material.icons.outlined.Place
 import androidx.compose.material.icons.outlined.Share
 import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -124,6 +127,7 @@ fun AssetDetailScreen(
     var accessName by rememberSaveable { mutableStateOf("") }
     var managerDialogOpen by rememberSaveable { mutableStateOf(false) }
     var confirmDeleteAsset by rememberSaveable { mutableStateOf(false) }
+    var assetMenuOpen by rememberSaveable { mutableStateOf(false) }
 
     LaunchedEffect(assetId) { vm.loadDetail(assetId) }
     LaunchedEffect(assetId) { vm.clearFormError() }
@@ -176,6 +180,41 @@ fun AssetDetailScreen(
                                 contentDescription = stringResource(R.string.asset_detail_share_with_people),
                                 tint = Forest,
                             )
+                        }
+                        if (isOwner) {
+                            Box {
+                                IconButton(onClick = { assetMenuOpen = true }) {
+                                    Icon(
+                                        Icons.Outlined.MoreVert,
+                                        contentDescription = null,
+                                        tint = Forest,
+                                    )
+                                }
+                                DropdownMenu(
+                                    expanded = assetMenuOpen,
+                                    onDismissRequest = { assetMenuOpen = false },
+                                ) {
+                                    DropdownMenuItem(
+                                        text = {
+                                            Text(
+                                                stringResource(R.string.asset_detail_delete_asset),
+                                                color = Danger,
+                                            )
+                                        },
+                                        leadingIcon = {
+                                            Icon(
+                                                Icons.Outlined.Delete,
+                                                contentDescription = null,
+                                                tint = Danger,
+                                            )
+                                        },
+                                        onClick = {
+                                            assetMenuOpen = false
+                                            confirmDeleteAsset = true
+                                        },
+                                    )
+                                }
+                            }
                         }
                     },
                 )

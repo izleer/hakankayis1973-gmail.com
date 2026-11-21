@@ -2290,6 +2290,18 @@ dd {
   color: var(--ink);
 }
 
+.entry-delete-btn {
+  width: 30px;
+  height: 30px;
+  margin: -6px -6px -6px -4px;
+  color: var(--ink-faint);
+}
+
+.entry-delete-btn:hover {
+  color: var(--clay);
+  background: rgba(172, 88, 59, 0.1);
+}
+
 .entry-card h3 {
   font-size: 1.16rem;
   margin-bottom: 6px;
