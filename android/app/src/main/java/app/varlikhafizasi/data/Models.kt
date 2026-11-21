@@ -575,9 +575,14 @@ data class PlanLimits(
     val maxMediaPerAsset: Int? = null,
     val maxFileBytes: Long? = null,
     val maxStorageBytes: Long? = null,
+    val ads: Boolean = true,
+    val photoHistory: String = "basic",
+    val comparison: String = "none",
+    val charts: String = "none",
+    val reminders: String = "basic",
     val analytics: String = "basic",
-    val comparison: Boolean = false,
     val reports: Boolean = false,
+    val bulkExport: Boolean = false,
     val cloud: String = "limited",
 )
 
@@ -599,16 +604,31 @@ data class PlanWarning(
 )
 
 @Serializable
+data class PlanRequest(
+    val id: String,
+    val plan: String = "premium",
+    val status: String = "pending",
+    val note: String? = null,
+    val reviewNote: String? = null,
+    val createdAt: String? = null,
+    val reviewedAt: String? = null,
+)
+
+@Serializable
 data class PlanInfo(
     val plan: String = "free",
     val startedAt: String? = null,
     val limits: PlanLimits = PlanLimits(),
     val usage: PlanUsage = PlanUsage(),
     val warnings: List<PlanWarning> = emptyList(),
+    val request: PlanRequest? = null,
 )
 
 @Serializable
-data class UpdatePlanRequest(val plan: String)
+data class PlanRequestPayload(val request: PlanRequest)
+
+@Serializable
+data class PlanRequestBody(val plan: String, val note: String? = null)
 
 @Serializable
 data class UploadRequest(

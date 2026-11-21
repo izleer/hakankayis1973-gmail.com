@@ -181,6 +181,7 @@ fun ProfileScreen(
     val stats = user.stats
     val plan = Plans.normalize(planState.data?.plan ?: user.plan)
     val premium = Plans.isPremium(plan)
+    val plus = Plans.isPlus(plan)
     val planUsage = planState.data?.usage?.assets ?: (stats?.assets ?: 0)
 
     Column(
@@ -318,7 +319,7 @@ fun ProfileScreen(
             item {
                 Spacer(Modifier.height(14.dp))
                 ProfilePlanCard(
-                    premium = premium,
+                    plan = plan,
                     usage = planUsage,
                     onClick = onOpenPlan,
                 )
@@ -636,10 +637,12 @@ fun ProfileScreen(
 
 @Composable
 private fun ProfilePlanCard(
-    premium: Boolean,
+    plan: String,
     usage: Int,
     onClick: () -> Unit,
 ) {
+    val premium = Plans.isPremium(plan)
+    val plus = Plans.isPlus(plan)
     Surface(
         color = Ivory,
         shape = RoundedCornerShape(14.dp),
@@ -666,13 +669,13 @@ private fun ProfilePlanCard(
                     color = Forest,
                 )
                 Text(
-                    if (premium) {
-                        stringResource(R.string.plan_profile_premium_hint)
-                    } else {
-                        stringResource(
+                    when {
+                        plus -> stringResource(R.string.plan_profile_plus_hint)
+                        premium -> stringResource(R.string.plan_profile_premium_hint)
+                        else -> stringResource(
                             R.string.plan_profile_free_hint,
                             usage,
-                            Plans.FREE_MAX_ASSETS,
+                            Plans.maxAssets(plan) ?: Plans.FREE_MAX_ASSETS,
                         )
                     },
                     style = MaterialTheme.typography.bodySmall,
@@ -685,7 +688,11 @@ private fun ProfilePlanCard(
             ) {
                 Text(
                     stringResource(
-                        if (premium) R.string.plan_badge_premium else R.string.plan_badge_free,
+                        when {
+                            plus -> R.string.plan_badge_plus
+                            premium -> R.string.plan_badge_premium
+                            else -> R.string.plan_badge_free
+                        },
                     ),
                     style = MaterialTheme.typography.labelSmall,
                     color = if (premium) Paper else Forest,

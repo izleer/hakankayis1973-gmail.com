@@ -4,6 +4,7 @@ import { query, queryOne, transaction } from '../db.js';
 import { audit } from '../lib/audit.js';
 import { badRequest, notFound } from '../lib/errors.js';
 import { iso, parseBody, parseQuery } from '../lib/http.js';
+import { notify } from '../lib/notify.js';
 import { LIMIT_KEYS, clearUserOverrideCache, refreshPlanLimits } from '../lib/plans.js';
 import { requireAdmin, requireStaff } from '../lib/session.js';
 import { mapUserMini } from '../lib/serialize.js';
@@ -256,7 +257,7 @@ export async function adminRoutes(app: FastifyInstance): Promise<void> {
         updates: z
           .array(
             z.object({
-              plan: z.enum(['free', 'premium']),
+              plan: z.enum(['free', 'premium', 'plus']),
               limitKey: z.enum(LIMIT_KEYS),
               scope: z.string().trim().min(1).max(40).default('all'),
               maxValue: z.number().int().min(0).max(Number.MAX_SAFE_INTEGER).nullable(),
@@ -516,5 +517,155 @@ export async function adminRoutes(app: FastifyInstance): Promise<void> {
     );
     clearUserOverrideCache(id);
     return { data: { deleted: true } };
+  });
+
+  // -------------------------------------------------------------------------
+  // Plan talepleri — kullanıcı talep oluşturur, yalnızca admin onaylar.
+  // Onay planı yükseltir; ret plandaki değişikliği uygulamaz.
+  // -------------------------------------------------------------------------
+
+  app.get('/plan-requests', async (req) => {
+    await requireAdmin(req);
+    const params = parseQuery(
+      z.object({
+        status: z
+          .enum(['pending', 'approved', 'rejected', 'cancelled', 'all'])
+          .default('pending'),
+        limit: z.coerce.number().int().min(1).max(100).default(50),
+      }),
+      req.query,
+    );
+    const rows = await query<Record<string, any>>(
+      `SELECT r.id, r.requested_plan, r.status, r.note, r.review_note,
+              r.created_at, r.reviewed_at, r.reviewed_by,
+              u.id AS user_id, u.username, u.display_name, u.avatar_url, u.plan,
+              rv.username AS reviewer_username
+       FROM plan_requests r
+       JOIN users u ON u.id = r.user_id
+       LEFT JOIN users rv ON rv.id = r.reviewed_by
+       WHERE ($1 = 'all' OR r.status = $1)
+       ORDER BY r.created_at DESC
+       LIMIT $2`,
+      [params.status, params.limit],
+    );
+    return {
+      data: {
+        items: rows.map((row) => ({
+          id: row.id,
+          plan: row.requested_plan,
+          status: row.status,
+          note: row.note ?? null,
+          reviewNote: row.review_note ?? null,
+          createdAt: iso(row.created_at),
+          reviewedAt: iso(row.reviewed_at),
+          user: {
+            id: row.user_id,
+            username: row.username,
+            displayName: row.display_name,
+            avatarUrl: row.avatar_url ?? null,
+            plan: row.plan,
+          },
+          reviewer: row.reviewed_by
+            ? { id: row.reviewed_by, username: row.reviewer_username ?? null }
+            : null,
+        })),
+      },
+    };
+  });
+
+  app.patch('/plan-requests/:id', async (req) => {
+    const viewer = await requireAdmin(req);
+    const { id } = z.object({ id: uuid }).parse(req.params);
+    const body = parseBody(
+      z.object({
+        action: z.enum(['approve', 'reject']),
+        note: z.string().trim().max(500).optional(),
+      }),
+      req.body,
+    );
+
+    const request = await transaction(async (client) => {
+      const current = await client.query(
+        `SELECT id, user_id, requested_plan, status
+         FROM plan_requests
+         WHERE id = $1
+         FOR UPDATE`,
+        [id],
+      );
+      const row = current.rows[0];
+      if (!row) notFound('Plan talebi bulunamadı.');
+      if (row.status !== 'pending') badRequest('Bu talep zaten sonuçlanmış.');
+      if (body.action === 'approve') {
+        await client.query(
+          `UPDATE users SET plan = $2, plan_started_at = now() WHERE id = $1`,
+          [row.user_id, row.requested_plan],
+        );
+      }
+      await client.query(
+        `UPDATE plan_requests
+         SET status = $2, review_note = $3, reviewed_by = $4,
+             reviewed_at = now(), updated_at = now()
+         WHERE id = $1`,
+        [
+          id,
+          body.action === 'approve' ? 'approved' : 'rejected',
+          body.note ?? null,
+          viewer.id,
+        ],
+      );
+      return row as { id: string; user_id: string; requested_plan: string };
+    });
+
+    await audit(
+      viewer.id,
+      body.action === 'approve' ? 'plan_request.approved' : 'plan_request.rejected',
+      'plan_request',
+      id,
+      { plan: request.requested_plan, note: body.note ?? null },
+      req.ip,
+    );
+
+    const label = request.requested_plan === 'plus' ? 'Plus' : 'Premium';
+    await notify({
+      userId: request.user_id,
+      type: 'system',
+      entityType: 'plan_request',
+      entityId: id,
+      message:
+        body.action === 'approve'
+          ? `${label} plan talebiniz onaylandı. Yeni planınız etkin.`
+          : `${label} plan talebiniz reddedildi.${body.note ? ` Not: ${body.note}` : ''}`,
+    });
+
+    return { data: { status: body.action === 'approve' ? 'approved' : 'rejected' } };
+  });
+
+  app.patch('/users/:id/plan', async (req) => {
+    const viewer = await requireAdmin(req);
+    const { id } = z.object({ id: uuid }).parse(req.params);
+    const body = parseBody(
+      z.object({ plan: z.enum(['free', 'premium', 'plus']) }),
+      req.body,
+    );
+    const updated = await transaction(async (client) => {
+      const row = await client.query(
+        `UPDATE users
+         SET plan = $2,
+             plan_started_at = CASE WHEN $2 = 'free' THEN plan_started_at ELSE now() END
+         WHERE id = $1 AND deleted_at IS NULL
+         RETURNING id, plan`,
+        [id, body.plan],
+      );
+      if (row.rowCount === 0) notFound('Kullanıcı bulunamadı.');
+      // Doğrudan atama, bekleyen talepleri geçersiz kılar.
+      await client.query(
+        `UPDATE plan_requests SET status = 'cancelled', updated_at = now()
+         WHERE user_id = $1 AND status = 'pending'`,
+        [id],
+      );
+      return row.rows[0] as { id: string; plan: string };
+    });
+    await audit(viewer.id, 'user.plan_changed', 'user', id, { plan: body.plan }, req.ip);
+    return { data: { user: { id: updated.id, plan: updated.plan } } };
   });
 }

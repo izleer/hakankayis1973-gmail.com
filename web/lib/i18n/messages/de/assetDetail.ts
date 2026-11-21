@@ -215,6 +215,13 @@ const assetDetail = {
   'Kategori ölçümü': 'Kategoriemessung',
   'Ölçüm değeri': 'Messwert',
   'Ölçüm değeri sayı olmalı.': 'Der Messwert muss eine Zahl sein.',
+  Alım: 'Kauf',
+  Söküm: 'Entfernung',
+  Budama: 'Beschneiden',
+  Saksılama: 'Umtopfen',
+  Telleme: 'Drahten',
+  Bakım: 'Pflege',
+  Gübreleme: 'Düngen',
 } as const;
 
 export default assetDetail;

@@ -18,7 +18,11 @@ const MODE_LABEL: Record<PlanLimitMode, string> = {
   shadow: 'Gölge',
 };
 
-const PLAN_LABEL: Record<Plan, string> = { free: 'Ücretsiz', premium: 'Premium' };
+const PLAN_LABEL: Record<Plan, string> = {
+  free: 'Ücretsiz',
+  premium: 'Premium',
+  plus: 'Plus',
+};
 
 const SCOPE_LABEL: Record<string, string> = {
   all: 'Tüm dosyalar',

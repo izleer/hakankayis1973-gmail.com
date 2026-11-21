@@ -63,4 +63,14 @@
     <string name="edit_entry_save">Save changes</string>
     <string name="edit_entry_existing_files">Existing files</string>
     <string name="edit_entry_add_files_hint">New files are added alongside existing ones; existing files are kept.</string>
+    <!-- Bonsai action list -->
+    <string name="bonsai_action_purchase">Purchase</string>
+    <string name="bonsai_action_removal">Removal</string>
+    <string name="bonsai_action_pruning">Pruning</string>
+    <string name="bonsai_action_repotting">Repotting</string>
+    <string name="bonsai_action_wiring">Wiring</string>
+    <string name="bonsai_action_care">Care</string>
+    <string name="bonsai_action_fertilizing">Fertilizing</string>
+    <string name="bonsai_action_reminder">Reminder</string>
+    <string name="bonsai_action_other">Other</string>
 </resources>

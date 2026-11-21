@@ -4,7 +4,7 @@ import { env } from '../env.js';
 import { query, queryOne } from '../db.js';
 import { ApiError, forbidden, unauthorized } from './errors.js';
 import { iso } from './http.js';
-import { type Plan, isPremium, normalizePlan } from './plans.js';
+import { type Plan, isPaid, isPlus, normalizePlan } from './plans.js';
 import { mediaRefUrl } from './storage.js';
 
 export type Viewer = {
@@ -146,11 +146,24 @@ export async function requireAdmin(req: FastifyRequest): Promise<Viewer> {
   return viewer;
 }
 
-/** Premium'a özel uçlar için; free planda 403 PLAN_REQUIRED döner. */
+/** Ücretli plana (Premium veya Plus) özel uçlar; ücretsiz planda 403 döner. */
 export async function requirePremium(req: FastifyRequest): Promise<Viewer> {
   const viewer = await requireViewer(req);
-  if (!isPremium(viewer)) {
-    throw new ApiError(403, 'PLAN_REQUIRED', 'Bu özellik Premium planda kullanılabilir.');
+  if (!isPaid(viewer)) {
+    throw new ApiError(
+      403,
+      'PLAN_REQUIRED',
+      'Bu özellik Premium veya Plus planda kullanılabilir.',
+    );
+  }
+  return viewer;
+}
+
+/** Yalnızca Plus'a özel uçlar (PDF rapor, toplu dışa aktarma). */
+export async function requirePlus(req: FastifyRequest): Promise<Viewer> {
+  const viewer = await requireViewer(req);
+  if (!isPlus(viewer)) {
+    throw new ApiError(403, 'PLAN_REQUIRED', 'Bu özellik Plus planda kullanılabilir.');
   }
   return viewer;
 }

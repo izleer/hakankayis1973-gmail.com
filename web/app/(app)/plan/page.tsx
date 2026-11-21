@@ -6,20 +6,25 @@ import { api, requireViewer } from '@/lib/api';
 import { formatBytes, formatDate, formatNumber } from '@/lib/format';
 import { getI18n } from '@/lib/i18n/server';
 import { PLAN_LIMITS } from '@/lib/plan';
-import type { PlanInfo } from '@/lib/types';
+import type { Plan, PlanInfo } from '@/lib/types';
 
 export async function generateMetadata(): Promise<Metadata> {
   const { t } = await getI18n();
   return { title: t('Plan ve yetkiler') };
 }
 
+function planTitle(plan: Plan): string {
+  if (plan === 'plus') return 'Plus';
+  if (plan === 'premium') return 'Premium';
+  return 'Ücretsiz';
+}
+
 export default async function PlanPage() {
-  const viewer = await requireViewer();
+  await requireViewer();
   const { t, locale } = await getI18n();
   const info = await api<PlanInfo>('/v1/me/plan');
-  const premium = info.plan === 'premium';
+  const current = info.plan;
   const limits = info.limits;
-  const freeLimits = PLAN_LIMITS.free;
   const storageLimit = limits.maxStorageBytes ?? null;
   const storageUsed = info.usage.storageBytes ?? 0;
   const warnings = info.warnings ?? [];
@@ -28,80 +33,110 @@ export default async function PlanPage() {
       ? Math.min(100, Math.round((storageUsed / storageLimit) * 100))
       : null;
 
-  const rows: { label: string; free: string; premium: string; icon: IconName }[] = [
-    {
-      label: t('Mobil'),
-      free: t('Günlük kayıt ve takip'),
-      premium: t('Gelişmiş kayıt ve takip'),
-      icon: 'sprout',
-    },
-    {
-      label: t('Web'),
-      free: t('Görüntüleme ve temel düzenleme'),
-      premium: t('Analiz ve yönetim merkezi'),
-      icon: 'grid',
-    },
+  const storageText = (value: number | null): string =>
+    value === null ? t('Sınırsız') : formatBytes(value, locale);
+
+  const rows: {
+    label: string;
+    free: string;
+    premium: string;
+    plus: string;
+    icon: IconName;
+  }[] = [
     {
       label: t('Varlık'),
-      free: t('{count} varlık', { count: freeLimits.maxAssets ?? 0 }),
-      premium: t('Sınırsız'),
+      free: formatNumber(PLAN_LIMITS.free.maxAssets ?? 0, locale),
+      premium: formatNumber(PLAN_LIMITS.premium.maxAssets ?? 0, locale),
+      plus: formatNumber(PLAN_LIMITS.plus.maxAssets ?? 0, locale),
       icon: 'leaf',
     },
     {
-      label: t('Geçmiş kaydı'),
-      free: t('Varlık başına {count} kayıt', { count: freeLimits.maxEntriesPerAsset ?? 0 }),
-      premium: t('Sınırsız'),
+      label: t('Varlık başına kayıt'),
+      free: formatNumber(PLAN_LIMITS.free.maxEntriesPerAsset ?? 0, locale),
+      premium: formatNumber(PLAN_LIMITS.premium.maxEntriesPerAsset ?? 0, locale),
+      plus: formatNumber(PLAN_LIMITS.plus.maxEntriesPerAsset ?? 0, locale),
       icon: 'book',
     },
     {
-      label: t('Fotoğraf'),
-      free: t('Kayıt başına 1 dosya'),
-      premium: t('Kayıt başına 10 dosya'),
+      label: t('Kayıt başına fotoğraf'),
+      free: formatNumber(PLAN_LIMITS.free.maxMediaPerEntry ?? 0, locale),
+      premium: formatNumber(PLAN_LIMITS.premium.maxMediaPerEntry ?? 0, locale),
+      plus: formatNumber(PLAN_LIMITS.plus.maxMediaPerEntry ?? 0, locale),
       icon: 'image',
     },
     {
-      label: t('Depolama'),
-      free:
-        (freeLimits.maxStorageBytes ?? null) === null
-          ? t('Sınırsız')
-          : formatBytes(freeLimits.maxStorageBytes!, locale),
-      premium:
-        (PLAN_LIMITS.premium.maxStorageBytes ?? null) === null
-          ? t('Sınırsız')
-          : formatBytes(PLAN_LIMITS.premium.maxStorageBytes!, locale),
+      label: t('Varlık başına dosya'),
+      free: formatNumber(PLAN_LIMITS.free.maxMediaPerAsset ?? 0, locale),
+      premium: formatNumber(PLAN_LIMITS.premium.maxMediaPerAsset ?? 0, locale),
+      plus: formatNumber(PLAN_LIMITS.plus.maxMediaPerAsset ?? 0, locale),
       icon: 'archive',
     },
     {
-      label: t('Analiz'),
-      free: t('Temel'),
-      premium: t('Gelişmiş'),
-      icon: 'ruler',
+      label: t('Depolama'),
+      free: storageText(PLAN_LIMITS.free.maxStorageBytes),
+      premium: storageText(PLAN_LIMITS.premium.maxStorageBytes),
+      plus: storageText(PLAN_LIMITS.plus.maxStorageBytes),
+      icon: 'archive',
     },
     {
-      label: t('Karşılaştırma'),
+      label: t('Fotoğraf geçmişi'),
+      free: t('Temel'),
+      premium: t('Gelişmiş'),
+      plus: t('Gelişmiş'),
+      icon: 'camera',
+    },
+    {
+      label: t('Fotoğraf karşılaştırma'),
       free: t('Yok'),
       premium: t('Var'),
+      plus: t('Gelişmiş'),
       icon: 'grid',
     },
     {
-      label: t('Rapor'),
+      label: t('Ölçüm grafikleri'),
       free: t('Yok'),
-      premium: t('Var'),
+      premium: t('Temel'),
+      plus: t('Gelişmiş'),
+      icon: 'ruler',
+    },
+    {
+      label: t('Hatırlatmalar'),
+      free: t('Temel'),
+      premium: t('Gelişmiş'),
+      plus: t('Gelişmiş'),
+      icon: 'clock',
+    },
+    {
+      label: t('PDF rapor'),
+      free: t('Yok'),
+      premium: t('Yok'),
+      plus: t('Var'),
       icon: 'file',
     },
     {
-      label: t('Bulut'),
-      free: t('Sınırlı'),
-      premium: t('Tam'),
-      icon: 'globe',
+      label: t('Toplu dışa aktarma'),
+      free: t('Yok'),
+      premium: t('Yok'),
+      plus: t('Var'),
+      icon: 'download',
+    },
+    {
+      label: t('Web analizleri'),
+      free: t('Temel'),
+      premium: t('Gelişmiş'),
+      plus: t('Tam'),
+      icon: 'grid',
     },
     {
       label: t('Reklam'),
       free: t('Reklamlı'),
       premium: t('Reklamsız'),
+      plus: t('Reklamsız'),
       icon: 'eye',
     },
   ];
+
+  const planClass = (plan: Plan) => (current === plan ? 'is-current' : undefined);
 
   return (
     <main className="page page-narrow">
@@ -116,7 +151,7 @@ export default async function PlanPage() {
           <h1>{t('Plan ve yetkiler')}</h1>
           <p>
             {t(
-              'Ücretsiz planla başla; kayıtların her planda senin kalır. Premium, sınırları kaldırır ve web’i bir analiz merkezine dönüştürür.',
+              'Ücretsiz planla başla; kayıtların her planda senin kalır. Premium ve Plus, sınırları genişletir; Plus rapor ve toplu dışa aktarmayı açar.',
             )}
           </p>
         </div>
@@ -136,15 +171,20 @@ export default async function PlanPage() {
         </ul>
       ) : null}
 
-      <section className={`plan-current${premium ? ' is-premium' : ''}`} aria-label={t('Mevcut plan')}>
+      <section
+        className={`plan-current${current !== 'free' ? ' is-premium' : ''}`}
+        aria-label={t('Mevcut plan')}
+      >
         <div className="plan-current-head">
-          <span className="plan-badge">{premium ? t('PREMIUM') : t('ÜCRETSİZ')}</span>
+          <span className="plan-badge">{t(planTitle(current).toUpperCase())}</span>
           <div>
-            <h2>{premium ? t('Premium plan') : t('Ücretsiz plan')}</h2>
+            <h2>{t('{plan} plan', { plan: t(planTitle(current)) })}</h2>
             <p>
-              {premium
-                ? t('Gelişmiş kayıt ve takip, analiz ve yönetim merkezi açık.')
-                : t('Günlük kayıt ve takip için ihtiyacın olan her şey açık.')}
+              {current === 'plus'
+                ? t('Tüm özellikler ve en yüksek kotalar açık.')
+                : current === 'premium'
+                  ? t('Gelişmiş kayıt ve takip, analiz ve karşılaştırma açık.')
+                  : t('Günlük kayıt ve takip için ihtiyacın olan her şey açık.')}
             </p>
           </div>
         </div>
@@ -158,7 +198,11 @@ export default async function PlanPage() {
           </div>
           <div>
             <dt>{t('Fotoğraf / kayıt')}</dt>
-            <dd>{limits.maxMediaPerEntry === null ? t('Sınırsız') : formatNumber(limits.maxMediaPerEntry, locale)}</dd>
+            <dd>
+              {limits.maxMediaPerEntry === null
+                ? t('Sınırsız')
+                : formatNumber(limits.maxMediaPerEntry, locale)}
+            </dd>
           </div>
           <div>
             <dt>{t('Depolama')}</dt>
@@ -187,7 +231,7 @@ export default async function PlanPage() {
             <dd>{info.startedAt ? formatDate(info.startedAt, locale) : t('Yeni hesap')}</dd>
           </div>
         </dl>
-        <PlanActions current={info.plan} />
+        <PlanActions current={current} request={info.request ?? null} />
       </section>
 
       <section className="plan-matrix-wrap" aria-label={t('Plan karşılaştırması')}>
@@ -200,11 +244,14 @@ export default async function PlanPage() {
             <thead>
               <tr>
                 <th scope="col">{t('Özellik')}</th>
-                <th scope="col" className={!premium ? 'is-current' : undefined}>
+                <th scope="col" className={planClass('free')}>
                   {t('Ücretsiz')}
                 </th>
-                <th scope="col" className={premium ? 'is-current' : undefined}>
+                <th scope="col" className={planClass('premium')}>
                   {t('Premium')}
+                </th>
+                <th scope="col" className={planClass('plus')}>
+                  {t('Plus')}
                 </th>
               </tr>
             </thead>
@@ -215,8 +262,9 @@ export default async function PlanPage() {
                     <Icon name={row.icon} size={16} />
                     {row.label}
                   </th>
-                  <td className={!premium ? 'is-current' : undefined}>{row.free}</td>
-                  <td className={premium ? 'is-current' : undefined}>{row.premium}</td>
+                  <td className={planClass('free')}>{row.free}</td>
+                  <td className={planClass('premium')}>{row.premium}</td>
+                  <td className={planClass('plus')}>{row.plus}</td>
                 </tr>
               ))}
             </tbody>
@@ -236,7 +284,7 @@ export default async function PlanPage() {
       </section>
 
       <div className="plan-links">
-        {premium ? (
+        {current !== 'free' ? (
           <Link href="/analiz" className="btn btn-primary">
             <Icon name="ruler" size={17} />
             {t('Analiz merkezini aç')}

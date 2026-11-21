@@ -112,6 +112,28 @@ private data class ActionChoice(
     val isReminder: Boolean,
 )
 
+/**
+ * Bonsai kayıtlarında "İşleminiz" ve "Kayıt türü" tek listede birleşir.
+ * Sıra günlük bakım akışını izler; seçim kaydın türünü belirler.
+ */
+private data class BonsaiAction(
+    val key: String,
+    val labelRes: Int,
+    val entryType: String,
+)
+
+private val bonsaiActions = listOf(
+    BonsaiAction("bonsai-purchase", R.string.bonsai_action_purchase, "acquisition"),
+    BonsaiAction("bonsai-removal", R.string.bonsai_action_removal, "event"),
+    BonsaiAction("bonsai-pruning", R.string.bonsai_action_pruning, "maintenance"),
+    BonsaiAction("bonsai-repotting", R.string.bonsai_action_repotting, "maintenance"),
+    BonsaiAction("bonsai-wiring", R.string.bonsai_action_wiring, "maintenance"),
+    BonsaiAction("bonsai-care", R.string.bonsai_action_care, "maintenance"),
+    BonsaiAction("bonsai-fertilizing", R.string.bonsai_action_fertilizing, "maintenance"),
+    BonsaiAction("bonsai-reminder", R.string.bonsai_action_reminder, "reminder"),
+    BonsaiAction("bonsai-other", R.string.bonsai_action_other, "note"),
+)
+
 private val UriStateSaver = Saver<Uri?, String>(
     save = { it?.toString().orEmpty() },
     restore = { value -> value.takeIf { it.isNotEmpty() }?.let(Uri::parse) },
@@ -212,6 +234,8 @@ fun AddEntryScreen(
     val asset = state.data?.detail?.asset
     val assetTitle = asset?.title ?: stringResource(R.string.common_asset)
     val assetVisibility = asset?.visibility ?: "private"
+    val isBonsai = asset?.type?.id?.endsWith("-bonsai") == true
+    val bonsaiLabels = bonsaiActions.map { stringResource(it.labelRes) }
     val templateActions = asset?.template?.actions ?: emptyList()
     val templateReminders = asset?.template?.reminders ?: emptyList()
     val templateMeasurements = asset?.template?.measurements ?: emptyList()
@@ -447,29 +471,58 @@ fun AddEntryScreen(
             }
 
             Spacer(Modifier.height(20.dp))
-            if (actionChoices.isNotEmpty()) {
-                SectionLabel(stringResource(R.string.assets_template_actions))
+            if (isBonsai) {
+                SectionLabel(stringResource(R.string.add_entry_section_type))
                 SectionDropdown(
-                    selectedLabel = actionChoices.firstOrNull { it.key == actionChoiceKey }?.label,
+                    selectedLabel = bonsaiActions
+                        .indexOfFirst { it.key == actionChoiceKey }
+                        .takeIf { it >= 0 }
+                        ?.let { bonsaiLabels[it] },
                     placeholder = stringResource(R.string.add_entry_select_action),
                     enabled = !busy,
-                    options = actionChoices.map { it.label to it.hint },
-                    onSelect = { applyActionChoice(actionChoices[it]) },
+                    options = bonsaiLabels.map { it to null },
+                    onSelect = {
+                        val choice = bonsaiActions[it]
+                        type = choice.entryType
+                        actionChoiceKey = choice.key
+                        localError = null
+                        dueAt = null
+                        if (choice.entryType == "reminder") {
+                            openDateTimePicker(
+                                System.currentTimeMillis(),
+                                System.currentTimeMillis(),
+                            ) { dueAt = it }
+                        }
+                        if (title.isBlank() && choice.key != "bonsai-other") {
+                            title = bonsaiLabels[it]
+                        }
+                    },
                 )
-                Spacer(Modifier.height(14.dp))
+            } else {
+                if (actionChoices.isNotEmpty()) {
+                    SectionLabel(stringResource(R.string.assets_template_actions))
+                    SectionDropdown(
+                        selectedLabel = actionChoices.firstOrNull { it.key == actionChoiceKey }?.label,
+                        placeholder = stringResource(R.string.add_entry_select_action),
+                        enabled = !busy,
+                        options = actionChoices.map { it.label to it.hint },
+                        onSelect = { applyActionChoice(actionChoices[it]) },
+                    )
+                    Spacer(Modifier.height(14.dp))
+                }
+                SectionLabel(stringResource(R.string.add_entry_section_type))
+                SectionDropdown(
+                    selectedLabel = entryTypeLabel(type),
+                    placeholder = entryTypeLabel("note"),
+                    enabled = !busy,
+                    options = entryTypes.map { entryTypeLabel(it) to null },
+                    onSelect = {
+                        type = entryTypes[it]
+                        actionChoiceKey = ""
+                        dueAt = null
+                    },
+                )
             }
-            SectionLabel(stringResource(R.string.add_entry_section_type))
-            SectionDropdown(
-                selectedLabel = entryTypeLabel(type),
-                placeholder = entryTypeLabel("note"),
-                enabled = !busy,
-                options = entryTypes.map { entryTypeLabel(it) to null },
-                onSelect = {
-                    type = entryTypes[it]
-                    actionChoiceKey = ""
-                    dueAt = null
-                },
-            )
 
             Spacer(Modifier.height(18.dp))
             OutlinedTextField(

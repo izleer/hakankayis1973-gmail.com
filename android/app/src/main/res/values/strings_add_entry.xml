@@ -63,4 +63,14 @@
     <string name="edit_entry_save">Değişiklikleri kaydet</string>
     <string name="edit_entry_existing_files">Mevcut dosyalar</string>
     <string name="edit_entry_add_files_hint">Yeni dosyalar mevcut olanlara eklenir; mevcut dosyalar korunur.</string>
+    <!-- Bonsai işlem listesi -->
+    <string name="bonsai_action_purchase">Alım</string>
+    <string name="bonsai_action_removal">Söküm</string>
+    <string name="bonsai_action_pruning">Budama</string>
+    <string name="bonsai_action_repotting">Saksılama</string>
+    <string name="bonsai_action_wiring">Telleme</string>
+    <string name="bonsai_action_care">Bakım</string>
+    <string name="bonsai_action_fertilizing">Gübreleme</string>
+    <string name="bonsai_action_reminder">Hatırlatma</string>
+    <string name="bonsai_action_other">Diğer</string>
 </resources>

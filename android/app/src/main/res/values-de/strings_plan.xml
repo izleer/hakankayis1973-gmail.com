@@ -2,14 +2,17 @@
 <resources>
     <string name="plan_title">Pläne und Rechte</string>
     <string name="plan_eyebrow">PLÄNE</string>
-    <string name="plan_intro">Starte mit dem kostenlosen Plan; deine Einträge bleiben dir in jedem Plan. Premium hebt Grenzen auf und öffnet die erweiterte Nachverfolgung.</string>
+    <string name="plan_intro">Starte mit dem kostenlosen Plan; deine Einträge bleiben dir in jedem Plan. Premium erweitert die Grenzen; Plus öffnet Berichte und den Massenexport.</string>
     <string name="plan_current">Aktueller Plan</string>
     <string name="plan_badge_free">KOSTENLOS</string>
     <string name="plan_badge_premium">PREMIUM</string>
+    <string name="plan_badge_plus">PLUS</string>
     <string name="plan_free_name">Kostenloser Plan</string>
     <string name="plan_premium_name">Premium-Plan</string>
+    <string name="plan_plus_name">Plus-Plan</string>
     <string name="plan_free_desc">Alles, was du für tägliches Erfassen und Nachverfolgen brauchst, ist offen.</string>
-    <string name="plan_premium_desc">Erweitertes Erfassen und Nachverfolgen ist offen.</string>
+    <string name="plan_premium_desc">Erweitertes Erfassen und Nachverfolgen, Analyse und Vergleich sind offen.</string>
+    <string name="plan_plus_desc">Alle Funktionen und die höchsten Kontingente sind offen.</string>
     <string name="plan_usage_assets">Deine Objekte</string>
     <string name="plan_usage_media">Fotos / Eintrag</string>
     <string name="plan_usage_since">Planbeginn</string>
@@ -17,23 +20,38 @@
     <string name="plan_usage_value">%1$d / %2$d</string>
     <string name="plan_unlimited">Unbegrenzt</string>
     <string name="plan_upgrade_cta">Premium werden</string>
-    <string name="plan_downgrade_cta">Zum kostenlosen Plan</string>
-    <string name="plan_billing_note">Die Abrechnung ist noch nicht angebunden; Planwechsel gelten vorerst sofort.</string>
+    <string name="plan_request_premium_cta">Premium anfragen</string>
+    <string name="plan_request_plus_cta">Plus anfragen</string>
+    <string name="plan_upgrade_plus_cta">Auf Plus upgraden</string>
+    <string name="plan_request_pending">Deine %1$s-Plananfrage wartet auf die Freigabe durch die Administration.</string>
+    <string name="plan_request_cancel">Anfrage zurückziehen</string>
+    <string name="plan_request_cancelling">Wird zurückgezogen…</string>
+    <string name="plan_request_sent">Deine Anfrage ist eingegangen. Der Plan wird nach der Freigabe durch die Administration aktiviert.</string>
+    <string name="plan_request_cancelled">Deine offene Plananfrage wurde zurückgezogen.</string>
+    <string name="plan_request_note">Planwechsel erfolgen nur mit Freigabe durch die Administration.</string>
+    <string name="plan_plus_active">Dein Plus-Plan ist aktiv.</string>
     <string name="plan_matrix_title">Planvergleich</string>
     <string name="plan_matrix_subtitle">Gleiches Gedächtnis, andere Tiefe. Lesen und Export sind in jedem Plan offen.</string>
     <string name="plan_col_feature">Funktion</string>
     <string name="plan_col_free">Kostenlos</string>
     <string name="plan_col_premium">Premium</string>
+    <string name="plan_col_plus">Plus</string>
 
     <string name="plan_row_mobile">Mobil</string>
     <string name="plan_row_web">Web</string>
     <string name="plan_row_assets">Objekt</string>
-    <string name="plan_row_history">Verlauf</string>
+    <string name="plan_row_history">Einträge pro Objekt</string>
+    <string name="plan_row_media_entry">Dateien pro Eintrag</string>
+    <string name="plan_row_media_asset">Dateien pro Objekt</string>
     <string name="plan_row_photo">Foto</string>
+    <string name="plan_row_photo_history">Foto-Verlauf</string>
     <string name="plan_row_storage">Speicher</string>
-    <string name="plan_row_analytics">Analyse</string>
-    <string name="plan_row_compare">Vergleich</string>
-    <string name="plan_row_reports">Bericht</string>
+    <string name="plan_row_charts">Messdiagramme</string>
+    <string name="plan_row_reminders">Erinnerungen</string>
+    <string name="plan_row_analytics">Web-Analysen</string>
+    <string name="plan_row_compare">Fotovergleich</string>
+    <string name="plan_row_reports">PDF-Bericht</string>
+    <string name="plan_row_bulk_export">Massenexport</string>
     <string name="plan_row_cloud">Cloud</string>
     <string name="plan_row_ads">Werbung</string>
 
@@ -46,8 +64,11 @@
     <string name="plan_value_photo_free">1 Datei pro Eintrag</string>
     <string name="plan_value_photo_premium">10 Dateien pro Eintrag</string>
     <string name="plan_value_storage_free">500 MB</string>
+    <string name="plan_value_storage_premium">5 GB</string>
+    <string name="plan_value_storage_plus">25 GB</string>
     <string name="plan_value_basic">Basis</string>
     <string name="plan_value_advanced">Erweitert</string>
+    <string name="plan_value_full">Voll</string>
     <string name="plan_value_none">Nein</string>
     <string name="plan_value_yes">Ja</string>
     <string name="plan_value_cloud_limited">Begrenzt</string>
@@ -57,20 +78,19 @@
 
     <string name="plan_note_data">Auch wenn dein Plan herabgestuft wird, werden vorhandene Objekte und Einträge nicht gelöscht; nur neue Schreibvorgänge unterliegen den Grenzen.</string>
     <string name="plan_note_export">Der Export deiner Daten ist in jedem Plan offen.</string>
-    <string name="plan_activated_premium">Premium-Plan aktiviert.</string>
-    <string name="plan_activated_free">Zum kostenlosen Plan gewechselt.</string>
 
     <string name="plan_profile_title">Dein Plan</string>
     <string name="plan_profile_manage">Plan verwalten</string>
     <string name="plan_profile_premium_hint">Erweitertes Erfassen und Nachverfolgen</string>
+    <string name="plan_profile_plus_hint">Alle Funktionen und höchste Kontingente</string>
     <string name="plan_profile_free_hint">%1$d / %2$d Objekte</string>
 
     <string name="plan_limit_assets_title">Objektslimit erreicht</string>
-    <string name="plan_limit_assets_body">Im kostenlosen Plan sind bis zu %1$d Objekte möglich. Premium öffnet unbegrenzte Objekte und erweiterte Nachverfolgung.</string>
+    <string name="plan_limit_assets_body">Im kostenlosen Plan sind bis zu %1$d Objekte möglich. Premium öffnet 50, Plus 250 Objekte.</string>
     <string name="plan_limit_assets_banner">Kostenloser Plan: %1$d / %2$d Objekte</string>
     <string name="plan_limit_assets_remaining">Kostenloser Plan: %1$d / %2$d Objekte</string>
     <string name="plan_limit_entries_title">Eintragslimit erreicht</string>
-    <string name="plan_limit_entries_body">Im kostenlosen Plan sind bis zu %1$d Einträge pro Objekt möglich. Premium öffnet unbegrenzte Einträge.</string>
+    <string name="plan_limit_entries_body">Im kostenlosen Plan sind bis zu %1$d Einträge pro Objekt möglich. Premium öffnet 100, Plus 500 Einträge.</string>
     <string name="plan_limit_entries_banner">Kostenloser Plan: bis zu %1$d Einträge pro Objekt</string>
     <string name="plan_limit_media_hint">Im kostenlosen Plan ist 1 Datei pro Eintrag möglich.</string>
     <string name="plan_go">Plan ansehen</string>

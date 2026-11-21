@@ -1,6 +1,7 @@
 import type { Metadata } from 'next';
 import { notFound } from 'next/navigation';
 import { PlanLimitEditor } from '@/components/PlanLimitEditor';
+import { PlanRequestQueue } from '@/components/PlanRequestQueue';
 import { UserLimitOverrides } from '@/components/UserLimitOverrides';
 import { api, requireViewer } from '@/lib/api';
 import { getT } from '@/lib/i18n/server';
@@ -34,6 +35,7 @@ export default async function AdminPage() {
           </p>
         </div>
       </header>
+      <PlanRequestQueue />
       <PlanLimitEditor rules={catalog.rules} history={history.items} />
       <UserLimitOverrides />
     </main>

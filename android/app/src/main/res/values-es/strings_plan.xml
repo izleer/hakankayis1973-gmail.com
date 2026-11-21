@@ -2,14 +2,17 @@
 <resources>
     <string name="plan_title">Planes y permisos</string>
     <string name="plan_eyebrow">PLANES</string>
-    <string name="plan_intro">Empieza con el plan gratis; tus registros siguen siendo tuyos en todos los planes. Premium elimina los límites y abre el seguimiento avanzado.</string>
+    <string name="plan_intro">Empieza con el plan gratis; tus registros siguen siendo tuyos en todos los planes. Premium amplía los límites; Plus abre informes y exportación masiva.</string>
     <string name="plan_current">Plan actual</string>
     <string name="plan_badge_free">GRATIS</string>
     <string name="plan_badge_premium">PREMIUM</string>
+    <string name="plan_badge_plus">PLUS</string>
     <string name="plan_free_name">Plan gratis</string>
     <string name="plan_premium_name">Plan Premium</string>
+    <string name="plan_plus_name">Plan Plus</string>
     <string name="plan_free_desc">Todo lo que necesitas para registrar y seguir a diario está abierto.</string>
-    <string name="plan_premium_desc">El registro y seguimiento avanzados están abiertos.</string>
+    <string name="plan_premium_desc">El registro y seguimiento avanzados, el análisis y la comparación están abiertos.</string>
+    <string name="plan_plus_desc">Todas las funciones y las cuotas más altas están abiertas.</string>
     <string name="plan_usage_assets">Tus bienes</string>
     <string name="plan_usage_media">Fotos / registro</string>
     <string name="plan_usage_since">Inicio del plan</string>
@@ -17,23 +20,38 @@
     <string name="plan_usage_value">%1$d / %2$d</string>
     <string name="plan_unlimited">Ilimitado</string>
     <string name="plan_upgrade_cta">Pasar a Premium</string>
-    <string name="plan_downgrade_cta">Volver al plan gratis</string>
-    <string name="plan_billing_note">La facturación aún no está conectada; los cambios de plan se aplican al instante por ahora.</string>
+    <string name="plan_request_premium_cta">Solicitar Premium</string>
+    <string name="plan_request_plus_cta">Solicitar Plus</string>
+    <string name="plan_upgrade_plus_cta">Pasar a Plus</string>
+    <string name="plan_request_pending">Tu solicitud del plan %1$s espera la aprobación del administrador.</string>
+    <string name="plan_request_cancel">Cancelar solicitud</string>
+    <string name="plan_request_cancelling">Cancelando…</string>
+    <string name="plan_request_sent">Tu solicitud se ha recibido. El plan se activará tras la aprobación del administrador.</string>
+    <string name="plan_request_cancelled">Tu solicitud de plan pendiente se ha cancelado.</string>
+    <string name="plan_request_note">Los cambios de plan se hacen con la aprobación del administrador.</string>
+    <string name="plan_plus_active">Tu plan Plus está activo.</string>
     <string name="plan_matrix_title">Comparación de planes</string>
     <string name="plan_matrix_subtitle">La misma memoria, distinta profundidad. La lectura y la exportación están abiertas en todos los planes.</string>
     <string name="plan_col_feature">Función</string>
     <string name="plan_col_free">Gratis</string>
     <string name="plan_col_premium">Premium</string>
+    <string name="plan_col_plus">Plus</string>
 
     <string name="plan_row_mobile">Móvil</string>
     <string name="plan_row_web">Web</string>
     <string name="plan_row_assets">Bien</string>
-    <string name="plan_row_history">Historial</string>
+    <string name="plan_row_history">Registros por bien</string>
+    <string name="plan_row_media_entry">Archivos por registro</string>
+    <string name="plan_row_media_asset">Archivos por bien</string>
     <string name="plan_row_photo">Foto</string>
+    <string name="plan_row_photo_history">Historial de fotos</string>
     <string name="plan_row_storage">Almacenamiento</string>
-    <string name="plan_row_analytics">Análisis</string>
-    <string name="plan_row_compare">Comparación</string>
-    <string name="plan_row_reports">Informe</string>
+    <string name="plan_row_charts">Gráficos de medidas</string>
+    <string name="plan_row_reminders">Recordatorios</string>
+    <string name="plan_row_analytics">Análisis web</string>
+    <string name="plan_row_compare">Comparación de fotos</string>
+    <string name="plan_row_reports">Informe PDF</string>
+    <string name="plan_row_bulk_export">Exportación masiva</string>
     <string name="plan_row_cloud">Nube</string>
     <string name="plan_row_ads">Publicidad</string>
 
@@ -46,8 +64,11 @@
     <string name="plan_value_photo_free">1 archivo por registro</string>
     <string name="plan_value_photo_premium">10 archivos por registro</string>
     <string name="plan_value_storage_free">500 MB</string>
+    <string name="plan_value_storage_premium">5 GB</string>
+    <string name="plan_value_storage_plus">25 GB</string>
     <string name="plan_value_basic">Básico</string>
     <string name="plan_value_advanced">Avanzado</string>
+    <string name="plan_value_full">Completo</string>
     <string name="plan_value_none">No</string>
     <string name="plan_value_yes">Sí</string>
     <string name="plan_value_cloud_limited">Limitada</string>
@@ -57,20 +78,19 @@
 
     <string name="plan_note_data">Aunque baje tu plan, los bienes y registros existentes no se borran; solo las nuevas escrituras están sujetas a los límites.</string>
     <string name="plan_note_export">Exportar tus datos está abierto en todos los planes.</string>
-    <string name="plan_activated_premium">Plan Premium activado.</string>
-    <string name="plan_activated_free">Has vuelto al plan gratis.</string>
 
     <string name="plan_profile_title">Tu plan</string>
     <string name="plan_profile_manage">Gestionar plan</string>
     <string name="plan_profile_premium_hint">Registro y seguimiento avanzados</string>
+    <string name="plan_profile_plus_hint">Todas las funciones y las cuotas más altas</string>
     <string name="plan_profile_free_hint">%1$d / %2$d bienes</string>
 
     <string name="plan_limit_assets_title">Límite de bienes alcanzado</string>
-    <string name="plan_limit_assets_body">El plan gratis permite hasta %1$d bienes. Premium abre bienes ilimitados y seguimiento avanzado.</string>
+    <string name="plan_limit_assets_body">El plan gratis permite hasta %1$d bienes. Premium abre 50 bienes y Plus 250.</string>
     <string name="plan_limit_assets_banner">Plan gratis: %1$d / %2$d bienes</string>
     <string name="plan_limit_assets_remaining">Plan gratis: %1$d / %2$d bienes</string>
     <string name="plan_limit_entries_title">Límite de registros alcanzado</string>
-    <string name="plan_limit_entries_body">El plan gratis permite hasta %1$d registros por bien. Premium abre registros ilimitados.</string>
+    <string name="plan_limit_entries_body">El plan gratis permite hasta %1$d registros por bien. Premium abre 100 registros y Plus 500.</string>
     <string name="plan_limit_entries_banner">Plan gratis: hasta %1$d registros por bien</string>
     <string name="plan_limit_media_hint">El plan gratis permite 1 archivo por registro.</string>
     <string name="plan_go">Ver plan</string>

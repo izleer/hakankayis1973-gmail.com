@@ -63,4 +63,14 @@
     <string name="edit_entry_save">Guardar cambios</string>
     <string name="edit_entry_existing_files">Archivos actuales</string>
     <string name="edit_entry_add_files_hint">Los archivos nuevos se añaden a los existentes; los actuales se conservan.</string>
+    <!-- Lista de acciones de bonsái -->
+    <string name="bonsai_action_purchase">Compra</string>
+    <string name="bonsai_action_removal">Extracción</string>
+    <string name="bonsai_action_pruning">Poda</string>
+    <string name="bonsai_action_repotting">Trasplante</string>
+    <string name="bonsai_action_wiring">Alambrado</string>
+    <string name="bonsai_action_care">Cuidado</string>
+    <string name="bonsai_action_fertilizing">Fertilización</string>
+    <string name="bonsai_action_reminder">Recordatorio</string>
+    <string name="bonsai_action_other">Otro</string>
 </resources>

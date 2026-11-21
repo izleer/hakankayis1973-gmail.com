@@ -21,6 +21,29 @@ import { canonicalMediaRef } from '../lib/storage.js';
 
 const usernameParam = z.object({ username: z.string().trim().min(1).max(30) });
 
+type PlanRequestRow = {
+  id: string;
+  requested_plan: string;
+  status: string;
+  note: string | null;
+  review_note: string | null;
+  created_at: Date;
+  reviewed_at: Date | null;
+};
+
+function mapPlanRequest(row: PlanRequestRow) {
+  return {
+    id: row.id,
+    plan: normalizePlan(row.requested_plan),
+    status: row.status,
+    note: row.note,
+    reviewNote: row.review_note,
+    createdAt: iso(row.created_at),
+    reviewedAt: iso(row.reviewed_at),
+  };
+}
+
+
 async function findUser(username: string) {
   const row = await queryOne<Record<string, any>>(
     `SELECT * FROM users WHERE username = $1 AND deleted_at IS NULL`,
@@ -624,8 +647,8 @@ export async function userRoutes(app: FastifyInstance): Promise<void> {
     return { data: { user: mapUser(row!) } };
   });
 
-  // Plan seçimi ödeme altyapısı hazır olana kadar kullanıcı tarafından
-  // yapılır; yükseltme de düşürme de anında geçerli olur ve denetlenir.
+  // Plan yalnızca yönetici onayıyla değişir. Kullanıcı talep oluşturur;
+  // `PATCH /me/plan` doğrudan değişiklik kabul etmez.
   app.get('/me/plan', async (req) => {
     const viewer = await requireViewer(req);
     const row = await queryOne<{ plan: string; plan_started_at: Date | null }>(
@@ -635,6 +658,14 @@ export async function userRoutes(app: FastifyInstance): Promise<void> {
     const plan = normalizePlan(row?.plan);
     const effective = { ...viewer, plan };
     const usedBytes = await storageUsage(viewer.id);
+    const request = await queryOne<PlanRequestRow>(
+      `SELECT id, requested_plan, status, note, review_note, created_at, reviewed_at
+       FROM plan_requests
+       WHERE user_id = $1 AND status = 'pending'
+       ORDER BY created_at DESC
+       LIMIT 1`,
+      [viewer.id],
+    );
     return {
       data: {
         plan,
@@ -642,35 +673,62 @@ export async function userRoutes(app: FastifyInstance): Promise<void> {
         limits: await effectiveLimits(effective),
         usage: { assets: await assetUsage(viewer.id), storageBytes: usedBytes },
         warnings: await planWarnings(effective),
+        request: request ? mapPlanRequest(request) : null,
       },
     };
   });
 
-  app.patch('/me/plan', async (req) => {
+  app.post('/me/plan-request', async (req) => {
     const viewer = await requireViewer(req);
     const body = parseBody(
-      z.object({ plan: z.enum(['free', 'premium'], { message: 'Geçersiz plan seçimi.' }) }),
+      z.object({
+        plan: z.enum(['premium', 'plus'], { message: 'Geçersiz plan seçimi.' }),
+        note: z.string().trim().max(500).optional(),
+      }),
       req.body,
     );
-    const usage = await assetUsage(viewer.id);
-    const usedBytes = await storageUsage(viewer.id);
-    // Premium'dan ücretsiz plana dönüşte mevcut veriler silinmez; yalnızca
-    // yeni yazmalar sınırlara tabi olur.
-    await query(
-      `UPDATE users SET plan = $2, plan_started_at = now() WHERE id = $1`,
-      [viewer.id, body.plan],
+    const row = await queryOne<{ plan: string }>(`SELECT plan FROM users WHERE id = $1`, [
+      viewer.id,
+    ]);
+    if (normalizePlan(row?.plan) === body.plan) conflict('Bu plan zaten etkin.');
+    const existing = await queryOne<{ id: string }>(
+      `SELECT id FROM plan_requests WHERE user_id = $1 AND status = 'pending'`,
+      [viewer.id],
     );
-    await audit(viewer.id, 'user.plan_changed', 'user', viewer.id, { plan: body.plan }, req.ip);
-    const effective = { ...viewer, plan: body.plan };
-    return {
-      data: {
-        plan: body.plan,
-        startedAt: new Date().toISOString(),
-        limits: await effectiveLimits(effective),
-        usage: { assets: usage, storageBytes: usedBytes },
-        warnings: await planWarnings(effective),
-      },
-    };
+    if (existing) conflict('Zaten bekleyen bir plan talebiniz var.');
+    const created = await queryOne<PlanRequestRow>(
+      `INSERT INTO plan_requests (user_id, requested_plan, note)
+       VALUES ($1, $2, $3)
+       RETURNING id, requested_plan, status, note, review_note, created_at, reviewed_at`,
+      [viewer.id, body.plan, body.note ?? null],
+    );
+    await audit(
+      viewer.id,
+      'plan_request.created',
+      'plan_request',
+      created!.id,
+      { plan: body.plan },
+      req.ip,
+    );
+    return { data: { request: mapPlanRequest(created!) } };
+  });
+
+  app.delete('/me/plan-request', async (req) => {
+    const viewer = await requireViewer(req);
+    const rows = await query<{ id: string }>(
+      `UPDATE plan_requests SET status = 'cancelled', updated_at = now()
+       WHERE user_id = $1 AND status = 'pending'
+       RETURNING id`,
+      [viewer.id],
+    );
+    if (rows.length === 0) notFound('Bekleyen plan talebi bulunamadı.');
+    await audit(viewer.id, 'plan_request.cancelled', 'plan_request', rows[0]!.id, {}, req.ip);
+    return { data: { cancelled: true } };
+  });
+
+  app.patch('/me/plan', async (req) => {
+    await requireViewer(req);
+    throw forbidden('Plan değişikliği yalnızca yönetici onayıyla yapılır. Lütfen talep oluşturun.');
   });
 
   app.post('/me/onboarding', async (req) => {

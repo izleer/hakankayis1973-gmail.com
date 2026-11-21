@@ -202,8 +202,11 @@ interface VhApi {
     @GET("v1/me/plan")
     suspend fun plan(): Envelope<PlanInfo>
 
-    @PATCH("v1/me/plan")
-    suspend fun updatePlan(@Body body: UpdatePlanRequest): Envelope<PlanInfo>
+    @POST("v1/me/plan-request")
+    suspend fun requestPlan(@Body body: PlanRequestBody): Envelope<PlanRequestPayload>
+
+    @DELETE("v1/me/plan-request")
+    suspend fun cancelPlanRequest(): Envelope<OkResponse>
 
     @GET("v1/social/connections")
     suspend fun socialConnections(): Envelope<SocialConnectionsPayload>

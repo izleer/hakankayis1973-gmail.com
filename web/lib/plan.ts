@@ -9,41 +9,75 @@ export const PLAN_LIMITS: Record<Plan, PlanLimits> = {
     maxAssets: 5,
     maxEntriesPerAsset: 10,
     maxMediaPerEntry: 1,
-    maxMediaPerAsset: null,
+    maxMediaPerAsset: 25,
     maxFileBytes: null,
     maxStorageBytes: 524_288_000,
-    analytics: 'basic',
-    comparison: false,
+    ads: true,
+    photoHistory: 'basic',
+    comparison: 'none',
+    charts: 'none',
+    reminders: 'basic',
     reports: false,
+    bulkExport: false,
+    analytics: 'basic',
     cloud: 'limited',
   },
   premium: {
-    maxAssets: null,
-    maxEntriesPerAsset: null,
+    maxAssets: 50,
+    maxEntriesPerAsset: 100,
     maxMediaPerEntry: 10,
-    maxMediaPerAsset: null,
+    maxMediaPerAsset: 500,
     maxFileBytes: null,
-    maxStorageBytes: null,
+    maxStorageBytes: 5_368_709_120,
+    ads: false,
+    photoHistory: 'advanced',
+    comparison: 'basic',
+    charts: 'basic',
+    reminders: 'advanced',
+    reports: false,
+    bulkExport: false,
     analytics: 'advanced',
-    comparison: true,
+    cloud: 'standard',
+  },
+  plus: {
+    maxAssets: 250,
+    maxEntriesPerAsset: 500,
+    maxMediaPerEntry: 25,
+    maxMediaPerAsset: 2_000,
+    maxFileBytes: null,
+    maxStorageBytes: 26_843_545_600,
+    ads: false,
+    photoHistory: 'advanced',
+    comparison: 'advanced',
+    charts: 'advanced',
+    reminders: 'advanced',
     reports: true,
+    bulkExport: true,
+    analytics: 'full',
     cloud: 'full',
   },
 };
 
 export function planOf(user: Pick<User, 'plan'> | null | undefined): Plan {
-  return user?.plan === 'premium' ? 'premium' : 'free';
+  if (user?.plan === 'plus') return 'plus';
+  if (user?.plan === 'premium') return 'premium';
+  return 'free';
 }
 
+/** Ücretli plan (Premium veya Plus). */
 export function isPremium(user: Pick<User, 'plan'> | null | undefined): boolean {
-  return planOf(user) === 'premium';
+  return planOf(user) !== 'free';
+}
+
+export function isPlus(user: Pick<User, 'plan'> | null | undefined): boolean {
+  return planOf(user) === 'plus';
 }
 
 export function limitsFor(user: Pick<User, 'plan'> | null | undefined): PlanLimits {
   return PLAN_LIMITS[planOf(user)];
 }
 
-/** Ücretsiz planda kayıt başına medya sınırı; Premium'da üst sınır 10. */
+/** Kayıt başına medya sınırı; planda tanımlı değer yoksa 10 kabul edilir. */
 export function mediaLimitFor(user: Pick<User, 'plan'> | null | undefined): number {
   return limitsFor(user).maxMediaPerEntry ?? 10;
 }

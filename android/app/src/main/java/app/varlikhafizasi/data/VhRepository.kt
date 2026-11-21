@@ -132,7 +132,13 @@ class VhRepository(
 
     suspend fun plan(): PlanInfo = call { api.plan() }
 
-    suspend fun updatePlan(plan: String): PlanInfo = call { api.updatePlan(UpdatePlanRequest(plan)) }
+    /** Plan yükseltme talebi oluşturur; plan yalnızca yönetici onayıyla değişir. */
+    suspend fun requestPlan(plan: String): PlanRequest =
+        call { api.requestPlan(PlanRequestBody(Plans.normalize(plan))) }.request
+
+    suspend fun cancelPlanRequest() {
+        call { api.cancelPlanRequest() }
+    }
 
     suspend fun groupSummary(): GroupSummaryPayload = call { api.groupSummary() }
 

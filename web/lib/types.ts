@@ -11,19 +11,26 @@ export type EntryType =
   | 'document'
   | 'reminder';
 
-export type Plan = 'free' | 'premium';
+export type Plan = 'free' | 'premium' | 'plus';
+
+export type FeatureLevel = 'none' | 'basic' | 'advanced';
 
 export type PlanLimits = {
   maxAssets: number | null;
   maxEntriesPerAsset: number | null;
   maxMediaPerEntry: number | null;
-  maxMediaPerAsset?: number | null;
-  maxFileBytes?: number | null;
-  maxStorageBytes?: number | null;
-  analytics: 'basic' | 'advanced';
-  comparison: boolean;
+  maxMediaPerAsset: number | null;
+  maxFileBytes: number | null;
+  maxStorageBytes: number | null;
+  ads: boolean;
+  photoHistory: 'basic' | 'advanced';
+  comparison: FeatureLevel;
+  charts: FeatureLevel;
+  reminders: 'basic' | 'advanced';
   reports: boolean;
-  cloud: 'limited' | 'full';
+  bulkExport: boolean;
+  analytics: 'basic' | 'advanced' | 'full';
+  cloud: 'limited' | 'standard' | 'full';
 };
 
 export type PlanLimitMode = 'enforce' | 'warn' | 'shadow';
@@ -87,6 +94,22 @@ export type PlanInfo = {
   limits: PlanLimits;
   usage: { assets: number; storageBytes?: number };
   warnings?: PlanWarning[];
+  request?: PlanRequest | null;
+};
+
+export type PlanRequest = {
+  id: string;
+  plan: Plan;
+  status: 'pending' | 'approved' | 'rejected' | 'cancelled';
+  note: string | null;
+  reviewNote: string | null;
+  createdAt: string;
+  reviewedAt: string | null;
+};
+
+export type PlanRequestItem = PlanRequest & {
+  user: UserMini & { plan: Plan };
+  reviewer: { id: string; username: string | null } | null;
 };
 
 export type UserMini = {

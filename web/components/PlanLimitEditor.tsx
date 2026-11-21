@@ -11,8 +11,12 @@ import type {
   PlanLimitRule,
 } from '@/lib/types';
 
-const PLAN_ORDER: Plan[] = ['free', 'premium'];
-const PLAN_LABEL: Record<Plan, string> = { free: 'Ücretsiz', premium: 'Premium' };
+const PLAN_ORDER: Plan[] = ['free', 'premium', 'plus'];
+const PLAN_LABEL: Record<Plan, string> = {
+  free: 'Ücretsiz',
+  premium: 'Premium',
+  plus: 'Plus',
+};
 const MODE_LABEL: Record<PlanLimitMode, string> = {
   enforce: 'Zorunlu',
   warn: 'Uyarı',

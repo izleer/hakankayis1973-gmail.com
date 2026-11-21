@@ -748,29 +748,40 @@ class VhViewModel(
     }
 
     /**
-     * Plan değişikliği ödeme altyapısı bağlanana kadar anında geçerlidir.
-     * Sunucu yanıtı oturumdaki kullanıcıya ve plan durumuna yansıtılır.
+     * Plan yükseltme talebi oluşturur. Plan kendiliğinden değişmez; yönetici
+     * talebi onayladığında etkinleşir. Bekleyen talep plan bilgisine yansır.
      */
-    fun updatePlan(target: String) {
+    fun requestPlan(target: String) {
+        val wanted = Plans.normalize(target)
+        if (_planBusy.value || wanted == Plans.FREE) return
+        viewModelScope.launch {
+            _planBusy.value = true
+            _planError.value = null
+            try {
+                val request = repository.requestPlan(wanted)
+                val current = _plan.value.data ?: PlanInfo(plan = currentPlan)
+                _plan.value = Loadable(data = current.copy(request = request))
+                setNotice(str(R.string.plan_request_sent))
+            } catch (error: Throwable) {
+                _planError.value = messageOf(error)
+            } finally {
+                _planBusy.value = false
+            }
+        }
+    }
+
+    /** Bekleyen plan talebini geri çeker. */
+    fun cancelPlanRequest() {
         if (_planBusy.value) return
         viewModelScope.launch {
             _planBusy.value = true
             _planError.value = null
             try {
-                val info = repository.updatePlan(Plans.normalize(target))
-                _plan.value = Loadable(data = info)
-                _session.update { current ->
-                    current.copy(user = current.user?.copy(plan = info.plan))
-                }
-                loadProfile()
-                loadHome()
-                setNotice(
-                    if (Plans.isPremium(info.plan)) {
-                        str(R.string.plan_activated_premium)
-                    } else {
-                        str(R.string.plan_activated_free)
-                    },
-                )
+                repository.cancelPlanRequest()
+                val current = _plan.value.data ?: PlanInfo(plan = currentPlan)
+                _plan.value = Loadable(data = current.copy(request = null))
+                setNotice(str(R.string.plan_request_cancelled))
+                loadPlan(force = true)
             } catch (error: Throwable) {
                 _planError.value = messageOf(error)
             } finally {

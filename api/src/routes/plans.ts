@@ -13,6 +13,7 @@ export async function planRoutes(app: FastifyInstance): Promise<void> {
         plans: {
           free: limitsFor('free'),
           premium: limitsFor('premium'),
+          plus: limitsFor('plus'),
         },
         updatedAt: planLimitsUpdatedAt(),
       },

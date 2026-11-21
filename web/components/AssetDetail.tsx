@@ -66,6 +66,27 @@ const entryIcons: Record<EntryType, IconName> = {
 };
 
 const entryTypes = Object.keys(entryTypeLabels) as EntryType[];
+
+/**
+ * Bonsai kayıtlarında "İşleminiz" ve "Kayıt türü" tek listede birleşir.
+ * Etiketler günlük bakım akışını izler; her seçenek kaydın türünü belirler.
+ */
+const bonsaiActions: {
+  key: string;
+  label: string;
+  entryType: EntryType;
+}[] = [
+  { key: 'bonsai-purchase', label: 'Alım', entryType: 'acquisition' },
+  { key: 'bonsai-removal', label: 'Söküm', entryType: 'event' },
+  { key: 'bonsai-pruning', label: 'Budama', entryType: 'maintenance' },
+  { key: 'bonsai-repotting', label: 'Saksılama', entryType: 'maintenance' },
+  { key: 'bonsai-wiring', label: 'Telleme', entryType: 'maintenance' },
+  { key: 'bonsai-care', label: 'Bakım', entryType: 'maintenance' },
+  { key: 'bonsai-fertilizing', label: 'Gübreleme', entryType: 'maintenance' },
+  { key: 'bonsai-reminder', label: 'Hatırlatma', entryType: 'reminder' },
+  { key: 'bonsai-other', label: 'Diğer', entryType: 'note' },
+];
+
 const visibilityOrder: Visibility[] = ['private', 'selected', 'friends', 'public'];
 
 function formatFieldValue(
@@ -1214,6 +1235,7 @@ function EntryComposer({
   const templateActions = asset.template?.actions ?? [];
   const templateReminders = asset.template?.reminders ?? [];
   const templateMeasurements = asset.template?.measurements ?? [];
+  const isBonsai = asset.type.id === 'canli-bitki-bonsai' || asset.type.id.endsWith('-bonsai');
 
   // "İşleminiz" listesi: normal şablon işlemleri ve hatırlatma varyantları
   // tek seçimde toplanır; hatırlatma seçilirse tarih/saat sahibi belirler.
@@ -1352,48 +1374,76 @@ function EntryComposer({
         </header>
 
         <form className="modal-body" onSubmit={submit}>
-          {actionChoices.length > 0 ? (
+          {isBonsai ? (
             <label className="field">
-              <span>{t('İşleminiz')}</span>
+              <span>{t('Kayıt türü')}</span>
               <select
                 className="select"
-                value={selectedChoice?.key ?? ''}
+                value={actionChoiceKey}
                 onChange={(event) => {
-                  const choice = actionChoices.find(
-                    (item) => item.key === event.target.value,
-                  );
-                  if (choice) applyActionChoice(choice);
+                  const choice = bonsaiActions.find((item) => item.key === event.target.value);
+                  setActionChoiceKey(event.target.value);
+                  setDueAt('');
+                  setError(null);
+                  if (!choice) return;
+                  setType(choice.entryType);
+                  setTitle((current) => (current ? current : choice.key === 'bonsai-other' ? '' : t(choice.label)));
                 }}
               >
                 <option value="">{t('İşlem seç')}</option>
-                {actionChoices.map((choice) => (
+                {bonsaiActions.map((choice) => (
                   <option key={choice.key} value={choice.key}>
-                    {choice.label}
-                    {choice.hint ? ` · ${choice.hint}` : ''}
+                    {t(choice.label)}
                   </option>
                 ))}
               </select>
             </label>
-          ) : null}
+          ) : (
+            <>
+              {actionChoices.length > 0 ? (
+                <label className="field">
+                  <span>{t('İşleminiz')}</span>
+                  <select
+                    className="select"
+                    value={selectedChoice?.key ?? ''}
+                    onChange={(event) => {
+                      const choice = actionChoices.find(
+                        (item) => item.key === event.target.value,
+                      );
+                      if (choice) applyActionChoice(choice);
+                    }}
+                  >
+                    <option value="">{t('İşlem seç')}</option>
+                    {actionChoices.map((choice) => (
+                      <option key={choice.key} value={choice.key}>
+                        {choice.label}
+                        {choice.hint ? ` · ${choice.hint}` : ''}
+                      </option>
+                    ))}
+                  </select>
+                </label>
+              ) : null}
 
-          <label className="field">
-            <span>{t('Kayıt türü')}</span>
-            <select
-              className="select"
-              value={type}
-              onChange={(event) => {
-                setType(event.target.value as EntryType);
-                setActionChoiceKey('');
-                setDueAt('');
-              }}
-            >
-              {entryTypes.map((item) => (
-                <option key={item} value={item}>
-                  {t(entryTypeLabels[item])}
-                </option>
-              ))}
-            </select>
-          </label>
+              <label className="field">
+                <span>{t('Kayıt türü')}</span>
+                <select
+                  className="select"
+                  value={type}
+                  onChange={(event) => {
+                    setType(event.target.value as EntryType);
+                    setActionChoiceKey('');
+                    setDueAt('');
+                  }}
+                >
+                  {entryTypes.map((item) => (
+                    <option key={item} value={item}>
+                      {t(entryTypeLabels[item])}
+                    </option>
+                  ))}
+                </select>
+              </label>
+            </>
+          )}
 
           {type === 'measurement' && templateMeasurements.length > 0 ? (
             <div className="suggestion-block measurement-block">

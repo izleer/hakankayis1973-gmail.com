@@ -7,7 +7,7 @@ import { PremiumGate } from '@/components/PremiumGate';
 import { api, requireViewer } from '@/lib/api';
 import { formatDate, formatLocation, formatNumber, typeIconName } from '@/lib/format';
 import { getI18n, getT } from '@/lib/i18n/server';
-import { isPremium } from '@/lib/plan';
+import { isPlus } from '@/lib/plan';
 import type { Asset, AssetType, Paged } from '@/lib/types';
 
 export async function generateMetadata(): Promise<Metadata> {
@@ -20,12 +20,12 @@ type SearchParams = Promise<{ q?: string; type?: string }>;
 export default async function ReportsPage({ searchParams }: { searchParams: SearchParams }) {
   const viewer = await requireViewer();
   const { t, locale } = await getI18n();
-  if (!isPremium(viewer)) {
+  if (!isPlus(viewer)) {
     return (
       <PremiumGate
-        title={t('Raporlar Premium’da açılır')}
+        title={t('Raporlar Plus’ta açılır')}
         body={t(
-          'Künye, konum, ölçümler ve tüm hikâye tek bir yazdırılabilir raporda. Raporlar Premium planda kullanılabilir.',
+          'Künye, konum, ölçümler ve tüm hikâye tek bir yazdırılabilir raporda. Raporlar Plus planda kullanılabilir.',
         )}
       />
     );

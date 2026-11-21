@@ -2,7 +2,11 @@ import { query, queryOne } from '../db.js';
 import { ApiError } from './errors.js';
 import type { Viewer } from './session.js';
 
-export type Plan = 'free' | 'premium';
+export type Plan = 'free' | 'premium' | 'plus';
+
+export const PLANS = ['free', 'premium', 'plus'] as const;
+
+export type FeatureLevel = 'none' | 'basic' | 'advanced';
 
 export type PlanLimits = {
   /** Yeni varlık üst sınırı; null sınırsız. */
@@ -14,10 +18,26 @@ export type PlanLimits = {
   maxMediaPerAsset: number | null;
   maxFileBytes: number | null;
   maxStorageBytes: number | null;
-  analytics: 'basic' | 'advanced';
-  comparison: boolean;
+
+  // --- Özellik yetkileri (entitlement) -------------------------------------
+  /** Reklam gösterimi yalnızca ücretsiz planda açıktır. */
+  ads: boolean;
+  /** Fotoğraf geçmişi derinliği. */
+  photoHistory: 'basic' | 'advanced';
+  /** Fotoğraf karşılaştırma: yok / temel / gelişmiş. */
+  comparison: FeatureLevel;
+  /** Ölçüm grafikleri: yok / temel / gelişmiş. */
+  charts: FeatureLevel;
+  /** Hatırlatmalar: temel / gelişmiş. */
+  reminders: 'basic' | 'advanced';
+  /** PDF / yazdırılabilir varlık raporu. */
   reports: boolean;
-  cloud: 'limited' | 'full';
+  /** Toplu dışa aktarma. */
+  bulkExport: boolean;
+  /** Web analizleri: temel / gelişmiş / tam. */
+  analytics: 'basic' | 'advanced' | 'full';
+  /** Bulut erişimi: sınırlı / standart / tam. */
+  cloud: 'limited' | 'standard' | 'full';
 };
 
 export const LIMIT_KEYS = [
@@ -63,24 +83,51 @@ export const DEFAULT_LIMITS: Record<Plan, PlanLimits> = {
     maxAssets: 5,
     maxEntriesPerAsset: 10,
     maxMediaPerEntry: 1,
-    maxMediaPerAsset: null,
+    maxMediaPerAsset: 25,
     maxFileBytes: null,
     maxStorageBytes: 524_288_000,
-    analytics: 'basic',
-    comparison: false,
+    ads: true,
+    photoHistory: 'basic',
+    comparison: 'none',
+    charts: 'none',
+    reminders: 'basic',
     reports: false,
+    bulkExport: false,
+    analytics: 'basic',
     cloud: 'limited',
   },
   premium: {
-    maxAssets: null,
-    maxEntriesPerAsset: null,
+    maxAssets: 50,
+    maxEntriesPerAsset: 100,
     maxMediaPerEntry: 10,
-    maxMediaPerAsset: null,
+    maxMediaPerAsset: 500,
     maxFileBytes: null,
-    maxStorageBytes: null,
+    maxStorageBytes: 5_368_709_120,
+    ads: false,
+    photoHistory: 'advanced',
+    comparison: 'basic',
+    charts: 'basic',
+    reminders: 'advanced',
+    reports: false,
+    bulkExport: false,
     analytics: 'advanced',
-    comparison: true,
+    cloud: 'standard',
+  },
+  plus: {
+    maxAssets: 250,
+    maxEntriesPerAsset: 500,
+    maxMediaPerEntry: 25,
+    maxMediaPerAsset: 2_000,
+    maxFileBytes: null,
+    maxStorageBytes: 26_843_545_600,
+    ads: false,
+    photoHistory: 'advanced',
+    comparison: 'advanced',
+    charts: 'advanced',
+    reminders: 'advanced',
     reports: true,
+    bulkExport: true,
+    analytics: 'full',
     cloud: 'full',
   },
 };
@@ -101,7 +148,7 @@ const CACHE_TTL_MS = 60_000;
 
 function fallbackRules(): LimitRule[] {
   const list: LimitRule[] = [];
-  for (const plan of ['free', 'premium'] as const) {
+  for (const plan of PLANS) {
     for (const key of LIMIT_KEYS) {
       list.push({
         plan,
@@ -122,13 +169,14 @@ function fallbackRules(): LimitRule[] {
 let limits: Record<Plan, PlanLimits> = {
   free: { ...DEFAULT_LIMITS.free },
   premium: { ...DEFAULT_LIMITS.premium },
+  plus: { ...DEFAULT_LIMITS.plus },
 };
 let rules: LimitRule[] = fallbackRules();
 let loadedAt = 0;
 let inflight: Promise<void> | null = null;
 
 function parseRule(row: Record<string, any>): LimitRule | null {
-  if (row.plan !== 'free' && row.plan !== 'premium') return null;
+  if (!(PLANS as readonly string[]).includes(row.plan)) return null;
   if (!(LIMIT_KEYS as readonly string[]).includes(row.limit_key)) return null;
   const mode = row.mode === 'warn' || row.mode === 'shadow' ? row.mode : 'enforce';
   return {
@@ -163,6 +211,7 @@ export async function refreshPlanLimits(force = false): Promise<void> {
         const next: Record<Plan, PlanLimits> = {
           free: { ...DEFAULT_LIMITS.free },
           premium: { ...DEFAULT_LIMITS.premium },
+          plus: { ...DEFAULT_LIMITS.plus },
         };
         for (const rule of parsed) {
           if (!rule.active || rule.scope !== 'all') continue;
@@ -456,15 +505,33 @@ export async function planWarnings(viewer: Viewer): Promise<PlanWarning[]> {
 }
 
 export function normalizePlan(value: unknown): Plan {
-  return value === 'premium' ? 'premium' : 'free';
+  if (value === 'premium') return 'premium';
+  if (value === 'plus') return 'plus';
+  return 'free';
 }
 
 export function limitsFor(plan: Plan): PlanLimits {
   return limits[plan];
 }
 
+/** Ücretli plan (Premium veya Plus). */
+export function isPaid(viewer: Pick<Viewer, 'plan'>): boolean {
+  return viewer.plan !== 'free';
+}
+
+/** Geriye dönük uyumluluk: "premium" artık tüm ücretli planları kapsar. */
 export function isPremium(viewer: Pick<Viewer, 'plan'>): boolean {
-  return viewer.plan === 'premium';
+  return isPaid(viewer);
+}
+
+export function isPlus(viewer: Pick<Viewer, 'plan'>): boolean {
+  return viewer.plan === 'plus';
+}
+
+export function planLabel(plan: Plan): string {
+  if (plan === 'plus') return 'Plus';
+  if (plan === 'premium') return 'Premium';
+  return 'Ücretsiz';
 }
 
 export async function assetUsage(userId: string): Promise<number> {
@@ -476,7 +543,9 @@ export async function assetUsage(userId: string): Promise<number> {
 }
 
 function upgradeHint(plan: Plan): string {
-  return plan === 'free' ? ' Sınırsız varlık için Premium plana geçin.' : '';
+  if (plan === 'free') return ' Daha yüksek sınırlar için Premium veya Plus plana geçin.';
+  if (plan === 'premium') return ' Daha yüksek sınırlar için Plus plana geçin.';
+  return '';
 }
 
 export async function assertAssetCapacity(viewer: Viewer): Promise<void> {
@@ -486,9 +555,7 @@ export async function assertAssetCapacity(viewer: Viewer): Promise<void> {
     throw new ApiError(
       403,
       'PLAN_ASSET_LIMIT',
-      `${
-        viewer.plan === 'free' ? 'Ücretsiz planda' : 'Bu planda'
-      } en fazla ${rule.maxValue} varlık oluşturabilirsiniz.${upgradeHint(viewer.plan)}`,
+      `${planLabel(viewer.plan)} planda en fazla ${rule.maxValue} varlık oluşturabilirsiniz.${upgradeHint(viewer.plan)}`,
     );
   }
 }
@@ -508,11 +575,9 @@ export async function assertEntryCapacity(viewer: Viewer, assetId: string): Prom
     throw new ApiError(
       403,
       'PLAN_ENTRY_LIMIT',
-      `${
-        viewer.plan === 'free' ? 'Ücretsiz planda' : 'Bu planda'
-      } bir varlığa en fazla ${rule.maxValue} kayıt ekleyebilirsiniz.${
-        viewer.plan === 'free' ? ' Sınırsız kayıt için Premium plana geçin.' : ''
-      }`,
+      `${planLabel(viewer.plan)} planda bir varlığa en fazla ${rule.maxValue} kayıt ekleyebilirsiniz.${upgradeHint(
+        viewer.plan,
+      )}`,
     );
   }
 }
@@ -521,11 +586,9 @@ function mediaLimitError(plan: Plan, limit: number): ApiError {
   return new ApiError(
     403,
     'PLAN_MEDIA_LIMIT',
-    `${
-      plan === 'free' ? 'Ücretsiz planda' : 'Bu planda'
-    } bir kayda en fazla ${limit} fotoğraf veya belge ekleyebilirsiniz.${
-      plan === 'free' ? ' Daha fazlası için Premium plana geçin.' : ''
-    }`,
+    `${planLabel(plan)} planda bir kayda en fazla ${limit} fotoğraf veya belge ekleyebilirsiniz.${upgradeHint(
+      plan,
+    )}`,
   );
 }
 
@@ -595,7 +658,9 @@ function formatMb(bytes: number): string {
 }
 
 function storageHint(plan: Plan): string {
-  return plan === 'free' ? ' Yer açabilir veya sınırsız depolama için Premium plana geçebilirsiniz.' : '';
+  if (plan === 'free') return ' Yer açabilir veya Premium / Plus plana geçebilirsiniz.';
+  if (plan === 'premium') return ' Yer açabilir veya Plus plana geçebilirsiniz.';
+  return '';
 }
 
 /** Tek dosya boyutu sınırı; tür bazlı kural varsa o, yoksa genel kural uygulanır. */
@@ -610,9 +675,9 @@ export async function assertFileCapacity(
     throw new ApiError(
       413,
       'PLAN_FILE_SIZE_LIMIT',
-      `${
-        viewer.plan === 'free' ? 'Ücretsiz planda' : 'Bu planda'
-      } ${MEDIA_KIND_LABEL[kind].toLocaleLowerCase('tr')} dosyası en fazla ${formatMb(
+      `${planLabel(
+        viewer.plan,
+      )} planda ${MEDIA_KIND_LABEL[kind].toLocaleLowerCase('tr')} dosyası en fazla ${formatMb(
         rule.maxValue!,
       )} olabilir.${storageHint(viewer.plan)}`,
     );
@@ -669,9 +734,9 @@ export async function assertStorageCapacity(
     throw new ApiError(
       403,
       'PLAN_STORAGE_LIMIT',
-      `${
-        viewer.plan === 'free' ? 'Ücretsiz plan' : 'Plan'
-      } depolama sınırı ${formatMb(rule.maxValue!)}; kullanılan ${formatMb(
+      `${planLabel(
+        viewer.plan,
+      )} plan depolama sınırı ${formatMb(rule.maxValue!)}; kullanılan ${formatMb(
         used,
       )}. Yeni dosya için ${formatMb(used + incomingBytes)} gerekiyor.${storageHint(viewer.plan)}`,
     );
@@ -690,11 +755,9 @@ function assetMediaLimitError(plan: Plan, limit: number): ApiError {
   return new ApiError(
     403,
     'PLAN_ASSET_MEDIA_LIMIT',
-    `${
-      plan === 'free' ? 'Ücretsiz planda' : 'Bu planda'
-    } bir varlığa en fazla ${limit} dosya bağlanabilir.${
-      plan === 'free' ? ' Daha fazlası için Premium plana geçin.' : ''
-    }`,
+    `${planLabel(plan)} planda bir varlığa en fazla ${limit} dosya bağlanabilir.${upgradeHint(
+      plan,
+    )}`,
   );
 }
 
