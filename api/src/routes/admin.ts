@@ -651,8 +651,8 @@ export async function adminRoutes(app: FastifyInstance): Promise<void> {
     const updated = await transaction(async (client) => {
       const row = await client.query(
         `UPDATE users
-         SET plan = $2,
-             plan_started_at = CASE WHEN $2 = 'free' THEN plan_started_at ELSE now() END
+         SET plan = $2::user_plan,
+             plan_started_at = CASE WHEN $2::text = 'free' THEN plan_started_at ELSE now() END
          WHERE id = $1 AND deleted_at IS NULL
          RETURNING id, plan`,
         [id, body.plan],
