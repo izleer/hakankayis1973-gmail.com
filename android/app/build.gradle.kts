@@ -7,10 +7,11 @@ plugins {
     id("org.jetbrains.kotlin.plugin.serialization")
 }
 
-// Emülatörde host makine 10.0.2.2'dir. Fiziksel cihaz için derlerken geçersiz kılın:
+// Varsayılan olarak fiziksel cihazda canlı API kullanılır. Emülatörde yerel
+// API'ye bağlanmak için derleme sırasında geçersiz kılın:
+//   gradle assembleDebug -PAPI_BASE_URL=http://10.0.2.2:4000/
 //   gradle assembleDebug -PAPI_BASE_URL=http://127.0.0.1:4000/   (adb reverse ile)
-//   gradle assembleDebug -PAPI_BASE_URL=http://192.168.1.20:4000/ (aynı ağ)
-val apiBaseUrl = (findProperty("API_BASE_URL") as String?) ?: "http://10.0.2.2:4000/"
+val apiBaseUrl = (findProperty("API_BASE_URL") as String?) ?: "https://izleer-api.onrender.com/"
 
 // AdMob kimlikleri. Varsayılanlar Google'ın resmî test kimlikleridir; gerçek
 // yayın için derleme sırasında geçersiz kılın:
