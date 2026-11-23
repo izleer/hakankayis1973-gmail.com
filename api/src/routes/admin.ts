@@ -198,7 +198,7 @@ export async function adminRoutes(app: FastifyInstance): Promise<void> {
       req.query,
     );
     const rows = await query<Record<string, any>>(
-      `SELECT id, username, display_name, avatar_url, role, created_at
+      `SELECT id, username, display_name, avatar_url, role, plan, created_at
        FROM users
        WHERE deleted_at IS NULL
          AND ($1::text IS NULL OR username ILIKE $1 OR display_name ILIKE $1)
@@ -210,6 +210,7 @@ export async function adminRoutes(app: FastifyInstance): Promise<void> {
         items: rows.map((row) => ({
           ...mapUserMini(row),
           role: row.role,
+          plan: row.plan,
           createdAt: iso(row.created_at),
         })),
       },

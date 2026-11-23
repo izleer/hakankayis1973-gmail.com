@@ -24,6 +24,8 @@ const PLAN_LABEL: Record<Plan, string> = {
   plus: 'Plus',
 };
 
+type AdminUser = UserMini & { plan: Plan };
+
 const SCOPE_LABEL: Record<string, string> = {
   all: 'Tüm dosyalar',
   image: 'Görseller',
@@ -122,13 +124,14 @@ function overrideLabel(item: UserLimitOverride): string {
 
 export function UserLimitOverrides() {
   const [query, setQuery] = useState('');
-  const [results, setResults] = useState<UserMini[]>([]);
+  const [results, setResults] = useState<AdminUser[]>([]);
   const [searching, setSearching] = useState(false);
   const [searched, setSearched] = useState(false);
-  const [selected, setSelected] = useState<(UserMini & { plan: Plan }) | null>(null);
+  const [selected, setSelected] = useState<AdminUser | null>(null);
   const [overrides, setOverrides] = useState<UserLimitOverride[]>([]);
   const [loading, setLoading] = useState(false);
   const [busy, setBusy] = useState(false);
+  const [planBusyId, setPlanBusyId] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [notice, setNotice] = useState<string | null>(null);
   const [form, setForm] = useState<FormState>(blankForm);
@@ -138,7 +141,7 @@ export function UserLimitOverrides() {
     setError(null);
     try {
       const data = await vh.get<{
-        user: UserMini & { plan: Plan };
+        user: AdminUser;
         items: UserLimitOverride[];
       }>(`admin/users/${userId}/limit-overrides`);
       setSelected(data.user);
@@ -157,7 +160,7 @@ export function UserLimitOverrides() {
     setError(null);
     setNotice(null);
     try {
-      const data = await vh.get<{ items: UserMini[] }>(
+      const data = await vh.get<{ items: AdminUser[] }>(
         `admin/users?q=${encodeURIComponent(query.trim())}&limit=20`,
       );
       setResults(data.items);
@@ -173,6 +176,35 @@ export function UserLimitOverrides() {
     setNotice(null);
     setError(null);
     void loadUser(user.id);
+  }
+
+  async function changePlan(user: AdminUser, next: Plan) {
+    if (next === user.plan) return;
+    const label = PLAN_LABEL[next];
+    if (
+      !window.confirm(
+        `${user.displayName} (@${user.username}) kullanıcısının planı "${label}" olarak değiştirilsin mi?`,
+      )
+    ) {
+      return;
+    }
+    setPlanBusyId(user.id);
+    setError(null);
+    setNotice(null);
+    try {
+      await vh.patch(`admin/users/${user.id}/plan`, { plan: next });
+      setResults((current) =>
+        current.map((item) => (item.id === user.id ? { ...item, plan: next } : item)),
+      );
+      setSelected((current) =>
+        current && current.id === user.id ? { ...current, plan: next } : current,
+      );
+      setNotice(`${user.displayName} kullanıcısının planı ${label} olarak güncellendi.`);
+    } catch (caught) {
+      setError(caught instanceof Error ? caught.message : 'Plan değiştirilemedi.');
+    } finally {
+      setPlanBusyId(null);
+    }
   }
 
   function edit(item: UserLimitOverride) {
@@ -277,10 +309,10 @@ export function UserLimitOverrides() {
     <section className="admin-panel" aria-labelledby="admin-overrides-title">
       <header className="admin-plan-head">
         <div>
-          <h2 id="admin-overrides-title">Kullanıcıya özel istisnalar</h2>
+          <h2 id="admin-overrides-title">Kullanıcı planı ve kota istisnaları</h2>
           <p className="admin-actions-note">
-            Plan kuralından önce uygulanır. Tek bir kullanıcıya ek kota verebilir ya da
-            süreli bir istisna tanımlayabilirsin.
+            Kullanıcı ara; planını Ücretsiz, Premium veya Plus olarak değiştir. Aynı ekrandan
+            kullanıcıya özel kota istisnası da tanımlayabilirsin.
           </p>
         </div>
       </header>
@@ -304,20 +336,49 @@ export function UserLimitOverrides() {
       {results.length > 0 ? (
         <div className="admin-user-results">
           {results.map((user) => (
-            <button
+            <div
               key={user.id}
-              type="button"
               className={`admin-user-item${
                 selected?.id === user.id ? ' is-active' : ''
               }`}
-              onClick={() => openUser(user)}
             >
-              <strong>{user.displayName}</strong>
-              <small>@{user.username}</small>
-            </button>
+              <button
+                type="button"
+                className="admin-user-select"
+                onClick={() => openUser(user)}
+              >
+                <strong>{user.displayName}</strong>
+                <small>@{user.username}</small>
+              </button>
+              <label className="admin-user-plan">
+                <span>Plan</span>
+                <select
+                  className="select admin-plan-select"
+                  value={user.plan}
+                  disabled={planBusyId === user.id}
+                  aria-label={`${user.displayName} planı`}
+                  onChange={(event) => {
+                    const next = event.target.value as Plan;
+                    event.target.value = user.plan;
+                    void changePlan(user, next);
+                  }}
+                >
+                  <option value="free">{PLAN_LABEL.free}</option>
+                  <option value="premium">{PLAN_LABEL.premium}</option>
+                  <option value="plus">{PLAN_LABEL.plus}</option>
+                </select>
+              </label>
+            </div>
           ))}
         </div>
       ) : null}
+
+      {notice ? (
+        <p className="plan-notice" role="status">
+          {notice}
+        </p>
+      ) : null}
+      {error ? <p className="form-error">{error}</p> : null}
 
       {selected ? (
         <div className="admin-overrides">
@@ -328,7 +389,29 @@ export function UserLimitOverrides() {
               </h2>
               <span className="admin-plan-chip">{PLAN_LABEL[selected.plan]}</span>
             </div>
+            <label className="admin-plan-editor">
+              <span>Plan</span>
+              <select
+                className="select admin-plan-select"
+                value={selected.plan}
+                disabled={planBusyId === selected.id}
+                aria-label={`${selected.displayName} planı`}
+                onChange={(event) => {
+                  const next = event.target.value as Plan;
+                  event.target.value = selected.plan;
+                  void changePlan(selected, next);
+                }}
+              >
+                <option value="free">{PLAN_LABEL.free}</option>
+                <option value="premium">{PLAN_LABEL.premium}</option>
+                <option value="plus">{PLAN_LABEL.plus}</option>
+              </select>
+            </label>
           </div>
+          <p className="admin-actions-note">
+            Plan değişikliği anında uygulanır. Kullanıcının bekleyen plan talebi varsa iptal
+            edilir.
+          </p>
 
           {loading ? (
             <p className="admin-empty">Yükleniyor…</p>
@@ -536,16 +619,7 @@ export function UserLimitOverrides() {
               </p>
             </div>
           </form>
-
-          {notice ? (
-            <p className="plan-notice" role="status">
-              {notice}
-            </p>
-          ) : null}
-          {error ? <p className="form-error">{error}</p> : null}
         </div>
-      ) : error ? (
-        <p className="form-error">{error}</p>
       ) : null}
     </section>
   );
