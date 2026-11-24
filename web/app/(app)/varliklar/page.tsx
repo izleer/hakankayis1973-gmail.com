@@ -8,6 +8,7 @@ import { api, requireViewer } from '@/lib/api';
 import { adConfig } from '@/lib/ads';
 import { formatNumber, typeIconName } from '@/lib/format';
 import { getI18n, getT } from '@/lib/i18n/server';
+import { showsAds } from '@/lib/plan';
 import type { Asset, AssetType, Paged } from '@/lib/types';
 
 export async function generateMetadata(): Promise<Metadata> {
@@ -20,7 +21,7 @@ type SearchParams = Promise<{ q?: string; type?: string; status?: string }>;
 export default async function AssetsPage({ searchParams }: { searchParams: SearchParams }) {
   const viewer = await requireViewer();
   const { t, locale } = await getI18n();
-  const ads = viewer.plan === 'premium' ? null : adConfig();
+  const ads = showsAds(viewer) ? adConfig() : null;
   const params = await searchParams;
   const query = new URLSearchParams({ limit: '48', sort: 'updated' });
   if (params.q) query.set('q', params.q);
@@ -141,22 +142,29 @@ export default async function AssetsPage({ searchParams }: { searchParams: Searc
         ))}
       </div>
 
-      {viewer.plan !== 'premium' ? (
-        <AdSlot client={ads?.client ?? ''} slot={ads?.slots.assets ?? ''} />
-      ) : null}
-
       {assets.items.length > 0 ? (
-        <AssetGrid assets={assets.items} />
+        <>
+          <AssetGrid assets={assets.items.slice(0, Math.ceil(assets.items.length / 2))} />
+          {showsAds(viewer) ? (
+            <AdSlot client={ads?.client ?? ''} slot={ads?.slots.assets ?? ''} />
+          ) : null}
+          <AssetGrid assets={assets.items.slice(Math.ceil(assets.items.length / 2))} />
+        </>
       ) : (
-        <EmptyState
-          title={params.q ? t('Bu aramada bir iz yok') : t('Bu filtrede varlık yok')}
-          body={
-            params.q
-              ? t('Farklı bir kelime dene ya da filtreleri temizle.')
-              : t('Yeni bir varlık ekleyerek hafızanı genişletebilirsin.')
-          }
-          action={{ href: '/varliklar/yeni', label: t('Yeni varlık ekle') }}
-        />
+        <>
+          <EmptyState
+            title={params.q ? t('Bu aramada bir iz yok') : t('Bu filtrede varlık yok')}
+            body={
+              params.q
+                ? t('Farklı bir kelime dene ya da filtreleri temizle.')
+                : t('Yeni bir varlık ekleyerek hafızanı genişletebilirsin.')
+            }
+            action={{ href: '/varliklar/yeni', label: t('Yeni varlık ekle') }}
+          />
+          {showsAds(viewer) ? (
+            <AdSlot client={ads?.client ?? ''} slot={ads?.slots.assets ?? ''} />
+          ) : null}
+        </>
       )}
     </main>
   );

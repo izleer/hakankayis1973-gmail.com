@@ -19,6 +19,7 @@ import {
 } from '@/lib/format';
 import { localeTags } from '@/lib/i18n/config';
 import { getI18n, getT } from '@/lib/i18n/server';
+import { showsAds } from '@/lib/plan';
 import type {
   AssetType,
   EntryType,
@@ -113,7 +114,7 @@ export default async function SharedAssetPage({ params }: { params: Params }) {
   const data = await loadSharedAsset(slug, assetId);
   if (!data) notFound();
 
-  const ads = viewer.plan === 'premium' ? null : adConfig();
+  const ads = showsAds(viewer) ? adConfig() : null;
 
   const { asset, share, community, entries } = data;
   const attributeLabels = await loadAttributeLabels(asset.type.id);
@@ -218,9 +219,9 @@ export default async function SharedAssetPage({ params }: { params: Params }) {
           : t(scopeNotes[share.scope])}
       </p>
 
-      {viewer.plan === 'premium' ? null : (
+      {showsAds(viewer) ? (
         <AdSlot client={ads?.client ?? ''} slot={ads?.slots.assetDetail ?? ''} />
-      )}
+      ) : null}
 
       <section className="story">
         {share.scope === 'summary' ? (

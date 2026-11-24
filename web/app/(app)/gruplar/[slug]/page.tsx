@@ -4,6 +4,7 @@ import { GroupDetail, type Tab } from '@/components/GroupDetail';
 import { ApiError, api, requireViewer } from '@/lib/api';
 import { adConfig } from '@/lib/ads';
 import { getT } from '@/lib/i18n/server';
+import { showsAds } from '@/lib/plan';
 import type {
   Asset,
   CursorPage,
@@ -51,7 +52,7 @@ export default async function GroupDetailPage({
   searchParams: SearchParams;
 }) {
   const viewer = await requireViewer();
-  const ads = viewer.plan === 'premium' ? null : adConfig();
+  const ads = showsAds(viewer) ? adConfig() : null;
   const { slug } = await params;
   const data = await loadGroup(slug);
   if (!data) notFound();

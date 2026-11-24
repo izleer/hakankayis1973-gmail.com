@@ -425,11 +425,6 @@ fun AddEntryScreen(
 
             if (!editing && !premium) {
                 Spacer(Modifier.height(14.dp))
-                BannerAd()
-            }
-
-            if (!editing && !premium) {
-                Spacer(Modifier.height(14.dp))
                 Surface(
                     color = PaperDeep,
                     shape = RoundedCornerShape(14.dp),
@@ -543,6 +538,11 @@ fun AddEntryScreen(
                 enabled = !busy,
                 modifier = Modifier.fillMaxWidth(),
             )
+
+            if (!editing && !premium) {
+                Spacer(Modifier.height(16.dp))
+                BannerAd()
+            }
 
             Spacer(Modifier.height(18.dp))
             SectionLabel(stringResource(R.string.add_entry_section_when))

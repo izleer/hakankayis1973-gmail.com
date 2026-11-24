@@ -410,11 +410,6 @@ fun NewAssetScreen(
 
             if (!editing && !premium) {
                 Spacer(Modifier.height(14.dp))
-                BannerAd()
-            }
-
-            if (!editing && !premium) {
-                Spacer(Modifier.height(14.dp))
                 Surface(
                     color = PaperDeep,
                     shape = RoundedCornerShape(14.dp),
@@ -546,6 +541,11 @@ fun NewAssetScreen(
                 enabled = !busy,
                 modifier = Modifier.fillMaxWidth(),
             )
+
+            if (!editing && !premium) {
+                Spacer(Modifier.height(16.dp))
+                BannerAd()
+            }
 
             if (templateFields.isNotEmpty()) {
                 Spacer(Modifier.height(18.dp))

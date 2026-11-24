@@ -2,7 +2,9 @@ import type { Metadata } from 'next';
 import { notFound, redirect } from 'next/navigation';
 import { ProfileScreen } from '@/components/ProfileScreen';
 import { ApiError, api, requireViewer } from '@/lib/api';
+import { adConfig } from '@/lib/ads';
 import { getT } from '@/lib/i18n/server';
+import { showsAds } from '@/lib/plan';
 import type { CursorPage, FeedPost, ProfileData } from '@/lib/types';
 
 type Params = Promise<{ username: string }>;
@@ -41,6 +43,18 @@ export default async function UserProfilePage({ params }: { params: Params }) {
   const feed = await api<CursorPage<FeedPost>>(
     `/v1/feed?scope=explore&author=${encodeURIComponent(username)}&limit=20`,
   );
+  const ads = showsAds(viewer) ? adConfig() : null;
 
-  return <ProfileScreen user={profile.user} assets={profile.assets} posts={feed.items} />;
+  return (
+    <ProfileScreen
+      user={profile.user}
+      assets={profile.assets}
+      posts={feed.items}
+      adSlot={
+        showsAds(viewer)
+          ? { client: ads?.client ?? '', slot: ads?.slots.profile ?? '' }
+          : null
+      }
+    />
+  );
 }

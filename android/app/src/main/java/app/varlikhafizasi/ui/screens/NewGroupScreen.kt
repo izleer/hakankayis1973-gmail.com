@@ -220,11 +220,6 @@ fun NewGroupScreen(
                     color = Muted,
                 )
 
-                if (!Plans.isPremium(viewer.plan)) {
-                    Spacer(Modifier.height(14.dp))
-                    BannerAd()
-                }
-
                 Spacer(Modifier.height(20.dp))
                 OutlinedTextField(
                     value = name,
@@ -283,6 +278,11 @@ fun NewGroupScreen(
                             )
                         }
                     }
+                }
+
+                if (!Plans.isPremium(viewer.plan)) {
+                    Spacer(Modifier.height(18.dp))
+                    BannerAd()
                 }
 
                 Spacer(Modifier.height(20.dp))

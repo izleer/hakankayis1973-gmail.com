@@ -300,6 +300,14 @@ fun HomeScreen(
             }
         }
 
+        if (!Plans.isPremium(viewer.plan)) {
+            item {
+                Spacer(Modifier.height(8.dp))
+                BannerAd()
+                Spacer(Modifier.height(8.dp))
+            }
+        }
+
         item {
             Surface(
                 color = Ivory,
@@ -413,13 +421,6 @@ fun HomeScreen(
             }
             items(recent.take(5), key = { it.id }) { entry ->
                 RecentEntry(entry = entry, onClick = { onOpenAsset(entry.assetId) })
-            }
-        }
-
-        if (!Plans.isPremium(viewer.plan)) {
-            item {
-                Spacer(Modifier.height(8.dp))
-                BannerAd()
             }
         }
 

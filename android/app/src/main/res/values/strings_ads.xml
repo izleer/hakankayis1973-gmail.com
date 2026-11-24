@@ -2,5 +2,5 @@
 <resources>
     <!-- Reklam alanı etiketi (AdMob banner) -->
     <string name="ads_label">REKLAM</string>
-    <string name="ads_free_note">Reklamlar ücretsiz planda görünür; Premium ile reklamsız.</string>
+    <string name="ads_free_note">Reklamlar ücretsiz planda görünür; Premium veya Plus ile reklamsız.</string>
 </resources>

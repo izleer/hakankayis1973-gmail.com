@@ -5,6 +5,7 @@ import { ApiError, api, requireViewer } from '@/lib/api';
 import { adConfig } from '@/lib/ads';
 import { loadAttributeLabels } from '@/lib/asset-types';
 import { getT } from '@/lib/i18n/server';
+import { showsAds } from '@/lib/plan';
 import type {
   AssetDetailData,
   Group,
@@ -53,7 +54,7 @@ export default async function AssetDetailPage({ params }: { params: Params }) {
   const loaded = await loadAsset(id);
   if (!loaded) notFound();
   const attributeLabels = await loadAttributeLabels(loaded.data.asset.type.id);
-  const ads = viewer.plan === 'premium' ? null : adConfig();
+  const ads = showsAds(viewer) ? adConfig() : null;
   const [socialEnabled, myGroups] = await Promise.all([
     api<SocialConnectionsResponse>('/v1/social/connections')
       .then((response) => Boolean(response.config?.configured))
@@ -76,9 +77,9 @@ export default async function AssetDetailPage({ params }: { params: Params }) {
       socialEnabled={socialEnabled}
       groups={myGroups}
       adSlot={
-        viewer.plan === 'premium'
-          ? null
-          : { client: ads?.client ?? '', slot: ads?.slots.assetDetail ?? '' }
+        showsAds(viewer)
+          ? { client: ads?.client ?? '', slot: ads?.slots.assetDetail ?? '' }
+          : null
       }
     />
   );

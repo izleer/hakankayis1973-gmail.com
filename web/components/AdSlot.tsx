@@ -39,7 +39,7 @@ export function AdSlot({ client, slot }: { client: string; slot: string }) {
       <aside className="ad-slot ad-slot-placeholder" aria-label={t('Reklam alanı')}>
         <span className="ad-tag">{t('Reklam')}</span>
         <p>
-          {t('Reklamlar ücretsiz planda görünür. Premium ile reklamsız.')}{' '}
+          {t('Reklamlar ücretsiz planda görünür. Premium veya Plus ile reklamsız.')}{' '}
           <Link href="/plan">{t('Reklamsız kullanım')}</Link>
         </p>
       </aside>

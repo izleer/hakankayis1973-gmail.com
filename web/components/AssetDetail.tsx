@@ -1591,6 +1591,8 @@ function EntryComposer({
             />
           </label>
 
+          {adSlot ? <AdSlot client={adSlot.client} slot={adSlot.slot} /> : null}
+
           <div className="form-grid">
             <label className="field">
               <span>{t('Tarih ve saat')}</span>
@@ -1674,8 +1676,6 @@ function EntryComposer({
 
           {error ? <div className="form-error">{error}</div> : null}
           {progress ? <div className="progress-note">{progress}</div> : null}
-
-          {adSlot ? <AdSlot client={adSlot.client} slot={adSlot.slot} /> : null}
 
           <div className="modal-actions">
             <button type="button" className="btn btn-ghost" onClick={onClose} disabled={busy}>

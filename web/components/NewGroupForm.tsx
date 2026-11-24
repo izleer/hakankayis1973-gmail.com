@@ -6,6 +6,7 @@ import { useRef, useState } from 'react';
 import { uploadMedia, vh } from '@/lib/client';
 import { useT } from '@/lib/i18n/client';
 import type { Group, GroupJoinPolicy } from '@/lib/types';
+import { AdSlot } from './AdSlot';
 import { Icon } from './Icons';
 import { MediaImage } from './MediaImage';
 
@@ -20,7 +21,11 @@ const categories = [
   'Diğer',
 ];
 
-export function NewGroupForm() {
+export function NewGroupForm({
+  adSlot = null,
+}: {
+  adSlot?: { client: string; slot: string } | null;
+}) {
   const t = useT();
   const router = useRouter();
   const fileRef = useRef<HTMLInputElement>(null);
@@ -189,6 +194,8 @@ export function NewGroupForm() {
           </label>
         </div>
       </section>
+
+      {adSlot ? <AdSlot client={adSlot.client} slot={adSlot.slot} /> : null}
 
       {error ? <p className="form-error">{error}</p> : null}
 

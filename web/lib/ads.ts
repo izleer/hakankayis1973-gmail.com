@@ -1,4 +1,11 @@
-export type AdPlacement = 'home' | 'assets' | 'assetDetail' | 'groups' | 'friends';
+export type AdPlacement =
+  | 'home'
+  | 'assets'
+  | 'assetDetail'
+  | 'entry'
+  | 'groups'
+  | 'friends'
+  | 'profile';
 
 export type AdsConfig = {
   client: string;
@@ -16,8 +23,10 @@ export type AdsConfig = {
  *   ADSENSE_SLOT_HOME            ana sayfa reklam birimi
  *   ADSENSE_SLOT_ASSETS          varlık listesi ve varlık/kayıt formu birimi
  *   ADSENSE_SLOT_ASSET_DETAIL    varlık detayı reklam birimi
+ *   ADSENSE_SLOT_ENTRY           yeni kayıt formu reklam birimi
  *   ADSENSE_SLOT_GROUPS          gruplar ve grup detayı reklam birimi
  *   ADSENSE_SLOT_FRIENDS         arkadaşlar ve keşfet reklam birimi
+ *   ADSENSE_SLOT_PROFILE         profil reklam birimi
  */
 export function adConfig(): AdsConfig | null {
   const client = (process.env.ADSENSE_CLIENT ?? '').trim();
@@ -28,8 +37,10 @@ export function adConfig(): AdsConfig | null {
       home: (process.env.ADSENSE_SLOT_HOME ?? '').trim(),
       assets: (process.env.ADSENSE_SLOT_ASSETS ?? '').trim(),
       assetDetail: (process.env.ADSENSE_SLOT_ASSET_DETAIL ?? '').trim(),
+      entry: (process.env.ADSENSE_SLOT_ENTRY ?? '').trim(),
       groups: (process.env.ADSENSE_SLOT_GROUPS ?? '').trim(),
       friends: (process.env.ADSENSE_SLOT_FRIENDS ?? '').trim(),
+      profile: (process.env.ADSENSE_SLOT_PROFILE ?? '').trim(),
     },
   };
 }

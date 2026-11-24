@@ -7,6 +7,7 @@ import { uploadMedia, vh } from '@/lib/client';
 import { typeIconName, visibilityHints, visibilityLabels } from '@/lib/format';
 import { useT } from '@/lib/i18n/client';
 import type { Asset, AssetType, AttributeField, CustomField, Visibility } from '@/lib/types';
+import { AdSlot } from './AdSlot';
 import { Icon } from './Icons';
 import { MediaImage } from './MediaImage';
 import {
@@ -35,7 +36,13 @@ function collectSelectable(types: AssetType[], path: string[] = []): Selectable[
   return items;
 }
 
-export function NewAssetForm({ types }: { types: AssetType[] }) {
+export function NewAssetForm({
+  types,
+  adSlot = null,
+}: {
+  types: AssetType[];
+  adSlot?: { client: string; slot: string } | null;
+}) {
   const router = useRouter();
   const t = useT();
   const fileRef = useRef<HTMLInputElement>(null);
@@ -220,6 +227,8 @@ export function NewAssetForm({ types }: { types: AssetType[] }) {
             />
           </label>
         </div>
+
+        {adSlot ? <AdSlot client={adSlot.client} slot={adSlot.slot} /> : null}
 
         {selected && fields.length > 0 ? (
           <div className="form-subsection">

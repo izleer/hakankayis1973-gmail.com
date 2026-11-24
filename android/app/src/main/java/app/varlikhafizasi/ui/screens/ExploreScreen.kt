@@ -119,9 +119,6 @@ fun ExploreScreen(
         }
 
         val data = state.data
-        if (!Plans.isPremium(viewer.plan)) {
-            item { BannerAd() }
-        }
         if (state.loading && data == null) item { LoadingBox() }
         if (state.error != null) {
             item {
@@ -166,6 +163,14 @@ fun ExploreScreen(
                         }
                     }
                 }
+            }
+        }
+
+        if (!Plans.isPremium(viewer.plan)) {
+            item {
+                Spacer(Modifier.height(8.dp))
+                BannerAd()
+                Spacer(Modifier.height(8.dp))
             }
         }
 

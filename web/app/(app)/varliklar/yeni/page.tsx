@@ -1,13 +1,12 @@
 import type { Metadata } from 'next';
 import Link from 'next/link';
-import { AdSlot } from '@/components/AdSlot';
 import { Icon } from '@/components/Icons';
 import { NewAssetForm } from '@/components/NewAssetForm';
 import { api, requireViewer } from '@/lib/api';
 import { adConfig } from '@/lib/ads';
 import { formatNumber } from '@/lib/format';
 import { getI18n } from '@/lib/i18n/server';
-import { limitsFor, reachedAssetLimit } from '@/lib/plan';
+import { limitsFor, reachedAssetLimit, showsAds } from '@/lib/plan';
 import type { AssetType, PlanInfo } from '@/lib/types';
 
 export async function generateMetadata(): Promise<Metadata> {
@@ -24,7 +23,7 @@ export default async function NewAssetPage() {
   ]);
   const limits = limitsFor(viewer);
   const limitReached = reachedAssetLimit(viewer, plan.usage.assets);
-  const ads = viewer.plan === 'premium' ? null : adConfig();
+  const ads = showsAds(viewer) ? adConfig() : null;
 
   if (limitReached) {
     const max = limits.maxAssets ?? 0;
@@ -96,10 +95,14 @@ export default async function NewAssetPage() {
           <Link href="/plan">{t('Premium’a geç')}</Link>
         </p>
       ) : null}
-      {viewer.plan === 'premium' ? null : (
-        <AdSlot client={ads?.client ?? ''} slot={ads?.slots.assets ?? ''} />
-      )}
-      <NewAssetForm types={types.items} />
+      <NewAssetForm
+        types={types.items}
+        adSlot={
+          showsAds(viewer)
+            ? { client: ads?.client ?? '', slot: ads?.slots.assets ?? '' }
+            : null
+        }
+      />
     </main>
   );
 }

@@ -1,7 +1,9 @@
 import type { Metadata } from 'next';
 import { ProfileScreen } from '@/components/ProfileScreen';
 import { api, requireViewer } from '@/lib/api';
+import { adConfig } from '@/lib/ads';
 import { getT } from '@/lib/i18n/server';
+import { showsAds } from '@/lib/plan';
 import type {
   CursorPage,
   FeedPost,
@@ -23,6 +25,7 @@ export default async function OwnProfilePage() {
   ]);
 
   const posts = feed.items.filter((post) => post.author.id === viewer.id);
+  const ads = showsAds(viewer) ? adConfig() : null;
 
   return (
     <ProfileScreen
@@ -30,6 +33,11 @@ export default async function OwnProfilePage() {
       assets={profile.assets}
       posts={posts}
       social={social}
+      adSlot={
+        showsAds(viewer)
+          ? { client: ads?.client ?? '', slot: ads?.slots.profile ?? '' }
+          : null
+      }
     />
   );
 }

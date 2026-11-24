@@ -9,6 +9,7 @@ import { api, requireViewer } from '@/lib/api';
 import { adConfig } from '@/lib/ads';
 import { formatNumber } from '@/lib/format';
 import { getI18n, getT } from '@/lib/i18n/server';
+import { showsAds } from '@/lib/plan';
 import type { Group, GroupInvitation, Paged } from '@/lib/types';
 
 export async function generateMetadata(): Promise<Metadata> {
@@ -32,7 +33,7 @@ type SearchParams = Promise<{ q?: string; category?: string }>;
 export default async function GroupsPage({ searchParams }: { searchParams: SearchParams }) {
   const { t, locale } = await getI18n();
   const viewer = await requireViewer();
-  const ads = viewer.plan === 'premium' ? null : adConfig();
+  const ads = showsAds(viewer) ? adConfig() : null;
   const params = await searchParams;
   const query = new URLSearchParams({ limit: '48' });
   if (params.q) query.set('q', params.q);
@@ -119,10 +120,6 @@ export default async function GroupsPage({ searchParams }: { searchParams: Searc
         })}
       </div>
 
-      {viewer.plan === 'premium' ? null : (
-        <AdSlot client={ads?.client ?? ''} slot={ads?.slots.groups ?? ''} />
-      )}
-
       <section className="groups-section">
         <div className="section-head">
           <div>
@@ -146,6 +143,10 @@ export default async function GroupsPage({ searchParams }: { searchParams: Searc
           />
         )}
       </section>
+
+      {showsAds(viewer) ? (
+        <AdSlot client={ads?.client ?? ''} slot={ads?.slots.groups ?? ''} />
+      ) : null}
 
       <section className="groups-section">
         <div className="section-head">

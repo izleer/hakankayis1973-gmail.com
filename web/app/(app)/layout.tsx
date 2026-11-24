@@ -2,12 +2,13 @@ import Script from 'next/script';
 import { AppShell } from '@/components/AppShell';
 import { requireViewer } from '@/lib/api';
 import { adConfig } from '@/lib/ads';
+import { showsAds } from '@/lib/plan';
 
 export default async function AppLayout({ children }: { children: React.ReactNode }) {
   const user = await requireViewer();
-  // Premium kullanıcılar için AdSense betiği hiç yüklenmez; reklam alanları
+  // Ücretsiz plan dışında AdSense betiği hiç yüklenmez; reklam alanları
   // da sayfalarda oluşturulmaz.
-  const ads = user.plan === 'premium' ? null : adConfig();
+  const ads = showsAds(user) ? adConfig() : null;
   return (
     <>
       <AppShell user={user}>{children}</AppShell>

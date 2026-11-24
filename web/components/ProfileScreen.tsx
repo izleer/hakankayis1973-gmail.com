@@ -1,4 +1,5 @@
 import Link from 'next/link';
+import { AdSlot } from './AdSlot';
 import { AssetGrid } from './AssetCard';
 import { EmptyState } from './EmptyState';
 import { FeedCard } from './FeedCard';
@@ -16,11 +17,13 @@ export async function ProfileScreen({
   assets,
   posts,
   social = null,
+  adSlot = null,
 }: {
   user: User;
   assets: Asset[];
   posts: FeedPost[];
   social?: SocialConnectionsResponse | null;
+  adSlot?: { client: string; slot: string } | null;
 }) {
   const { t, locale } = await getI18n();
   const stats = user.stats ?? {
@@ -152,6 +155,8 @@ export async function ProfileScreen({
           />
         )}
       </section>
+
+      {adSlot ? <AdSlot client={adSlot.client} slot={adSlot.slot} /> : null}
 
       {posts.length > 0 ? (
         <section className="section">

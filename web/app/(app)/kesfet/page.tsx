@@ -11,6 +11,7 @@ import { api, requireViewer } from '@/lib/api';
 import { adConfig } from '@/lib/ads';
 import { initials, typeIconName } from '@/lib/format';
 import { getI18n, getT } from '@/lib/i18n/server';
+import { showsAds } from '@/lib/plan';
 import type { Asset, CursorPage, FeedPost, FriendStatus, Paged, UserMini } from '@/lib/types';
 
 export async function generateMetadata(): Promise<Metadata> {
@@ -28,7 +29,7 @@ type Suggestion = UserMini & {
 export default async function ExplorePage() {
   const { t, locale } = await getI18n();
   const viewer = await requireViewer();
-  const ads = viewer.plan === 'premium' ? null : adConfig();
+  const ads = showsAds(viewer) ? adConfig() : null;
   const [feed, discover, suggestions] = await Promise.all([
     api<CursorPage<FeedPost>>('/v1/feed?scope=explore&limit=16'),
     api<Paged<Asset>>('/v1/assets/discover?limit=4&sort=recent'),
@@ -53,14 +54,20 @@ export default async function ExplorePage() {
         </Link>
       </header>
 
-      {viewer.plan === 'premium' ? null : (
-        <AdSlot client={ads?.client ?? ''} slot={ads?.slots.friends ?? ''} />
-      )}
-
       <div className="explore-layout">
         <section className="feed-column">
           {feed.items.length > 0 ? (
-            feed.items.map((post) => <FeedCard key={post.id} post={post} />)
+            <>
+              {feed.items.slice(0, 3).map((post) => (
+                <FeedCard key={post.id} post={post} />
+              ))}
+              {showsAds(viewer) ? (
+                <AdSlot client={ads?.client ?? ''} slot={ads?.slots.friends ?? ''} />
+              ) : null}
+              {feed.items.slice(3).map((post) => (
+                <FeedCard key={post.id} post={post} />
+              ))}
+            </>
           ) : (
             <EmptyState
               icon="compass"

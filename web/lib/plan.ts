@@ -77,6 +77,11 @@ export function limitsFor(user: Pick<User, 'plan'> | null | undefined): PlanLimi
   return PLAN_LIMITS[planOf(user)];
 }
 
+/** Reklam alanları yalnızca ücretsiz planda gösterilir. */
+export function showsAds(user: Pick<User, 'plan'> | null | undefined): boolean {
+  return limitsFor(user).ads;
+}
+
 /** Kayıt başına medya sınırı; planda tanımlı değer yoksa 10 kabul edilir. */
 export function mediaLimitFor(user: Pick<User, 'plan'> | null | undefined): number {
   return limitsFor(user).maxMediaPerEntry ?? 10;

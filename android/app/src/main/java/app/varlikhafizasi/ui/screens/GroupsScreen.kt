@@ -183,10 +183,6 @@ fun GroupsScreen(
             }
         }
 
-        if (!Plans.isPremium(viewer.plan)) {
-            item { BannerAd() }
-        }
-
         if (state.loading && data == null) item { LoadingBox() }
         if (state.error != null) {
             item {
@@ -224,6 +220,14 @@ fun GroupsScreen(
                     modifier = Modifier.padding(horizontal = 20.dp, vertical = 4.dp),
                     onClick = { onOpenGroup(group.slug) },
                 )
+            }
+        }
+
+        if (!Plans.isPremium(viewer.plan)) {
+            item {
+                Spacer(Modifier.height(8.dp))
+                BannerAd()
+                Spacer(Modifier.height(8.dp))
             }
         }
 

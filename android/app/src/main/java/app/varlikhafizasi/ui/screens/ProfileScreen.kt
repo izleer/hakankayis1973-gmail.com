@@ -82,6 +82,7 @@ import app.varlikhafizasi.ui.Loadable
 import app.varlikhafizasi.ui.VhViewModel
 import app.varlikhafizasi.ui.components.AssetRow
 import app.varlikhafizasi.ui.components.Avatar
+import app.varlikhafizasi.ui.components.BannerAd
 import app.varlikhafizasi.ui.components.EmptyState
 import app.varlikhafizasi.ui.components.ErrorBox
 import app.varlikhafizasi.ui.components.GoldRule
@@ -387,6 +388,13 @@ fun ProfileScreen(
                             modifier = Modifier.size(18.dp),
                         )
                     }
+                }
+            }
+
+            if (!premium) {
+                item {
+                    Spacer(Modifier.height(14.dp))
+                    BannerAd()
                 }
             }
 

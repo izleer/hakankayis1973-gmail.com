@@ -17,6 +17,7 @@ import {
   mediaSrc,
 } from '@/lib/format';
 import { getI18n, getT } from '@/lib/i18n/server';
+import { showsAds } from '@/lib/plan';
 import type {
   ArchiveResponse,
   Asset,
@@ -50,7 +51,7 @@ function groupMark(name: string, locale: string) {
 export default async function DashboardPage() {
   const viewer = await requireViewer();
   const { t, locale, tag } = await getI18n();
-  const ads = viewer.plan === 'premium' ? null : adConfig();
+  const ads = showsAds(viewer) ? adConfig() : null;
   const [stats, assets, media, groups] = await Promise.all([
     api<Stats>('/v1/stats'),
     api<Paged<Asset>>('/v1/assets?limit=6&sort=updated'),
@@ -193,10 +194,6 @@ export default async function DashboardPage() {
         </div>
       </section>
 
-      {viewer.plan !== 'premium' ? (
-        <AdSlot client={ads?.client ?? ''} slot={ads?.slots.home ?? ''} />
-      ) : null}
-
       {groups.items.length > 0 ? (
         <section className="section group-summary-section" aria-label={t('Grup özeti')}>
           <div className="section-head">
@@ -299,6 +296,10 @@ export default async function DashboardPage() {
             {t('Sayaçlar grubu son açtığından bu yana birikenleri gösterir.')}
           </p>
         </section>
+      ) : null}
+
+      {showsAds(viewer) ? (
+        <AdSlot client={ads?.client ?? ''} slot={ads?.slots.home ?? ''} />
       ) : null}
 
       <section className="section">

@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="ads_label">PUBLICIDAD</string>
-    <string name="ads_free_note">Los anuncios aparecen en el plan gratuito; pasa a Premium para quitarlos.</string>
+    <string name="ads_free_note">Los anuncios aparecen en el plan gratuito; pasa a Premium o Plus para quitarlos.</string>
 </resources>
