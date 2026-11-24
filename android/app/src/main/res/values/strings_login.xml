@@ -13,5 +13,4 @@
     <string name="login_field_password">Şifre</string>
     <string name="login_action_login">Giriş yap</string>
     <string name="login_action_register">Hesabı oluştur</string>
-    <string name="login_demo_hint">Demo hesabı: ada@demo.local · Demo1234!</string>
 </resources>

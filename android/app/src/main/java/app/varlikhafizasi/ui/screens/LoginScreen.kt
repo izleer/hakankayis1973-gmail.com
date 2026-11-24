@@ -272,13 +272,6 @@ fun LoginScreen(
         }
 
         Spacer(Modifier.height(18.dp))
-        Text(
-            text = stringResource(R.string.login_demo_hint),
-            style = MaterialTheme.typography.bodySmall,
-            color = Muted,
-            textAlign = TextAlign.Center,
-            modifier = Modifier.fillMaxWidth(),
-        )
         if (onUseLocal != null) {
             Spacer(Modifier.height(14.dp))
             Text(

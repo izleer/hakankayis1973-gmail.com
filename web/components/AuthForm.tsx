@@ -21,13 +21,6 @@ export function AuthForm({ mode }: { mode: Mode }) {
   const [showPassword, setShowPassword] = useState(false);
 
   const isRegister = mode === 'register';
-  const showDemo = process.env.NODE_ENV !== 'production';
-
-  function fillDemo() {
-    setIdentifier('ada@demo.local');
-    setPassword('Demo1234!');
-    setError(null);
-  }
 
   async function submit(event: React.FormEvent) {
     event.preventDefault();
@@ -122,7 +115,7 @@ export function AuthForm({ mode }: { mode: Mode }) {
               className="input"
               value={identifier}
               onChange={(event) => setIdentifier(event.target.value)}
-              placeholder="ada@demo.local"
+              placeholder={t('ada@ornek.com')}
               autoComplete="username"
               required
             />
@@ -171,18 +164,6 @@ export function AuthForm({ mode }: { mode: Mode }) {
           {!busy ? <Icon name="arrow-right" size={18} /> : null}
         </button>
       </form>
-
-      {!isRegister && showDemo ? (
-        <div className="demo-card">
-          <div>
-            <strong>{t('Demo hesap')}</strong>
-            <span>ada@demo.local · Demo1234!</span>
-          </div>
-          <button type="button" className="btn btn-ghost btn-xs" onClick={fillDemo}>
-            {t('Doldur')}
-          </button>
-        </div>
-      ) : null}
 
       <p className="auth-switch">
         {isRegister ? t('Zaten hesabın var mı? ') : t('Henüz hesabın yok mu? ')}

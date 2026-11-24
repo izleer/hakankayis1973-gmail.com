@@ -3695,32 +3695,6 @@ dd {
   margin-top: 4px;
 }
 
-.demo-card {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 12px;
-  margin-top: 16px;
-  padding: 11px 13px;
-  border: 1px dashed var(--line-strong);
-  border-radius: 11px;
-  background: rgba(251, 248, 241, 0.6);
-}
-
-.demo-card > div {
-  display: flex;
-  flex-direction: column;
-}
-
-.demo-card strong {
-  font-size: 0.76rem;
-}
-
-.demo-card span {
-  font-size: 0.72rem;
-  color: var(--ink-faint);
-}
-
 .auth-switch {
   margin-top: 20px;
   font-size: 0.82rem;

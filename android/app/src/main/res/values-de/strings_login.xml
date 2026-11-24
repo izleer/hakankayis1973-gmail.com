@@ -13,5 +13,4 @@
     <string name="login_field_password">Passwort</string>
     <string name="login_action_login">Anmelden</string>
     <string name="login_action_register">Konto erstellen</string>
-    <string name="login_demo_hint">Demo-Konto: ada@demo.local · Demo1234!</string>
 </resources>
