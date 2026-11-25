@@ -1,8 +1,8 @@
 # izleer — Proje Analizi
 
-> **İnceleme tarihi:** 25 Kasım 2026
-> **İncelenen sürüm:** `f948d3b` (`supabase-v2` ve `main` dalları)
-> **Kapsam:** `api/`, `web/`, `android/`, `db/`, `infra/`, `docker/`, dağıtım yapılandırmaları
+> **İnceleme tarihi:** 25 Kasım 2026  
+> **İncelenen sürüm:** `f948d3b` (`supabase-v2` ve `main` dalları)  
+> **Kapsam:** `api/`, `web/`, `android/`, `db/`, `infra/`, `docker/`, dağıtım yapılandırmaları  
 > **Yöntem:** Kaynak kod incelemesi, veritabanı migration taraması, rota envanteri, web/API typecheck, Android `assembleDebug` ve canlı ortam (Render + Supabase) doğrulamaları
 
 ---
@@ -307,14 +307,14 @@ Sahibi olunan, zaman içinde değişen ve kayıt tutulmaya değer her şey. Sist
 
 ### 7.2 Tablolar (28)
 
-**Kimlik ve oturum:** `users`, `sessions`, `social_connections`
-**Varlık:** `assets`, `asset_types`, `asset_type_translations`, `journal_entries`, `asset_measurements`, `ownerships`, `access_rules`
-**Medya:** `media`
-**Sosyal:** `posts`, `comments`, `likes`, `follows`, `friendships`, `blocks`, `notifications`
-**Topluluk:** `communities`, `memberships`, `group_assets`, `group_invitations`
-**Güvenlik/mod:** `reports`, `audit_events`
-**Plan:** `plan_limit_rules`, `plan_requests`, `user_limit_overrides`
-**Diğer:** `social_shares`
+- **Kimlik ve oturum:** `users`, `sessions`, `social_connections`
+- **Varlık:** `assets`, `asset_types`, `asset_type_translations`, `journal_entries`, `asset_measurements`, `ownerships`, `access_rules`
+- **Medya:** `media`
+- **Sosyal:** `posts`, `comments`, `likes`, `follows`, `friendships`, `blocks`, `notifications`
+- **Topluluk:** `communities`, `memberships`, `group_assets`, `group_invitations`
+- **Güvenlik/mod:** `reports`, `audit_events`
+- **Plan:** `plan_limit_rules`, `plan_requests`, `user_limit_overrides`
+- **Diğer:** `social_shares`
 
 ### 7.3 Enum tipleri (24)
 
@@ -430,7 +430,7 @@ Kurallar tek yerde toplanmıştır (`canViewAsset`, `canViewEntry`, `postIsVisib
 
 ### 9.1 Sayfalar (24 route)
 
-**Herkese açık:** `/giris`, `/kayit`
+**Herkese açık:** `/giris`, `/kayit`  
 **Uygulama içi:**
 
 | Route | İşlev |

@@ -1,7 +1,7 @@
 # izleer — Kullanıcı Kullanım Kılavuzu
 
-> **Sürüm:** 1.0 (`f948d3b`) · **Güncelleme:** 25 Kasım 2026
-> **Kapsam:** Web uygulaması (`izleer-web.onrender.com`) ve Android uygulaması
+> **Sürüm:** 1.0 (`f948d3b`) · **Güncelleme:** 25 Kasım 2026  
+> **Kapsam:** Web uygulaması (`izleer-web.onrender.com`) ve Android uygulaması  
 > **Diller:** Türkçe, İngilizce, Almanca, Fransızca, İspanyolca
 
 ---
