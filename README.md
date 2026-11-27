@@ -2,7 +2,7 @@
 
 Yaşayan ve süreç içinde değişen şeylerin hafızası: bonsai, evcil hayvan, bitki, heykel, tablo, ev… Her varlık için profil, zaman çizelgesi, fotoğraf/belge arşivi, bakım ve ölçüm kayıtları; seçili kişilerle paylaşım ve hafif bir keşfet katmanı.
 
-Bu depo, ürünün **v1** sürümünü uçtan uca içerir: analiz, PostgreSQL şeması ve demo verisi, Fastify API, Next.js web, Kotlin/Jetpack Compose Android ve bulut bağımsız üretim altyapısı.
+Bu depo, ürünün **v1** sürümünü uçtan uca içerir: analiz, PostgreSQL şeması ve demo verisi, Fastify API, Next.js web, Kotlin/Jetpack Compose Android, yerel öncelikli Expo mobil uygulaması ve bulut bağımsız üretim altyapısı.
 
 | Bileşen | Yol | Teknoloji |
 | --- | --- | --- |
@@ -10,6 +10,7 @@ Bu depo, ürünün **v1** sürümünü uçtan uca içerir: analiz, PostgreSQL ş
 | API | [`api/`](api) | Fastify 5, TypeScript, PostgreSQL 17 |
 | Web | [`web/`](web) | Next.js 15 App Router, React 19 |
 | Android | [`android/`](android) | Kotlin 2.0, Jetpack Compose, Material 3 |
+| Mobil (yerel öncelikli) | [`mobile/`](mobile) | Expo SDK 58, React Native 0.88, SQLite |
 | Veritabanı | [`db/`](db) | PostgreSQL migration + seed |
 | Altyapı | [`docker-compose.yml`](docker-compose.yml), [`infra/`](infra) | Docker Compose, Caddy, Terraform |
 
@@ -91,6 +92,19 @@ npm run dev                    # http://localhost:3000
 ### 4. Android
 
 `android/` klasörünü Android Studio'da açın. Komut satırından derlemek için JDK 17 ve SDK 35 hazır olmalı; `android/local.properties` içine `sdk.dir` yazın ve `cd android && gradle assembleDebug` çalıştırın. Ayrıntılar, emülatör adresi ve APK yolu için [`android/README.md`](android/README.md).
+
+### 5. Mobil (yerel öncelikli)
+
+`mobile/` ayrı bir Expo uygulamasıdır; cihazdaki SQLite tek doğruluk kaynağıdır. Varlık, kayıt, ölçüm, hatırlatma, fotoğraf ve raporlar internet olmadan çalışır. PDF/CSV/XLSX raporları, klasörlü fotoğraf ZIP'i ve `.izleer` tam yedeği cihazda üretilir.
+
+```powershell
+cd mobile
+npm.cmd install
+npm.cmd start          # Expo geliştirme sunucusu
+npm.cmd run android    # Android cihaz/emülatör
+```
+
+Ayrıntılar: [`mobile/README.md`](mobile/README.md) ve [`docs/MOBIL-LOCAL-FIRST.md`](docs/MOBIL-LOCAL-FIRST.md).
 
 ### Demo hesaplar
 
