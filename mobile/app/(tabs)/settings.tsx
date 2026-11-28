@@ -120,9 +120,9 @@ export default function SettingsScreen() {
         </Card>
 
         <Notice title="Premium ve Premium Plus yakında" tone="info">
-          Abonelikler Google Play / App Store üzerinden yönetilecek ve sunucuda doğrulanacak. Bu sürümde
-          satın alma ekranı, mağaza bağlantısı ve sunucu doğrulaması bulunmuyor; hiçbir ücret alınmaz.
-          Abonelik sona erdiğinde verileriniz silinmez.
+          Abonelikler Google Play / App Store üzerinden yönetilecek ve sunucuda doğrulanacak. Sunucu
+          tarafı doğrulama altyapısı hazır; bu sürümde satın alma ekranı ve mağaza bağlantısı yok,
+          hiçbir ücret alınmaz. Abonelik sona erdiğinde verileriniz silinmez.
         </Notice>
 
         <SectionTitle title="Depolama" description="Tüm veriler bu cihazda tutulur." />

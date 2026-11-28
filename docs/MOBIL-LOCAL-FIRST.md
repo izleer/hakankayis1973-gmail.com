@@ -518,17 +518,24 @@ Aynı mağaza işlemi birden fazla İzleer hesabına bağlanamaz; bu kontrol
 
 ### 7.4. API uçları (Aşama 3)
 
-Mevcut Fastify API'ye eklenecek modül. ASP.NET Core'a taşınmayacak.
+Mevcut Fastify API'ye eklendi (`api/src/routes/billing.ts`, `api/src/lib/billing.ts`);
+ASP.NET Core'a taşınmadı. Mağaza kimlik bilgileri tanımlanana kadar uçlar
+`503 BILLING_NOT_CONFIGURED` döner; istemci bu durumda satın alma başlatmaz.
 
-| Yöntem | Yol | Görev |
-|---|---|---|
-| `POST` | `/v1/billing/google/verify` | Purchase token'ı Google Play Developer API ile doğrular |
-| `POST` | `/v1/billing/apple/verify` | StoreKit imzalı işlemi doğrular |
-| `GET` | `/v1/billing/status` | Hesabın güncel plan/yetki durumunu döner |
-| `POST` | `/v1/billing/restore` | Mağaza satın alımlarını hesaba geri bağlar |
-| `POST` | `/v1/webhooks/google` | Google gerçek zamanlı bildirimleri |
-| `POST` | `/v1/webhooks/apple` | App Store Server Notifications V2 |
-| `GET` | `/v1/billing/products` | Mağaza ürün kimlikleri ve fiyat meta verisi |
+| Yöntem | Yol | Görev | Durum |
+|---|---|---|---|
+| `POST` | `/v1/billing/google/verify` | Purchase token'ı Google Play Developer API ile doğrular | ✅ |
+| `POST` | `/v1/billing/apple/verify` | StoreKit imzalı işlemi doğrular | ✅ |
+| `GET` | `/v1/billing/status` | Hesabın güncel plan/yetki durumunu döner | ✅ |
+| `POST` | `/v1/billing/restore` | Mağaza satın alımlarını hesaba geri bağlar | ✅ |
+| `POST` | `/v1/webhooks/google` | Google gerçek zamanlı bildirimleri | ✅* |
+| `POST` | `/v1/webhooks/apple` | App Store Server Notifications V2 | ✅ |
+| `GET` | `/v1/billing/products` | Mağaza ürün kimlikleri ve yetki meta verisi | ✅ |
+
+\* Google Pub/Sub push ucu `GOOGLE_PLAY_WEBHOOK_AUDIENCE` ile OIDC jetonu
+doğrular; bu tanımlı değilse `x-izleer-webhook-secret` header'ındaki
+`GOOGLE_PLAY_WEBHOOK_SECRET` kullanılır. Üretimde OIDC önerilir. Apple
+webhook'u JWS imzasını Apple kök sertifikasına kadar doğrular.
 
 Örnek `POST /v1/billing/google/verify` gövdesi:
 
@@ -591,6 +598,36 @@ none → pending → active → grace → expired
 `pending` durumu Premium yetkisi vermez. `grace` döneminde mağaza politikasına
 göre sınırlı erişim verilebilir; veri erişimi her durumda açıktır.
 
+### 7.8. Sunucu uygulaması (tamamlandı)
+
+| Bileşen | Yol | Not |
+|---|---|---|
+| Veritabanı | `db/migrations/019_billing.sql` | `store_transactions`, `subscription_entitlements`, `store_events` |
+| Doğrulama | `api/src/lib/billing.ts` | Google Play `subscriptionsv2`, Apple App Store Server API, JWS zincir doğrulaması |
+| Uçlar | `api/src/routes/billing.ts` | verify, status, restore, products, webhook |
+| Ortam | `api/.env.example` | `GOOGLE_PLAY_*`, `APPLE_*`, `BILLING_*` |
+| Testler | `api/tests/billing.test.ts` | Ürün eşleme, durum eşleme, JWS/OIDC reddi (16 test) |
+
+Güvenlik notları:
+
+- Aynı mağaza işlemi (`store` + `transaction_ref`) ikinci bir hesaba bağlanamaz.
+- Google purchase token'ı, Apple `originalTransactionId`'si kimlik olarak kullanılır.
+- Google aboneliği doğrulama sırasında onaylanır (`acknowledge`); onay hatası
+  erişimi kesmez, sonraki doğrulamada yeniden denenir.
+- Apple JWS'i `x5c` zinciri ve Apple Root CA - G3 üzerinden doğrulanır; imza
+  geçmezse makbuz reddedilir.
+- Ham makbuz saklanmaz; yalnızca durum/bitiş özeti ve SHA-256 özeti tutulur.
+- Yetki, etkin işlemler arasından en yüksek plan (Plus > Premium) seçilerek
+  hesaplanır; etkin işlem yoksa plan `free` olur, **veri silinmez**.
+
+Hâlâ eksik olan: mobil uygulamada `expo-iap` / StoreKit istemcisi, development
+build, mağaza ürünlerinin oluşturulması ve gerçek cihazda satın alma testi.
+Bu adımlar mağaza kimlik bilgileri olmadan doğrulanamaz.
+
+> Adlandırma notu: API planı `plus` olarak döner; mobil `subscription_cache`
+> tablosu `premium_plus` adını kullanır. İstemci bağlanırken bu iki ad
+> eşlenmelidir.
+
 ---
 
 ## 8. Fonksiyonel gereksinimler
@@ -615,10 +652,10 @@ PDF'in gereksinim tablosu boş geldiği için bu tablo anlatıdan yeniden üreti
 | FR-13 | Dışa aktarma/yedeklemenin ücretsiz olması | P1 | ✅ |
 | FR-14 | Depolama kullanımı ve önbellek temizliği | P1 | ✅ |
 | FR-15 | Hesap oluşturma/giriş (Supabase Auth) | P2 | ⏳ |
-| FR-16 | Google Play Billing + sunucu doğrulama | P2 | ⏳ |
-| FR-17 | Apple StoreKit + sunucu doğrulama | P2 | ⏳ |
-| FR-18 | Satın alımları geri yükleme | P2 | ⏳ |
-| FR-19 | 7 günlük çevrimdışı yetki önbelleği | P2 | ⏳ |
+| FR-16 | Google Play Billing + sunucu doğrulama | P2 | 🟡 Sunucu ✅, istemci ⏳ |
+| FR-17 | Apple StoreKit + sunucu doğrulama | P2 | 🟡 Sunucu ✅, istemci ⏳ |
+| FR-18 | Satın alımları geri yükleme | P2 | 🟡 Sunucu ✅, istemci ⏳ |
+| FR-19 | 7 günlük çevrimdışı yetki önbelleği | P2 | 🟡 Sunucu alanı ✅, istemci ⏳ |
 | FR-20 | Premium özellik kapıları | P2 | ⏳ |
 | FR-21 | Mağaza abonelik yönetimi bağlantısı | P2 | ⏳ |
 | FR-22 | Web'de arşiv içe aktarma | P2 | ⏳ |
@@ -711,13 +748,14 @@ PDF'in gereksinim tablosu boş geldiği için bu tablo anlatıdan yeniden üreti
 |---|---|---|
 | **1 — Yerel veri altyapısı** | SQLite, medya, migration, yerel rapor, veri erişimi | ✅ Tamam |
 | **2 — Bilgisayara aktarım** | PDF/CSV/XLSX, fotoğraf ZIP, `.izleer`, geri yükleme, ilerleme, SHA-256 | ✅ Tamam |
-| **3 — Ödeme ve yetkilendirme** | Google Play Billing, StoreKit, Fastify doğrulama, abonelik tabloları, geri yükleme | ⏳ Planlı |
+| **3 — Ödeme ve yetkilendirme** | Google Play Billing, StoreKit, Fastify doğrulama, abonelik tabloları, geri yükleme | 🟡 Sunucu ✅ · mobil mağaza SDK'sı ⏳ |
 | **4 — Web entegrasyonu** | Arşiv içe aktarma, web raporları, gelişmiş karşılaştırma | ⏳ Planlı |
 | **5 — İleri özellikler** | QR/Wi-Fi, otomatik bulut yedeği, isteğe bağlı senkronizasyon, çoklu cihaz | ⏳ Planlı |
 
-**İlk sürüm kapsamı (bu teslim):** Aşama 1 + 2. Ödeme altyapısı için yalnızca
-`subscription_cache` tablosu ve arayüz bilgilendirmesi hazırdır; gerçek satın alma
-yoktur.
+**İlk sürüm kapsamı (bu teslim):** Aşama 1 + 2. Aşama 3 için sunucu tarafı
+tamamlandı: veritabanı tabloları, Google/Apple doğrulama kütüphanesi, uçlar,
+webhook'lar ve testler. Mobil uygulamada mağaza SDK'sı ve satın alma ekranı
+henüz yoktur; bu nedenle uygulama hiçbir ücret almaz ve Premium kilidi uygulamaz.
 
 ---
 
@@ -728,8 +766,9 @@ yoktur.
 - **QR/Wi-Fi aktarımı yok.** Yalnızca işletim sistemi paylaşım ekranı vardır.
 - **Otomatik kaldığı yerden devam yok.** İş yeniden başlatılabilir; yarım dosya
   güvenli biçimde atılır.
-- **IAP test edilemedi.** Mağaza kimlik bilgileri ve development build olmadan
-  gerçek satın alma doğrulanamaz.
+- **IAP istemcisi yok.** Sunucu doğrulaması hazır ancak mobil uygulamada mağaza
+  SDK'sı, ürün tanımları ve development build olmadan gerçek satın alma
+  başlatılamaz ve test edilemez.
 - **Rapordaki fotoğraf sayısı sınırlı.** PDF başına 28, varlık başına 8, dosya
   başına 2,5 MB. Tam arşiv için fotoğraf ZIP'i kullanılmalı.
 - **Paylaşım durumu kesin değil.** `SHARED` hedefe kaydı kanıtlamaz.
@@ -765,6 +804,9 @@ npm.cmd run android
 - [x] `tsc --noEmit` temiz.
 - [x] Vitest birim testleri geçiyor.
 - [x] Android için `expo export` paketi üretiliyor.
+- [x] API `tsc --noEmit`, Vitest (94 test) ve `npm run build` temiz.
+- [x] Aşama 3 veritabanı migration'ı ve doğrulama uçları eklendi; mağaza
+      anahtarları tanımlanmadan uçlar `503 BILLING_NOT_CONFIGURED` döner.
 - [x] Eksik rota yok (`/settings`, `/transfer/jobs` dahil).
 - [x] Yedek manifesti, SHA-256 ve geri yükleme birleştirme kuralları uygulanmış.
 - [x] Dışa aktarma ve yedekleme ücretsiz; abonelik kapısı yok.

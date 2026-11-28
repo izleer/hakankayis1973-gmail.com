@@ -59,6 +59,27 @@ const schema = z.object({
   SOCIAL_TOKEN_KEY: optionalText,
   SOCIAL_WEB_RETURN_URL: optionalUrl,
   MEDIA_PUBLIC_BASE_URL: optionalUrl,
+
+  // --- Mağaza abonelikleri (Aşama 3) ---------------------------------------
+  // Çevrimdışı yetki toleransı; istemci bu süre içinde önbellekten yararlanır.
+  BILLING_OFFLINE_GRACE_DAYS: z.coerce.number().int().min(0).max(60).default(7),
+  // Ürün kimliklerini değiştirmek için JSON: [{ store, productId, plan }]
+  BILLING_PRODUCTS_JSON: optionalText,
+  // Google Play: hizmet hesabı JSON'u (tek satır) veya dosya yolu.
+  GOOGLE_PLAY_PACKAGE_NAME: z.string().trim().default('app.izleer.mobile'),
+  GOOGLE_PLAY_SERVICE_ACCOUNT_JSON: optionalText,
+  GOOGLE_PLAY_SERVICE_ACCOUNT_FILE: optionalText,
+  // Pub/Sub push uç noktası: OIDC audience veya paylaşılan sır.
+  GOOGLE_PLAY_WEBHOOK_AUDIENCE: optionalUrl,
+  GOOGLE_PLAY_WEBHOOK_SECRET: optionalText,
+  // Apple App Store Server API.
+  APPLE_BUNDLE_ID: z.string().trim().default('app.izleer.mobile'),
+  APPLE_APP_ID: optionalText,
+  APPLE_ISSUER_ID: optionalText,
+  APPLE_KEY_ID: optionalText,
+  APPLE_PRIVATE_KEY: optionalText,
+  APPLE_ROOT_CA_PEM: optionalText,
+  APPLE_ENVIRONMENT: z.enum(['sandbox', 'production']).default('production'),
 }).superRefine((value, ctx) => {
   if (
     value.NODE_ENV === 'production' &&

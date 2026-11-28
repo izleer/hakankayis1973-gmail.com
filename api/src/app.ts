@@ -29,6 +29,7 @@ import { planRoutes } from './routes/plans.js';
 import { searchRoutes } from './routes/search.js';
 import { statsRoutes } from './routes/stats.js';
 import { socialRoutes } from './routes/social.js';
+import { billingRoutes, billingWebhookRoutes } from './routes/billing.js';
 
 declare module 'fastify' {
   interface FastifyRequest {
@@ -296,6 +297,8 @@ export async function buildApp(): Promise<FastifyInstance> {
   await app.register(searchRoutes, { prefix: '/v1/search' });
   await app.register(statsRoutes, { prefix: '/v1/stats' });
   await app.register(socialRoutes, { prefix: '/v1/social' });
+  await app.register(billingRoutes, { prefix: '/v1/billing' });
+  await app.register(billingWebhookRoutes, { prefix: '/v1/webhooks' });
 
   return app;
 }

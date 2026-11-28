@@ -13,7 +13,7 @@ Bu uygulama mevcut web ve Kotlin/Android ürünlerinden **ayrıdır**. Mobil ana
 |---|---|---|
 | 1 | SQLite, medya, migration, yerel raporlar | ✅ |
 | 2 | PDF/CSV/XLSX, fotoğraf ZIP, `.izleer` yedek, geri yükleme | ✅ |
-| 3 | Google Play / App Store abonelik ve sunucu doğrulaması | ⏳ |
+| 3 | Google Play / App Store abonelik ve sunucu doğrulaması | 🟡 Sunucu hazır, mağaza SDK'sı ⏳ |
 | 4 | Web arşiv içe aktarma ve raporları | ⏳ |
 | 5 | QR/Wi-Fi, AES yedek, otomatik bulut | ⏳ |
 
@@ -100,6 +100,8 @@ Uygulama bu sürümde ağ üzerinden veri göndermez; reklam veya analitik yoktu
 - QR/Wi-Fi aktarımı yok; paylaşım işletim sistemi ekranıyla yapılır.
 - "Paylaşıldı" durumu hedefe kaydı kanıtlamaz.
 - Mağaza satın alımı bu sürümde yok; Premium ekranı yalnızca bilgilendirir.
+  Sunucu tarafı doğrulama altyapısı (`api/src/lib/billing.ts`, migration 019)
+  hazırdır ancak uygulama mağazaya bağlı değildir.
 - PDF raporuna en fazla 28 fotoğraf eklenir.
 - Gerçek cihaz/emülatör olmadan arayüz çalışma zamanı doğrulanamaz.
 
